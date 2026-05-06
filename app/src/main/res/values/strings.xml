@@ -1,0 +1,112 @@
+<resources>
+    <string name="app_name">Net Worth</string>
+
+    <!-- Navigation -->
+    <string name="nav_accounts">Accounts</string>
+    <string name="nav_analytics">Analytics</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home - Header -->
+    <string name="greeting_hi">Hi, %1$s</string>
+
+    <!-- Home - Hero Card -->
+    <string name="label_net_worth_upper">NET WORTH</string>
+    <string name="label_this_month_suffix">%1$s this month</string>
+
+    <!-- Home - FAB -->
+    <string name="label_add_entry">Add entry</string>
+
+    <!-- Home - Stats -->
+    <string name="stat_avg_month">Avg / month</string>
+    <string name="stat_last_12_mo">last 12 mo</string>
+    <string name="stat_months_up">months ↑</string>
+    <string name="stat_streak">Streak</string>
+    <string name="stat_ytd_growth">YTD growth</string>
+
+    <!-- Home - Insights section -->
+    <string name="label_insights">Insights</string>
+    <string name="label_new_count">%1$d new</string>
+
+    <!-- Insights content -->
+    <string name="insight_growth_title">You\'re growing steadily</string>
+    <string name="insight_growth_desc">%1$d months of positive change. Keep the rhythm.</string>
+    <string name="insight_best_month_title">Best month so far: %1$s</string>
+    <string name="insight_best_month_desc">Net worth grew by %1$s — your strongest month.</string>
+    <string name="insight_forecast_title">At this pace, you\'ll hit %1$s in %2$s</string>
+    <string name="insight_forecast_desc">Forecast based on your last 12 months growth.</string>
+
+    <!-- Add Entry Sheet -->
+    <string name="btn_save_snapshot">Save snapshot</string>
+    <string name="chip_pick_date">Pick date</string>
+    <string name="chip_today">Today</string>
+    <string name="chip_yesterday">Yesterday</string>
+    <string name="subtitle_net_worth_question">What\'s your net worth today?</string>
+    <string name="title_new_snapshot">NEW SNAPSHOT</string>
+
+    <!-- Date Picker -->
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_ok">OK</string>
+
+    <!-- Settings sections -->
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_developer">Developer Tools</string>
+    <string name="settings_section_language">Language</string>
+
+    <!-- Theme options -->
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_system">System Default</string>
+
+    <!-- Language options -->
+    <string name="language_english">English</string>
+    <string name="language_greek">Ελληνικά</string>
+
+    <!-- Developer Tools -->
+    <string name="btn_generate_data">Generate 12 Months of Data</string>
+    <string name="btn_generating">Generating…</string>
+    <string name="developer_generate_description">Inserts 12 months of realistic net worth history. Clears existing data first.</string>
+    <string name="developer_generate_title">Generate Sample Data</string>
+    <string name="dummy_data_failure">Failed: %1$s</string>
+    <string name="dummy_data_success">12 months of data generated!</string>
+
+    <!-- History -->
+    <string name="btn_show_all">Show all</string>
+    <string name="label_empty_history">No entries yet</string>
+    <string name="section_recent_entries">Recent Entries</string>
+    <string name="title_history">History</string>
+
+    <!-- Settings Screen -->
+    <string name="title_settings">Settings</string>
+    <string name="label_tracking_since">Tracking since %1$s • %2$d snapshots</string>
+    <string name="btn_edit">Edit</string>
+    <string name="header_preferences">PREFERENCES</string>
+    <string name="label_language">Language</string>
+    <string name="label_theme">Theme</string>
+    <string name="label_currency">Currency</string>
+    <string name="theme_auto">Auto</string>
+    <string name="currency_eur">€ EUR</string>
+    <string name="currency_usd">$ USD</string>
+    <string name="currency_gbp">£ GBP</string>
+
+    <string name="header_smart_features">SMART FEATURES</string>
+    <string name="label_forecasts">Forecasts</string>
+    <string name="desc_forecasts">Project future net worth on the chart</string>
+    <string name="label_monthly_reminder">Monthly reminder</string>
+    <string name="desc_monthly_reminder">Nudge me on the 1st to log a snapshot</string>
+    <string name="label_biometric_lock">Biometric lock</string>
+    <string name="desc_biometric_lock">Require fingerprint to open</string>
+
+    <!-- Profile -->
+    <string name="btn_continue">Continue</string>
+    <string name="btn_save">Save Changes</string>
+    <string name="desc_setup_profile">Enter your details to get started</string>
+    <string name="desc_setup_target">What\'s your net worth goal?</string>
+    <string name="label_email">Email</string>
+    <string name="label_name">Name</string>
+    <string name="label_target">Target</string>
+    <string name="label_target_amount">Target amount</string>
+    <string name="title_edit_profile">Edit Profile</string>
+    <string name="title_setup_profile">Create Profile</string>
+    <string name="title_setup_target">Set your target</string>
+</resources>

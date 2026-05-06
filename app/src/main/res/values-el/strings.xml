@@ -1,0 +1,112 @@
+<resources>
+    <string name="app_name">Καθαρή Αξία</string>
+
+    <!-- Navigation -->
+    <string name="nav_accounts">Λογαριασμοί</string>
+    <string name="nav_analytics">Αναλύσεις</string>
+    <string name="nav_home">Αρχική</string>
+    <string name="nav_settings">Ρυθμίσεις</string>
+
+    <!-- Home - Header -->
+    <string name="greeting_hi">Γεια, %1$s</string>
+
+    <!-- Home - Hero Card -->
+    <string name="label_net_worth_upper">ΚΑΘΑΡΗ ΑΞΙΑ</string>
+    <string name="label_this_month_suffix">%1$s αυτό τον μήνα</string>
+
+    <!-- Home - FAB -->
+    <string name="label_add_entry">Προσθήκη</string>
+
+    <!-- Home - Stats -->
+    <string name="stat_avg_month">Μέσος / μήνα</string>
+    <string name="stat_last_12_mo">τελ. 12 μήνες</string>
+    <string name="stat_months_up">μήνες ↑</string>
+    <string name="stat_streak">Σερί</string>
+    <string name="stat_ytd_growth">Ετήσια ανάπτυξη</string>
+
+    <!-- Home - Insights section -->
+    <string name="label_insights">Παρατηρήσεις</string>
+    <string name="label_new_count">%1$d νέα</string>
+
+    <!-- Insights content -->
+    <string name="insight_growth_title">Σταθερή ανάπτυξη</string>
+    <string name="insight_growth_desc">%1$d μήνες θετικής ανάπτυξης. Συνεχίστε!</string>
+    <string name="insight_best_month_title">Καλύτερος μήνας: %1$s</string>
+    <string name="insight_best_month_desc">Η αξία αυξήθηκε κατά %1$s — ο δυνατότερος μήνας σου.</string>
+    <string name="insight_forecast_title">Με αυτό το ρυθμό, θα φτάσεις %1$s τον %2$s</string>
+    <string name="insight_forecast_desc">Πρόβλεψη βάσει των τελευταίων 12 μηνών.</string>
+
+    <!-- Add Entry Sheet -->
+    <string name="btn_save_snapshot">Αποθήκευση</string>
+    <string name="chip_pick_date">Επιλογή</string>
+    <string name="chip_today">Σήμερα</string>
+    <string name="chip_yesterday">Χθες</string>
+    <string name="subtitle_net_worth_question">Ποια είναι η καθαρή σου αξία σήμερα;</string>
+    <string name="title_new_snapshot">ΝΕΑ ΕΓΓΡΑΦΗ</string>
+
+    <!-- Date Picker -->
+    <string name="btn_cancel">Ακύρωση</string>
+    <string name="btn_ok">OK</string>
+
+    <!-- Settings sections -->
+    <string name="settings_section_appearance">Εμφάνιση</string>
+    <string name="settings_section_developer">Εργαλεία Ανάπτυξης</string>
+    <string name="settings_section_language">Γλώσσα</string>
+
+    <!-- Theme options -->
+    <string name="theme_dark">Σκοτεινό</string>
+    <string name="theme_light">Φωτεινό</string>
+    <string name="theme_system">Προεπιλογή Συστήματος</string>
+
+    <!-- Language options -->
+    <string name="language_english">English</string>
+    <string name="language_greek">Ελληνικά</string>
+
+    <!-- Developer Tools -->
+    <string name="btn_generate_data">Δημιουργία 12 Μηνών</string>
+    <string name="btn_generating">Δημιουργία…</string>
+    <string name="developer_generate_description">Εισάγει 12 μήνες ιστορίας. Διαγράφει τα υπάρχοντα δεδομένα πρώτα.</string>
+    <string name="developer_generate_title">Δημιουργία Δεδομένων</string>
+    <string name="dummy_data_failure">Αποτυχία: %1$s</string>
+    <string name="dummy_data_success">12 μήνες δεδομένων δημιουργήθηκαν!</string>
+
+    <!-- History -->
+    <string name="btn_show_all">Εμφάνιση όλων</string>
+    <string name="label_empty_history">Δεν υπάρχουν εγγραφές ακόμα</string>
+    <string name="section_recent_entries">Πρόσφατες Εγγραφές</string>
+    <string name="title_history">Ιστορικό</string>
+
+    <!-- Settings Screen -->
+    <string name="title_settings">Ρυθμίσεις</string>
+    <string name="label_tracking_since">Παρακολούθηση από %1$s • %2$d εγγραφές</string>
+    <string name="btn_edit">Επεξεργασία</string>
+    <string name="header_preferences">ΠΡΟΤΙΜΗΣΕΙΣ</string>
+    <string name="label_language">Γλώσσα</string>
+    <string name="label_theme">Θέμα</string>
+    <string name="label_currency">Νόμισμα</string>
+    <string name="theme_auto">Αυτόματο</string>
+    <string name="currency_eur">€ EUR</string>
+    <string name="currency_usd">$ USD</string>
+    <string name="currency_gbp">£ GBP</string>
+
+    <string name="header_smart_features">ΕΞΥΠΝΕΣ ΛΕΙΤΟΥΡΓΙΕΣ</string>
+    <string name="label_forecasts">Προβλέψεις</string>
+    <string name="desc_forecasts">Προβολή μελλοντικής αξίας στο γράφημα</string>
+    <string name="label_monthly_reminder">Μηνιαία υπενθύμιση</string>
+    <string name="desc_monthly_reminder">Υπενθύμιση την 1η του μήνα</string>
+    <string name="label_biometric_lock">Βιομετρικό κλείδωμα</string>
+    <string name="desc_biometric_lock">Απαίτηση δακτυλικού αποτυπώματος</string>
+
+    <!-- Profile -->
+    <string name="btn_continue">Συνέχεια</string>
+    <string name="btn_save">Αποθήκευση Αλλαγών</string>
+    <string name="desc_setup_profile">Εισάγετε τα στοιχεία σας για να ξεκινήσετε</string>
+    <string name="desc_setup_target">Ποιος είναι ο στόχος σου;</string>
+    <string name="label_email">Email</string>
+    <string name="label_name">Όνομα</string>
+    <string name="label_target">Στόχος</string>
+    <string name="label_target_amount">Ποσό στόχου</string>
+    <string name="title_edit_profile">Επεξεργασία Προφίλ</string>
+    <string name="title_setup_profile">Δημιουργία Προφίλ</string>
+    <string name="title_setup_target">Ορίστε τον στόχο σας</string>
+</resources>

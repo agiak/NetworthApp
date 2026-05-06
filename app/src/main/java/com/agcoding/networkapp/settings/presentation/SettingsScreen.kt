@@ -1,0 +1,420 @@
+package com.agcoding.networkapp.settings.presentation
+
+import android.app.Activity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.agcoding.networkapp.R
+import com.agcoding.networkapp.settings.domain.model.AppLanguage
+import com.agcoding.networkapp.settings.domain.model.AppTheme
+import com.agcoding.networkapp.settings.presentation.components.SettingsSectionHeader
+import com.agcoding.networkapp.shared.ui.theme.DarkBackground
+import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
+import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
+
+@Composable
+fun SettingsScreen(
+    onNavigateToProfileEdit: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    SettingsContent(
+        uiState = uiState,
+        onIntent = { intent ->
+            if (intent is SettingsIntent.NavigateToProfileEdit) {
+                onNavigateToProfileEdit()
+            } else {
+                viewModel.onIntent(intent)
+            }
+        }
+    )
+}
+
+@Composable
+private fun SettingsContent(
+    uiState: SettingsUiState,
+    onIntent: (SettingsIntent) -> Unit
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    LaunchedEffect(uiState.dummyDataResult) {
+        uiState.dummyDataResult?.let { result ->
+            val message = when (result) {
+                is DummyDataResult.Success -> context.getString(R.string.dummy_data_success)
+                is DummyDataResult.Failure -> context.getString(R.string.dummy_data_failure, result.cause ?: "")
+            }
+            snackbarHostState.showSnackbar(message)
+            onIntent(SettingsIntent.ClearDummyDataResult)
+        }
+    }
+
+    LaunchedEffect(uiState.shouldRestartActivity) {
+        if (uiState.shouldRestartActivity) {
+            onIntent(SettingsIntent.ActivityRestarted)
+            activity?.recreate()
+        }
+    }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            Text(
+                text = stringResource(R.string.title_settings),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(16.dp),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 100.dp)
+        ) {
+            item {
+                ProfileCard(
+                    name = uiState.userProfile.name.ifBlank { "User" },
+                    since = uiState.trackingSince,
+                    snapshots = uiState.snapshotCount,
+                    onEditClick = { onIntent(SettingsIntent.NavigateToProfileEdit) }
+                )
+            }
+
+            item { SettingsSectionHeader(title = stringResource(R.string.header_preferences)) }
+
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column {
+                        PreferenceRow(
+                            icon = Icons.Default.Info, // Placeholder for Translate
+                            title = stringResource(R.string.label_language),
+                            selectedOption = when (uiState.appLanguage) {
+                                AppLanguage.ENGLISH -> 0
+                                AppLanguage.GREEK -> 1
+                            },
+                            options = listOf(
+                                stringResource(R.string.language_english),
+                                stringResource(R.string.language_greek)
+                            ),
+                            onOptionSelected = {
+                                val lang = if (it == 0) AppLanguage.ENGLISH else AppLanguage.GREEK
+                                onIntent(SettingsIntent.SetLanguage(lang))
+                            }
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        PreferenceRow(
+                            icon = Icons.Default.Settings, // Placeholder for Palette
+                            title = stringResource(R.string.label_theme),
+                            selectedOption = when (uiState.appTheme) {
+                                AppTheme.LIGHT -> 0
+                                AppTheme.DARK -> 1
+                                AppTheme.SYSTEM -> 2
+                            },
+                            options = listOf(
+                                stringResource(R.string.theme_light),
+                                stringResource(R.string.theme_dark),
+                                stringResource(R.string.theme_auto)
+                            ),
+                            onOptionSelected = {
+                                val theme = when (it) {
+                                    0 -> AppTheme.LIGHT
+                                    1 -> AppTheme.DARK
+                                    else -> AppTheme.SYSTEM
+                                }
+                                onIntent(SettingsIntent.SetTheme(theme))
+                            }
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        PreferenceRow(
+                            icon = Icons.Default.Info, // Placeholder for Payments
+                            title = stringResource(R.string.label_currency),
+                            selectedOption = 0,
+                            options = listOf(
+                                stringResource(R.string.currency_eur),
+                                stringResource(R.string.currency_usd),
+                                stringResource(R.string.currency_gbp)
+                            ),
+                            onOptionSelected = {}
+                        )
+                    }
+                }
+            }
+
+            item { SettingsSectionHeader(title = stringResource(R.string.header_smart_features)) }
+
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column {
+                        SmartFeatureRow(
+                            icon = Icons.Default.Info, // Placeholder for TrendingUp
+                            title = stringResource(R.string.label_forecasts),
+                            description = stringResource(R.string.desc_forecasts),
+                            isChecked = true
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        SmartFeatureRow(
+                            icon = Icons.Default.Notifications,
+                            title = stringResource(R.string.label_monthly_reminder),
+                            description = stringResource(R.string.desc_monthly_reminder),
+                            isChecked = true
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        SmartFeatureRow(
+                            icon = Icons.Default.Lock,
+                            title = stringResource(R.string.label_biometric_lock),
+                            description = stringResource(R.string.desc_biometric_lock),
+                            isChecked = false
+                        )
+                    }
+                }
+            }
+            
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(
+                    onClick = { onIntent(SettingsIntent.GenerateDummyData) },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(text = "Generate Debug Data")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileCard(name: String, since: String, snapshots: Int, onEditClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .height(110.dp),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkBackground)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF76C893)), // Lighter green for avatar
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = name.take(1).uppercase(), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = name, color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(
+                    text = stringResource(R.string.label_tracking_since, since, snapshots),
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            Button(
+                onClick = onEditClick,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray.copy(alpha = 0.5f)),
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+            ) {
+                Text(text = stringResource(R.string.btn_edit), color = Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PreferenceRow(
+    icon: ImageVector,
+    title: String,
+    selectedOption: Int,
+    options: List<String>,
+    onOptionSelected: (Int) -> Unit
+) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                modifier = Modifier.size(32.dp),
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurface)
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        SegmentedControl(
+            options = options,
+            selectedOption = selectedOption,
+            onOptionSelected = onOptionSelected
+        )
+    }
+}
+
+@Composable
+private fun SegmentedControl(
+    options: List<String>,
+    selectedOption: Int,
+    onOptionSelected: (Int) -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().height(48.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+    ) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            options.forEachIndexed { index, option ->
+                val isSelected = index == selectedOption
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxSize()
+                        .padding(4.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(if (isSelected) DarkBackground else Color.Transparent)
+                        .clickable { onOptionSelected(index) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = option,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SmartFeatureRow(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    isChecked: Boolean
+) {
+    var checked by remember { mutableStateOf(isChecked) }
+    
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = RoundedCornerShape(10.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
+            }
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(text = description, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = { checked = it },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = PositiveGreen,
+                uncheckedThumbColor = Color.White,
+                uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f),
+                uncheckedBorderColor = Color.Transparent
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingsContentPreview() {
+    NetWorthTheme {
+        SettingsContent(
+            uiState = SettingsUiState(appTheme = AppTheme.SYSTEM, appLanguage = AppLanguage.ENGLISH),
+            onIntent = {}
+        )
+    }
+}
