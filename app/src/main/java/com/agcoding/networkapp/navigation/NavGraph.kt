@@ -2,8 +2,12 @@ package com.agcoding.networkapp.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.agcoding.networkapp.history.presentation.EditEntryScreen
+import com.agcoding.networkapp.history.presentation.EntryDetailsScreen
 import com.agcoding.networkapp.history.presentation.HistoryScreen
 import com.agcoding.networkapp.home.presentation.HomeScreen
 import com.agcoding.networkapp.settings.presentation.ProfileScreen
@@ -49,13 +53,38 @@ fun NavGraph(
         composable(Screen.Home.route) {
             HomeScreen(
                 onNavigateToHistory = { navController.navigate(Screen.History.route) },
-                onNavigateToProfileEdit = { navController.navigate(Screen.ProfileEdit.route) }
+                onNavigateToProfileEdit = { navController.navigate(Screen.ProfileEdit.route) },
+                onNavigateToEntryDetails = { entryId ->
+                    navController.navigate(Screen.EntryDetails.createRoute(entryId))
+                }
             )
         }
         composable(Screen.Analytics.route) { /* TODO: Analytics feature */ }
         composable(Screen.Accounts.route) { /* TODO: Accounts feature */ }
         composable(Screen.History.route) {
-            HistoryScreen(onNavigateBack = { navController.popBackStack() })
+            HistoryScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEntryDetails = { entryId ->
+                    navController.navigate(Screen.EntryDetails.createRoute(entryId))
+                }
+            )
+        }
+        composable(
+            route = Screen.EntryDetails.route,
+            arguments = listOf(navArgument("entryId") { type = NavType.LongType })
+        ) {
+            EntryDetailsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { entryId ->
+                    navController.navigate(Screen.EditEntry.createRoute(entryId))
+                }
+            )
+        }
+        composable(
+            route = Screen.EditEntry.route,
+            arguments = listOf(navArgument("entryId") { type = NavType.LongType })
+        ) {
+            EditEntryScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable(Screen.Settings.route) {
             SettingsScreen(

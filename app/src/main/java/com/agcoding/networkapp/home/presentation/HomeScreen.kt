@@ -5,9 +5,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -53,7 +54,6 @@ import com.agcoding.networkapp.home.presentation.components.TargetCard
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import com.agcoding.networkapp.home.presentation.model.InsightData
 import com.agcoding.networkapp.shared.ui.model.EntryUiModel
-import com.agcoding.networkapp.shared.ui.theme.DarkBackground
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -63,6 +63,7 @@ import java.util.Locale
 fun HomeScreen(
     onNavigateToHistory: () -> Unit,
     onNavigateToProfileEdit: () -> Unit,
+    onNavigateToEntryDetails: (Long) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -70,7 +71,8 @@ fun HomeScreen(
         uiState = uiState,
         onIntent = viewModel::onIntent,
         onNavigateToHistory = onNavigateToHistory,
-        onNavigateToProfileEdit = onNavigateToProfileEdit
+        onNavigateToProfileEdit = onNavigateToProfileEdit,
+        onNavigateToEntryDetails = onNavigateToEntryDetails
     )
 }
 
@@ -79,7 +81,8 @@ private fun HomeContent(
     uiState: HomeUiState,
     onIntent: (HomeIntent) -> Unit,
     onNavigateToHistory: () -> Unit,
-    onNavigateToProfileEdit: () -> Unit
+    onNavigateToProfileEdit: () -> Unit,
+    onNavigateToEntryDetails: (Long) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -96,7 +99,10 @@ private fun HomeContent(
         floatingActionButton = {
             Button(
                 onClick = { onIntent(HomeIntent.ShowAddEntrySheet) },
-                colors = ButtonDefaults.buttonColors(containerColor = DarkBackground),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background
+                ),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.height(56.dp),
                 contentPadding = PaddingValues(horizontal = 24.dp)
@@ -133,34 +139,33 @@ private fun HomeContent(
                     }
                 }
                 item {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .height(IntrinsicSize.Max),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        item {
-                            StatCard(
-                                title = stringResource(R.string.stat_ytd_growth),
-                                value = uiState.ytdGrowth,
-                                subValue = uiState.ytdPercentage,
-                                isPositive = true
-                            )
-                        }
-                        item {
-                            StatCard(
-                                title = stringResource(R.string.stat_avg_month),
-                                value = uiState.avgPerMonth,
-                                subValue = stringResource(R.string.stat_last_12_mo)
-                            )
-                        }
-                        item {
-                            StatCard(
-                                title = stringResource(R.string.stat_streak),
-                                value = "${uiState.streakMonths}",
-                                subValue = stringResource(R.string.stat_months_up),
-                                icon = "🔥"
-                            )
-                        }
+                        StatCard(
+                            title = stringResource(R.string.stat_ytd_growth),
+                            value = uiState.ytdGrowth,
+                            subValue = uiState.ytdPercentage,
+                            isPositive = true,
+                            modifier = Modifier.weight(1f).fillMaxHeight()
+                        )
+                        StatCard(
+                            title = stringResource(R.string.stat_avg_month),
+                            value = uiState.avgPerMonth,
+                            subValue = stringResource(R.string.stat_last_12_mo),
+                            modifier = Modifier.weight(1f).fillMaxHeight()
+                        )
+                        StatCard(
+                            title = stringResource(R.string.stat_streak),
+                            value = "${uiState.streakMonths}",
+                            subValue = stringResource(R.string.stat_months_up),
+                            icon = "🔥",
+                            modifier = Modifier.weight(1f).fillMaxHeight()
+                        )
                     }
                 }
                 if (uiState.insights.isNotEmpty()) {
@@ -188,6 +193,7 @@ private fun HomeContent(
                         RecentEntriesSection(
                             entries = uiState.recentEntries,
                             onShowAll = onNavigateToHistory,
+                            onEntryClick = onNavigateToEntryDetails,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
@@ -270,7 +276,8 @@ private fun HomeContentPreview() {
             ),
             onIntent = {},
             onNavigateToHistory = {},
-            onNavigateToProfileEdit = {}
+            onNavigateToProfileEdit = {},
+            onNavigateToEntryDetails = {}
         )
     }
 }

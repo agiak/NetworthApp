@@ -25,6 +25,7 @@ import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 fun RecentEntriesSection(
     entries: List<EntryUiModel>,
     onShowAll: () -> Unit,
+    onEntryClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -44,7 +45,7 @@ fun RecentEntriesSection(
             }
         }
         entries.forEach { entry ->
-            EntryHistoryItem(entry = entry)
+            EntryHistoryItem(entry = entry, onClick = { onEntryClick(entry.id) })
         }
     }
 }

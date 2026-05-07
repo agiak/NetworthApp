@@ -26,12 +26,26 @@ class NetWorthRepositoryImpl @Inject constructor(
         .catch { e -> emit(Result.failure(AppError.DatabaseError(e.message ?: "Database error"))) }
         .flowOn(ioDispatcher)
 
+    override fun getEntryById(id: Long): Flow<Result<NetWorthEntry?>> = dao.getEntryById(id)
+        .map { entity -> Result.success(entity?.let { mapper.map(it) }) }
+        .catch { e -> emit(Result.failure(AppError.DatabaseError(e.message ?: "Database error"))) }
+        .flowOn(ioDispatcher)
+
     override suspend fun addEntry(entry: NetWorthEntry): Result<Unit> = withContext(ioDispatcher) {
         try {
             dao.insertEntry(NetWorthEntity(value = entry.value, dateEpochDay = entry.date.toEpochDay()))
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(AppError.DatabaseError(e.message ?: "Failed to save entry"))
+        }
+    }
+
+    override suspend fun updateEntry(entry: NetWorthEntry): Result<Unit> = withContext(ioDispatcher) {
+        try {
+            dao.updateEntry(NetWorthEntity(id = entry.id, value = entry.value, dateEpochDay = entry.date.toEpochDay()))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(AppError.DatabaseError(e.message ?: "Failed to update entry"))
         }
     }
 

@@ -71,9 +71,14 @@
     <string name="dummy_data_success">12 μήνες δεδομένων δημιουργήθηκαν!</string>
 
     <!-- History -->
+    <string name="btn_save_changes">Αποθήκευση αλλαγών</string>
     <string name="btn_show_all">Εμφάνιση όλων</string>
+    <string name="label_amount">Ποσό</string>
+    <string name="label_date">Ημερομηνία</string>
     <string name="label_empty_history">Δεν υπάρχουν εγγραφές ακόμα</string>
     <string name="section_recent_entries">Πρόσφατες Εγγραφές</string>
+    <string name="title_edit_entry">Επεξεργασία Εγγραφής</string>
+    <string name="title_entry_details">Λεπτομέρειες Εγγραφής</string>
     <string name="title_history">Ιστορικό</string>
 
     <!-- Settings Screen -->

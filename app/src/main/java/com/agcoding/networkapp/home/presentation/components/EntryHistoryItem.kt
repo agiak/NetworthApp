@@ -20,9 +20,11 @@ import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 @Composable
 fun EntryHistoryItem(
     entry: EntryUiModel,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surface

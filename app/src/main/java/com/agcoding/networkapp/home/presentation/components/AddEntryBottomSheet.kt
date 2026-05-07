@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +44,8 @@ import androidx.compose.ui.unit.sp
 import com.agcoding.networkapp.R
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,9 +59,11 @@ fun AddEntryBottomSheet(
     onDismiss: () -> Unit
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = {
             Box(
@@ -132,12 +137,13 @@ fun AddEntryBottomSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            val today = LocalDate.now()
+            val yesterday = today.minusDays(1)
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val today = LocalDate.now()
-                val yesterday = today.minusDays(1)
                 DateChip(
                     label = stringResource(R.string.chip_today),
                     isSelected = selectedDate == today,
@@ -156,7 +162,21 @@ fun AddEntryBottomSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            val displayDate = when (selectedDate) {
+                today -> stringResource(R.string.chip_today)
+                yesterday -> stringResource(R.string.chip_yesterday)
+                else -> selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()))
+            }
+            Text(
+                text = displayDate,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             val keyRows = listOf(
                 listOf("1", "2", "3"),

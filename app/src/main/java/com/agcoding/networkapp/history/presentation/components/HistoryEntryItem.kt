@@ -20,9 +20,11 @@ import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 @Composable
 fun HistoryEntryItem(
     entry: EntryUiModel,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surface
@@ -53,6 +55,6 @@ fun HistoryEntryItem(
 @Composable
 private fun HistoryEntryItemPreview() {
     NetWorthTheme {
-        HistoryEntryItem(entry = EntryUiModel(id = 1L, formattedDate = "20 Mar", formattedValue = "€16,500"))
+        HistoryEntryItem(entry = EntryUiModel(id = 1L, formattedDate = "20 Mar", formattedValue = "€16,500"), onClick = {})
     }
 }

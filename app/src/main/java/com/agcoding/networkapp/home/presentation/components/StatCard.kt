@@ -30,7 +30,7 @@ fun StatCard(
     icon: String? = null
 ) {
     Surface(
-        modifier = modifier.width(110.dp),
+        modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface
     ) {

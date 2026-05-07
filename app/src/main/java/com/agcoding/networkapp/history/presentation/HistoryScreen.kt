@@ -38,17 +38,19 @@ import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 @Composable
 fun HistoryScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToEntryDetails: (Long) -> Unit,
     viewModel: HistoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    HistoryContent(uiState = uiState, onNavigateBack = onNavigateBack)
+    HistoryContent(uiState = uiState, onNavigateBack = onNavigateBack, onNavigateToEntryDetails = onNavigateToEntryDetails)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HistoryContent(
     uiState: HistoryUiState,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToEntryDetails: (Long) -> Unit
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -88,7 +90,7 @@ private fun HistoryContent(
                     uiState.groupedEntries.forEach { group ->
                         item { MonthGroupHeader(title = group.monthHeader) }
                         items(items = group.entries, key = { it.id }) { entry ->
-                            HistoryEntryItem(entry = entry)
+                            HistoryEntryItem(entry = entry, onClick = { onNavigateToEntryDetails(entry.id) })
                         }
                     }
                 }
@@ -118,7 +120,8 @@ private fun HistoryContentPreview() {
                     )
                 )
             ),
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onNavigateToEntryDetails = {}
         )
     }
 }

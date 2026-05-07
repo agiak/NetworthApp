@@ -71,9 +71,14 @@
     <string name="dummy_data_success">12 months of data generated!</string>
 
     <!-- History -->
+    <string name="btn_save_changes">Save changes</string>
     <string name="btn_show_all">Show all</string>
+    <string name="label_amount">Amount</string>
+    <string name="label_date">Date</string>
     <string name="label_empty_history">No entries yet</string>
     <string name="section_recent_entries">Recent Entries</string>
+    <string name="title_edit_entry">Edit Entry</string>
+    <string name="title_entry_details">Entry Details</string>
     <string name="title_history">History</string>
 
     <!-- Settings Screen -->
