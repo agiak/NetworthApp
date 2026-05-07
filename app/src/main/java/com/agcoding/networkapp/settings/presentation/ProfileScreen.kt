@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
@@ -26,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
-import com.agcoding.networkapp.shared.ui.theme.DarkBackground
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -130,6 +130,10 @@ fun ProfileScreen(
                     placeholder = "100000",
                     keyboardType = KeyboardType.Number
                 )
+                if (uiState.trackingSince.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    TrackingSinceRow(date = uiState.trackingSince)
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -141,8 +145,8 @@ fun ProfileScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = DarkBackground,
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background
                 ),
                 enabled = uiState.name.isNotBlank() && !uiState.isSaving
             ) {
@@ -194,6 +198,35 @@ private fun ProfileTextField(
                 focusedBorderColor = PositiveGreen,
                 unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
                 cursorColor = PositiveGreen
+            )
+        )
+    }
+}
+
+@Composable
+private fun TrackingSinceRow(date: String) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.label_tracking_since_profile).uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.Gray,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        OutlinedTextField(
+            value = date,
+            onValueChange = {},
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null, tint = Color.Gray) },
+            readOnly = true,
+            enabled = false,
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledBorderColor = Color.LightGray.copy(alpha = 0.3f),
+                disabledLeadingIconColor = Color.Gray,
+                disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         )
     }

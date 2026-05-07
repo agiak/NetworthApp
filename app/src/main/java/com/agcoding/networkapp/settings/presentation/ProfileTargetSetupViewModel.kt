@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 data class ProfileTargetSetupUiState(
@@ -40,7 +41,12 @@ class ProfileTargetSetupViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             _uiState.update { it.copy(isSaving = true) }
             val currentProfile = getUserProfileUseCase().first()
-            setUserProfileUseCase(currentProfile.copy(targetAmount = targetValue))
+            setUserProfileUseCase(
+                currentProfile.copy(
+                    targetAmount = targetValue,
+                    createdAt = currentProfile.createdAt ?: LocalDate.now()
+                )
+            )
             setProfileCreatedUseCase(true)
             _uiState.update { it.copy(isSaving = false, isComplete = true) }
         }

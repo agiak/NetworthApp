@@ -3,6 +3,7 @@ package com.agcoding.networkapp.settings.presentation
 import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,6 +27,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -98,6 +100,17 @@ private fun SettingsContent(
             }
             snackbarHostState.showSnackbar(message)
             onIntent(SettingsIntent.ClearDummyDataResult)
+        }
+    }
+
+    LaunchedEffect(uiState.deleteDataResult) {
+        uiState.deleteDataResult?.let { result ->
+            val message = when (result) {
+                is DummyDataResult.Success -> context.getString(R.string.delete_data_success)
+                is DummyDataResult.Failure -> context.getString(R.string.dummy_data_failure, result.cause ?: "")
+            }
+            snackbarHostState.showSnackbar(message)
+            onIntent(SettingsIntent.ClearDeleteDataResult)
         }
     }
 
@@ -238,14 +251,77 @@ private fun SettingsContent(
             }
             
             item {
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    onClick = { onIntent(SettingsIntent.GenerateDummyData) },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
-                    shape = RoundedCornerShape(16.dp)
+                Spacer(modifier = Modifier.height(8.dp))
+                SettingsSectionHeader(title = stringResource(R.string.settings_section_developer))
+            }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(text = "Generate Debug Data")
+                    Button(
+                        onClick = { onIntent(SettingsIntent.GenerateSpecificData) },
+                        enabled = !uiState.isGeneratingSpecific && !uiState.isDummyDataGenerating && !uiState.isDeleting,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        if (uiState.isGeneratingSpecific) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.btn_generating))
+                        } else {
+                            Text(stringResource(R.string.btn_generate_specific_data))
+                        }
+                    }
+
+                    Button(
+                        onClick = { onIntent(SettingsIntent.GenerateDummyData) },
+                        enabled = !uiState.isDummyDataGenerating && !uiState.isDeleting && !uiState.isGeneratingSpecific,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        if (uiState.isDummyDataGenerating) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.btn_generating))
+                        } else {
+                            Text(stringResource(R.string.btn_generate_data))
+                        }
+                    }
+
+                    Button(
+                        onClick = { onIntent(SettingsIntent.DeleteData) },
+                        enabled = !uiState.isDeleting && !uiState.isDummyDataGenerating,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        if (uiState.isDeleting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.btn_deleting))
+                        } else {
+                            Text(stringResource(R.string.btn_delete_data))
+                        }
+                    }
                 }
             }
         }

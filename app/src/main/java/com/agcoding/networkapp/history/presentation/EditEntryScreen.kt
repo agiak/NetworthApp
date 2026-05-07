@@ -51,7 +51,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
 import com.agcoding.networkapp.home.presentation.components.EntryDatePickerDialog
-import com.agcoding.networkapp.shared.ui.theme.DarkBackground
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 import java.time.LocalDate
@@ -196,8 +195,8 @@ private fun EditEntryContent(
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = DarkBackground,
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background
                 ),
                 enabled = uiState.amountInput.isNotEmpty() && !uiState.isSaving
             ) {

@@ -34,9 +34,11 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
         val navController = rememberNavController()
         val currentBackStack by navController.currentBackStackEntryAsState()
         val currentRoute = currentBackStack?.destination?.route
-        val showBottomBar = currentRoute != Screen.EditEntry.route &&
+        val showBottomBar = currentRoute != Screen.AllMonths.route &&
+                           currentRoute != Screen.EditEntry.route &&
                            currentRoute != Screen.EntryDetails.route &&
                            currentRoute != Screen.History.route &&
+                           currentRoute != Screen.Prediction.route &&
                            currentRoute != Screen.ProfileEdit.route &&
                            currentRoute != Screen.ProfileSetup.route &&
                            currentRoute != Screen.ProfileTargetSetup.route

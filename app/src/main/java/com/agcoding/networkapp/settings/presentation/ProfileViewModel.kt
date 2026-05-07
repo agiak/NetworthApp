@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.agcoding.networkapp.settings.domain.model.UserProfile
 import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
 import com.agcoding.networkapp.settings.domain.usecase.SetUserProfileUseCase
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import com.agcoding.networkapp.shared.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -20,6 +22,7 @@ data class ProfileUiState(
     val name: String = "",
     val email: String = "",
     val target: String = "",
+    val trackingSince: String = "",
     val isSaving: Boolean = false,
     val isComplete: Boolean = false
 )
@@ -37,11 +40,13 @@ class ProfileViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val profile = getUserProfileUseCase().first()
+            val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault())
             _uiState.update {
                 it.copy(
                     name = profile.name,
                     email = profile.email,
-                    target = if (profile.targetAmount > 0.0) profile.targetAmount.toLong().toString() else ""
+                    target = if (profile.targetAmount > 0.0) profile.targetAmount.toLong().toString() else "",
+                    trackingSince = profile.createdAt?.format(formatter) ?: ""
                 )
             }
         }

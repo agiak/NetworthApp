@@ -8,6 +8,7 @@ import com.agcoding.networkapp.settings.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,11 +40,15 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setUserProfile(profile: UserProfile) {
-        prefs.edit()
+        val editor = prefs.edit()
             .putString(KEY_USER_EMAIL, profile.email)
             .putString(KEY_USER_NAME, profile.name)
             .putFloat(KEY_USER_TARGET, profile.targetAmount.toFloat())
-            .apply()
+        // Only write createdAt once — never overwrite an existing value
+        if (prefs.getLong(KEY_CREATED_AT, 0L) == 0L && profile.createdAt != null) {
+            editor.putLong(KEY_CREATED_AT, profile.createdAt.toEpochDay())
+        }
+        editor.apply()
         _userProfile.value = profile
     }
 
@@ -63,10 +68,12 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     private fun readUserProfile(): UserProfile {
+        val epochDay = prefs.getLong(KEY_CREATED_AT, 0L)
         return UserProfile(
             name = prefs.getString(KEY_USER_NAME, "") ?: "",
             email = prefs.getString(KEY_USER_EMAIL, "") ?: "",
-            targetAmount = prefs.getFloat(KEY_USER_TARGET, 0f).toDouble()
+            targetAmount = prefs.getFloat(KEY_USER_TARGET, 0f).toDouble(),
+            createdAt = if (epochDay > 0L) LocalDate.ofEpochDay(epochDay) else null
         )
     }
 
@@ -75,6 +82,7 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     companion object {
+        private const val KEY_CREATED_AT = "created_at"
         private const val KEY_LANGUAGE = "language"
         private const val KEY_PROFILE_CREATED = "is_profile_created"
         private const val KEY_THEME = "theme"

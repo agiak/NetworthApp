@@ -6,6 +6,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.agcoding.networkapp.analytics.presentation.AllMonthsScreen
+import com.agcoding.networkapp.analytics.presentation.AnalyticsScreen
+import com.agcoding.networkapp.analytics.presentation.prediction.PredictionScreen
 import com.agcoding.networkapp.history.presentation.EditEntryScreen
 import com.agcoding.networkapp.history.presentation.EntryDetailsScreen
 import com.agcoding.networkapp.history.presentation.HistoryScreen
@@ -59,7 +62,18 @@ fun NavGraph(
                 }
             )
         }
-        composable(Screen.Analytics.route) { /* TODO: Analytics feature */ }
+        composable(Screen.Analytics.route) {
+            AnalyticsScreen(
+                onNavigateToAllMonths = { navController.navigate(Screen.AllMonths.route) },
+                onNavigateToPrediction = { navController.navigate(Screen.Prediction.route) }
+            )
+        }
+        composable(Screen.AllMonths.route) {
+            AllMonthsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable(Screen.Prediction.route) {
+            PredictionScreen(onNavigateBack = { navController.popBackStack() })
+        }
         composable(Screen.Accounts.route) { /* TODO: Accounts feature */ }
         composable(Screen.History.route) {
             HistoryScreen(

@@ -63,12 +63,68 @@
     <string name="language_greek">Ελληνικά</string>
 
     <!-- Developer Tools -->
-    <string name="btn_generate_data">Generate 12 Months of Data</string>
+    <string name="btn_delete_data">Delete All Data</string>
+    <string name="btn_deleting">Deleting…</string>
+    <string name="btn_generate_data">Generate 24 Months of Data</string>
+    <string name="btn_generate_specific_data">Load My Data</string>
     <string name="btn_generating">Generating…</string>
-    <string name="developer_generate_description">Inserts 12 months of realistic net worth history. Clears existing data first.</string>
+    <string name="delete_data_success">All data deleted.</string>
+    <string name="developer_generate_description">Inserts 24 months of realistic net worth history. Clears existing data first.</string>
     <string name="developer_generate_title">Generate Sample Data</string>
     <string name="dummy_data_failure">Failed: %1$s</string>
-    <string name="dummy_data_success">12 months of data generated!</string>
+    <string name="dummy_data_success">24 months of data generated!</string>
+
+    <!-- Analytics -->
+    <string name="analytics_all_months_title">All Months</string>
+    <string name="analytics_avg_month">Avg / Month</string>
+    <string name="analytics_future_prediction">Future Prediction</string>
+    <string name="analytics_future_prediction_desc">See where your portfolio could be in 2–15 years</string>
+    <string name="analytics_best_month">Best Month</string>
+    <string name="analytics_consistency">Consistency</string>
+    <string name="analytics_filter_title">Select period</string>
+    <string name="analytics_highest_net_worth">Highest Net Worth</string>
+    <string name="analytics_lowest_net_worth">Lowest Net Worth</string>
+    <string name="analytics_month_by_month">Month by Month</string>
+    <string name="analytics_no_data">No data yet. Add some entries to see analytics.</string>
+    <string name="analytics_projection">12M Projection</string>
+    <string name="analytics_projection_at_pace">at current pace</string>
+    <string name="analytics_show_all">Show all</string>
+    <string name="analytics_streak">Current Streak</string>
+    <string name="analytics_total_growth">Total Growth</string>
+    <string name="analytics_trend">Trend</string>
+    <string name="analytics_worst_month">Worst Month</string>
+    <string name="filter_12m">12M</string>
+    <string name="filter_3m">3M</string>
+    <string name="filter_6m">6M</string>
+    <string name="filter_all">All</string>
+    <string name="filter_label_12m">Last 12 months</string>
+    <string name="filter_label_3m">Last 3 months</string>
+    <string name="filter_label_6m">Last 6 months</string>
+    <string name="filter_label_all">All time</string>
+
+    <!-- Future Prediction -->
+    <string name="prediction_avg_growth">Avg monthly growth: %1$s</string>
+    <string name="prediction_chart_now">Now</string>
+    <string name="prediction_disclaimer">Predictions are estimates based on historical performance and may not reflect future results.</string>
+    <string name="prediction_info_conservative">Slower growth at %1$s/month, accounting for natural variance</string>
+    <string name="prediction_info_expected">Your average growth of %1$s/month, sustained</string>
+    <string name="prediction_info_optimistic">Accelerated growth at %1$s/month, if momentum continues</string>
+    <string name="prediction_info_title">How we calculate</string>
+    <string name="prediction_expected_desc">Most likely scenario</string>
+    <string name="prediction_expected_label">Expected</string>
+    <string name="prediction_maximum_desc">If current trend accelerates</string>
+    <string name="prediction_maximum_label">Optimistic</string>
+    <string name="prediction_minimum_desc">If growth slows down</string>
+    <string name="prediction_minimum_label">Conservative</string>
+    <string name="prediction_monthly_rate">Avg %1$s/mo</string>
+    <string name="prediction_no_data">Add more entries to see future predictions.</string>
+    <string name="prediction_range_10y">10Y</string>
+    <string name="prediction_range_15y">15Y</string>
+    <string name="prediction_range_2y">2Y</string>
+    <string name="prediction_range_3y">3Y</string>
+    <string name="prediction_range_5y">5Y</string>
+    <string name="prediction_subtitle">Based on your historical growth and trends</string>
+    <string name="prediction_title">Future Prediction</string>
 
     <!-- History -->
     <string name="btn_save_changes">Save changes</string>
@@ -109,6 +165,7 @@
     <string name="desc_setup_target">What\'s your net worth goal?</string>
     <string name="label_email">Email</string>
     <string name="label_name">Name</string>
+    <string name="label_tracking_since_profile">Tracking since</string>
     <string name="label_target">Target</string>
     <string name="label_target_amount">Target amount</string>
     <string name="title_edit_profile">Edit Profile</string>

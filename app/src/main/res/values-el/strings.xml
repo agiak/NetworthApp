@@ -63,12 +63,58 @@
     <string name="language_greek">Ελληνικά</string>
 
     <!-- Developer Tools -->
-    <string name="btn_generate_data">Δημιουργία 12 Μηνών</string>
+    <string name="btn_delete_data">Διαγραφή όλων των δεδομένων</string>
+    <string name="btn_deleting">Διαγραφή…</string>
+    <string name="btn_generate_data">Δημιουργία 24 Μηνών</string>
+    <string name="btn_generate_specific_data">Φόρτωση των δεδομένων μου</string>
     <string name="btn_generating">Δημιουργία…</string>
-    <string name="developer_generate_description">Εισάγει 12 μήνες ιστορίας. Διαγράφει τα υπάρχοντα δεδομένα πρώτα.</string>
+    <string name="delete_data_success">Όλα τα δεδομένα διαγράφηκαν.</string>
+    <string name="developer_generate_description">Εισάγει 24 μήνες ιστορίας. Διαγράφει τα υπάρχοντα δεδομένα πρώτα.</string>
     <string name="developer_generate_title">Δημιουργία Δεδομένων</string>
     <string name="dummy_data_failure">Αποτυχία: %1$s</string>
-    <string name="dummy_data_success">12 μήνες δεδομένων δημιουργήθηκαν!</string>
+    <string name="dummy_data_success">24 μήνες δεδομένων δημιουργήθηκαν!</string>
+
+    <!-- Analytics -->
+    <string name="analytics_avg_month">Μέσος / μήνα</string>
+    <string name="analytics_future_prediction">Μελλοντική Πρόβλεψη</string>
+    <string name="analytics_future_prediction_desc">Δείτε πού μπορεί να φτάσει το χαρτοφυλάκιό σας σε 2–15 χρόνια</string>
+    <string name="analytics_best_month">Καλύτερος μήνας</string>
+    <string name="analytics_highest_net_worth">Υψηλότερη αξία</string>
+    <string name="analytics_lowest_net_worth">Χαμηλότερη αξία</string>
+    <string name="analytics_all_months_title">Όλοι οι μήνες</string>
+    <string name="analytics_month_by_month">Ανά μήνα</string>
+    <string name="analytics_show_all">Εμφάνιση όλων</string>
+    <string name="analytics_no_data">Δεν υπάρχουν δεδομένα. Προσθέστε εγγραφές για να δείτε αναλύσεις.</string>
+    <string name="analytics_total_growth">Συνολική ανάπτυξη</string>
+    <string name="analytics_worst_month">Χειρότερος μήνας</string>
+    <string name="filter_12m">12Μ</string>
+    <string name="filter_3m">3Μ</string>
+    <string name="filter_6m">6Μ</string>
+    <string name="filter_all">Όλα</string>
+
+    <!-- Future Prediction -->
+    <string name="prediction_avg_growth">Μέση μηνιαία αύξηση: %1$s</string>
+    <string name="prediction_chart_now">Τώρα</string>
+    <string name="prediction_disclaimer">Οι προβλέψεις βασίζονται σε ιστορικά δεδομένα και δεν εγγυώνται μελλοντικά αποτελέσματα.</string>
+    <string name="prediction_info_conservative">Επιβράδυνση σε %1$s/μήνα, λαμβάνοντας υπόψη τη φυσική μεταβλητότητα</string>
+    <string name="prediction_info_expected">Ο μέσος ρυθμός σου %1$s/μήνα, διατηρούμενος</string>
+    <string name="prediction_info_optimistic">Επιτάχυνση σε %1$s/μήνα, αν η τάση συνεχιστεί</string>
+    <string name="prediction_info_title">Πώς υπολογίζεται</string>
+    <string name="prediction_expected_desc">Πιο πιθανό σενάριο</string>
+    <string name="prediction_expected_label">Αναμενόμενο</string>
+    <string name="prediction_maximum_desc">Αν η τρέχουσα τάση επιταχυνθεί</string>
+    <string name="prediction_maximum_label">Αισιόδοξο</string>
+    <string name="prediction_minimum_desc">Αν η ανάπτυξη επιβραδυνθεί</string>
+    <string name="prediction_minimum_label">Συντηρητικό</string>
+    <string name="prediction_monthly_rate">Μέσος %1$s/μήνα</string>
+    <string name="prediction_no_data">Προσθέστε περισσότερες εγγραφές για να δείτε μελλοντικές προβλέψεις.</string>
+    <string name="prediction_range_10y">10Ε</string>
+    <string name="prediction_range_15y">15Ε</string>
+    <string name="prediction_range_2y">2Ε</string>
+    <string name="prediction_range_3y">3Ε</string>
+    <string name="prediction_range_5y">5Ε</string>
+    <string name="prediction_subtitle">Βάσει της ιστορικής σου ανάπτυξης και τάσεων</string>
+    <string name="prediction_title">Μελλοντική Πρόβλεψη</string>
 
     <!-- History -->
     <string name="btn_save_changes">Αποθήκευση αλλαγών</string>
@@ -109,6 +155,7 @@
     <string name="desc_setup_target">Ποιος είναι ο στόχος σου;</string>
     <string name="label_email">Email</string>
     <string name="label_name">Όνομα</string>
+    <string name="label_tracking_since_profile">Παρακολούθηση από</string>
     <string name="label_target">Στόχος</string>
     <string name="label_target_amount">Ποσό στόχου</string>
     <string name="title_edit_profile">Επεξεργασία Προφίλ</string>

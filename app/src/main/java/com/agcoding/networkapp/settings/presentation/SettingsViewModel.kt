@@ -3,7 +3,13 @@ package com.agcoding.networkapp.settings.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.agcoding.networkapp.home.domain.repository.NetWorthRepository
-import com.agcoding.networkapp.settings.domain.usecase.*
+import com.agcoding.networkapp.settings.domain.usecase.GenerateDummyDataUseCase
+import com.agcoding.networkapp.settings.domain.usecase.GenerateSpecificDataUseCase
+import com.agcoding.networkapp.settings.domain.usecase.GetAppLanguageUseCase
+import com.agcoding.networkapp.settings.domain.usecase.GetAppThemeUseCase
+import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
+import com.agcoding.networkapp.settings.domain.usecase.SetAppLanguageUseCase
+import com.agcoding.networkapp.settings.domain.usecase.SetAppThemeUseCase
 import com.agcoding.networkapp.shared.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -24,6 +30,7 @@ class SettingsViewModel @Inject constructor(
     private val setAppThemeUseCase: SetAppThemeUseCase,
     private val setAppLanguageUseCase: SetAppLanguageUseCase,
     private val generateDummyDataUseCase: GenerateDummyDataUseCase,
+    private val generateSpecificDataUseCase: GenerateSpecificDataUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val repository: NetWorthRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
@@ -39,11 +46,14 @@ class SettingsViewModel @Inject constructor(
     fun onIntent(intent: SettingsIntent) {
         when (intent) {
             SettingsIntent.ActivityRestarted -> _uiState.update { it.copy(shouldRestartActivity = false) }
+            SettingsIntent.ClearDeleteDataResult -> _uiState.update { it.copy(deleteDataResult = null) }
             SettingsIntent.ClearDummyDataResult -> _uiState.update { it.copy(dummyDataResult = null) }
+            SettingsIntent.DeleteData -> deleteData()
             SettingsIntent.GenerateDummyData -> generateDummyData()
+            SettingsIntent.GenerateSpecificData -> generateSpecificData()
+            SettingsIntent.NavigateToProfileEdit -> { /* Handled in UI */ }
             is SettingsIntent.SetLanguage -> setLanguage(intent.language)
             is SettingsIntent.SetTheme -> setTheme(intent.theme)
-            SettingsIntent.NavigateToProfileEdit -> { /* Handled in UI */ }
         }
     }
 
@@ -79,6 +89,36 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             setAppLanguageUseCase(language)
             _uiState.update { it.copy(shouldRestartActivity = true) }
+        }
+    }
+
+    private fun generateSpecificData() {
+        viewModelScope.launch(ioDispatcher) {
+            _uiState.update { it.copy(isGeneratingSpecific = true) }
+            generateSpecificDataUseCase().fold(
+                onSuccess = {
+                    _uiState.update { it.copy(isGeneratingSpecific = false, dummyDataResult = DummyDataResult.Success) }
+                },
+                onFailure = { error ->
+                    Timber.e(error)
+                    _uiState.update { it.copy(isGeneratingSpecific = false, dummyDataResult = DummyDataResult.Failure(error.message)) }
+                }
+            )
+        }
+    }
+
+    private fun deleteData() {
+        viewModelScope.launch(ioDispatcher) {
+            _uiState.update { it.copy(isDeleting = true) }
+            repository.deleteAllEntries().fold(
+                onSuccess = {
+                    _uiState.update { it.copy(isDeleting = false, deleteDataResult = DummyDataResult.Success) }
+                },
+                onFailure = { error ->
+                    Timber.e(error)
+                    _uiState.update { it.copy(isDeleting = false, deleteDataResult = DummyDataResult.Failure(error.message)) }
+                }
+            )
         }
     }
 
