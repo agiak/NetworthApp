@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.agcoding.networkapp.analytics.presentation.AllMonthsScreen
 import com.agcoding.networkapp.analytics.presentation.AnalyticsScreen
 import com.agcoding.networkapp.analytics.presentation.prediction.PredictionScreen
+import com.agcoding.networkapp.goal.presentation.GoalScreen
 import com.agcoding.networkapp.history.presentation.EditEntryScreen
 import com.agcoding.networkapp.history.presentation.EntryDetailsScreen
 import com.agcoding.networkapp.history.presentation.HistoryScreen
@@ -59,13 +60,15 @@ fun NavGraph(
                 onNavigateToProfileEdit = { navController.navigate(Screen.ProfileEdit.route) },
                 onNavigateToEntryDetails = { entryId ->
                     navController.navigate(Screen.EntryDetails.createRoute(entryId))
-                }
+                },
+                onNavigateToGoal = { navController.navigate(Screen.Goal.route) }
             )
         }
         composable(Screen.Analytics.route) {
             AnalyticsScreen(
                 onNavigateToAllMonths = { navController.navigate(Screen.AllMonths.route) },
-                onNavigateToPrediction = { navController.navigate(Screen.Prediction.route) }
+                onNavigateToPrediction = { navController.navigate(Screen.Prediction.route) },
+                onNavigateToGoal = { navController.navigate(Screen.Goal.route) }
             )
         }
         composable(Screen.AllMonths.route) {
@@ -73,6 +76,9 @@ fun NavGraph(
         }
         composable(Screen.Prediction.route) {
             PredictionScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable(Screen.Goal.route) {
+            GoalScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable(Screen.Accounts.route) { /* TODO: Accounts feature */ }
         composable(Screen.History.route) {

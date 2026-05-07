@@ -92,6 +92,50 @@
     <string name="filter_6m">6Μ</string>
     <string name="filter_all">Όλα</string>
 
+    <!-- Goal Calculator -->
+    <string name="analytics_goal_calculator">Υπολογιστής Στόχου</string>
+    <string name="analytics_goal_calculator_desc">Δείτε πόσο κοντά είστε στον οικονομικό σας στόχο</string>
+    <string name="goal_at_pace_label">Με τον τρέχοντα ρυθμό</string>
+    <string name="goal_chart_now">Τώρα</string>
+    <string name="goal_chart_required">Απαιτούμενο</string>
+    <string name="goal_chart_your_pace">Ο ρυθμός σου</string>
+    <string name="goal_current_label">Τρέχον</string>
+    <string name="goal_current_net_worth">Τρέχον: %1$s</string>
+    <string name="goal_custom_years_label">Προσαρμοσμένο χρονοδιάγραμμα</string>
+    <string name="goal_enter_target">Εισάγετε ποσό στόχου για να ξεκινήσετε.</string>
+    <string name="goal_insight_far">Χρειάζεστε %1$d%% ταχύτερη ανάπτυξη. Δοκιμάστε να επεκτείνετε το χρονοδιάγραμμα.</string>
+    <string name="goal_insight_on_track">Ο τρέχων ρυθμός σας είναι αρκετός. Συνεχίστε!</string>
+    <string name="goal_insight_reached">Έχετε ήδη επιτύχει τον στόχο σας. Ορίστε νέο για να παραμείνετε κινητοποιημένοι!</string>
+    <string name="goal_insight_slightly_behind">Χρειάζεστε %1$d%% ταχύτερη ανάπτυξη για να φτάσετε τον στόχο εγκαίρως.</string>
+    <string name="goal_no_data">Προσθέστε περισσότερες εγγραφές για να υπολογίσετε την πρόοδό σας.</string>
+    <string name="goal_progress_title">Πρόοδος Στόχου</string>
+    <string name="goal_required_monthly">Απαιτείται / μήνα</string>
+    <string name="goal_required_yearly">Απαιτείται / έτος</string>
+    <string name="goal_status_far">Χρειάζεται Προσοχή</string>
+    <string name="goal_status_on_track">Στον Στόχο</string>
+    <string name="goal_status_reached">Στόχος Επιτεύχθηκε! 🎉</string>
+    <string name="goal_status_slightly_behind">Ελαφρά Πίσω</string>
+    <string name="goal_target_hint">π.χ. 100000</string>
+    <string name="goal_target_label">Ποσό Στόχου</string>
+    <string name="goal_target_value_label">Στόχος</string>
+    <string name="goal_tf_1y">1Ε</string>
+    <string name="goal_tf_2y">2Ε</string>
+    <string name="goal_tf_3y">3Ε</string>
+    <string name="goal_tf_5y">5Ε</string>
+    <string name="goal_tf_custom">Προσ/μένο</string>
+    <string name="goal_timeframe_label">Χρονικός Ορίζοντας</string>
+    <string name="goal_title">Υπολογιστής Στόχου</string>
+    <string name="goal_years_suffix">έτη</string>
+    <string name="goal_your_avg_monthly">Μέσος / μήνα</string>
+    <!-- Home Goal Teaser -->
+    <string name="home_goal_almost_there">Σχεδόν εκεί!</string>
+    <string name="home_goal_getting_started">Ξεκινάτε</string>
+    <string name="home_goal_great_progress">Μεγάλη πρόοδος</string>
+    <string name="home_goal_keep_going">Συνεχίστε</string>
+    <string name="home_goal_progress_label">%1$s προς %2$s</string>
+    <string name="home_goal_progress_title">Πρόοδος Στόχου</string>
+    <string name="home_goal_reached">Στόχος! 🎉</string>
+
     <!-- Future Prediction -->
     <string name="prediction_avg_growth">Μέση μηνιαία αύξηση: %1$s</string>
     <string name="prediction_chart_now">Τώρα</string>

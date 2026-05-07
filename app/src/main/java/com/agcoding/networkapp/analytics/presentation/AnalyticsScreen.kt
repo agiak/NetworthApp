@@ -54,6 +54,7 @@ import com.agcoding.networkapp.R
 import com.agcoding.networkapp.analytics.presentation.components.AnalyticsChartCard
 import com.agcoding.networkapp.analytics.presentation.components.AnalyticsSummaryCard
 import com.agcoding.networkapp.analytics.presentation.components.FuturePredictionEntryCard
+import com.agcoding.networkapp.analytics.presentation.components.GoalCalculatorEntryCard
 import com.agcoding.networkapp.analytics.presentation.components.MonthByMonthRow
 import com.agcoding.networkapp.analytics.presentation.components.ProjectionCard
 import com.agcoding.networkapp.analytics.presentation.components.TrendCard
@@ -67,6 +68,7 @@ import kotlinx.coroutines.launch
 fun AnalyticsScreen(
     onNavigateToAllMonths: () -> Unit,
     onNavigateToPrediction: () -> Unit,
+    onNavigateToGoal: () -> Unit,
     viewModel: AnalyticsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -74,7 +76,8 @@ fun AnalyticsScreen(
         uiState = uiState,
         onIntent = viewModel::onIntent,
         onNavigateToAllMonths = onNavigateToAllMonths,
-        onNavigateToPrediction = onNavigateToPrediction
+        onNavigateToPrediction = onNavigateToPrediction,
+        onNavigateToGoal = onNavigateToGoal
     )
 }
 
@@ -84,7 +87,8 @@ private fun AnalyticsContent(
     uiState: AnalyticsUiState,
     onIntent: (AnalyticsIntent) -> Unit,
     onNavigateToAllMonths: () -> Unit,
-    onNavigateToPrediction: () -> Unit
+    onNavigateToPrediction: () -> Unit,
+    onNavigateToGoal: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -283,6 +287,10 @@ private fun AnalyticsContent(
                     }
 
                     item {
+                        GoalCalculatorEntryCard(onClick = onNavigateToGoal)
+                    }
+
+                    item {
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -474,7 +482,8 @@ private fun AnalyticsContentPreview() {
             ),
             onIntent = {},
             onNavigateToAllMonths = {},
-            onNavigateToPrediction = {}
+            onNavigateToPrediction = {},
+            onNavigateToGoal = {}
         )
     }
 }

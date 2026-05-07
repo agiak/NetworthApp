@@ -46,11 +46,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
 import com.agcoding.networkapp.home.presentation.components.AddEntryBottomSheet
+import com.agcoding.networkapp.home.presentation.components.GoalTeaserCard
 import com.agcoding.networkapp.home.presentation.components.InsightsCard
 import com.agcoding.networkapp.home.presentation.components.NetWorthHeroCard
 import com.agcoding.networkapp.home.presentation.components.RecentEntriesSection
 import com.agcoding.networkapp.home.presentation.components.StatCard
-import com.agcoding.networkapp.home.presentation.components.TargetCard
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import com.agcoding.networkapp.home.presentation.model.InsightData
 import com.agcoding.networkapp.shared.ui.model.EntryUiModel
@@ -64,6 +64,7 @@ fun HomeScreen(
     onNavigateToHistory: () -> Unit,
     onNavigateToProfileEdit: () -> Unit,
     onNavigateToEntryDetails: (Long) -> Unit,
+    onNavigateToGoal: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -72,7 +73,8 @@ fun HomeScreen(
         onIntent = viewModel::onIntent,
         onNavigateToHistory = onNavigateToHistory,
         onNavigateToProfileEdit = onNavigateToProfileEdit,
-        onNavigateToEntryDetails = onNavigateToEntryDetails
+        onNavigateToEntryDetails = onNavigateToEntryDetails,
+        onNavigateToGoal = onNavigateToGoal
     )
 }
 
@@ -82,7 +84,8 @@ private fun HomeContent(
     onIntent: (HomeIntent) -> Unit,
     onNavigateToHistory: () -> Unit,
     onNavigateToProfileEdit: () -> Unit,
-    onNavigateToEntryDetails: (Long) -> Unit
+    onNavigateToEntryDetails: (Long) -> Unit,
+    onNavigateToGoal: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -130,10 +133,13 @@ private fun HomeContent(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
-                if (uiState.targetAmount.isNotEmpty()) {
+                if (uiState.hasGoal) {
                     item {
-                        TargetCard(
-                            targetAmount = uiState.targetAmount,
+                        GoalTeaserCard(
+                            currentNetWorthRaw = uiState.currentNetWorthRaw,
+                            targetAmountRaw = uiState.targetAmountRaw,
+                            targetAmountFormatted = uiState.targetAmount,
+                            onClick = onNavigateToGoal,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
@@ -277,7 +283,8 @@ private fun HomeContentPreview() {
             onIntent = {},
             onNavigateToHistory = {},
             onNavigateToProfileEdit = {},
-            onNavigateToEntryDetails = {}
+            onNavigateToEntryDetails = {},
+            onNavigateToGoal = {}
         )
     }
 }

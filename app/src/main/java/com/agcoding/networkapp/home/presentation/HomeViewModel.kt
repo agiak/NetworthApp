@@ -67,10 +67,12 @@ class HomeViewModel @Inject constructor(
                 result.fold(
                     onSuccess = { monthlyData ->
                         val displayData = mapper.map(monthlyData)
+                        val rawNetWorth = monthlyData.sortedBy { it.yearMonth }.lastOrNull()?.value ?: 0.0
                         _uiState.update { state ->
                             state.copy(
                                 isLoading = false,
                                 currentNetWorth = displayData.currentNetWorth,
+                                currentNetWorthRaw = rawNetWorth,
                                 changeThisMonth = displayData.changeThisMonth,
                                 changePercentage = displayData.changePercentage,
                                 isPositiveChange = displayData.isPositiveChange,
@@ -120,7 +122,15 @@ class HomeViewModel @Inject constructor(
                 val formattedTarget = if (profile.targetAmount > 0.0) {
                     "€${String.format(java.util.Locale.US, "%,.0f", profile.targetAmount)}"
                 } else ""
-                _uiState.update { it.copy(userName = profile.name, userInitial = initial, targetAmount = formattedTarget) }
+                _uiState.update {
+                    it.copy(
+                        userName = profile.name,
+                        userInitial = initial,
+                        targetAmount = formattedTarget,
+                        targetAmountRaw = profile.targetAmount,
+                        hasGoal = profile.targetAmount > 0.0
+                    )
+                }
             }
         }
     }
