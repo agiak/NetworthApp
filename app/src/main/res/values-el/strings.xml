@@ -92,6 +92,20 @@
     <string name="filter_6m">6Μ</string>
     <string name="filter_all">Όλα</string>
 
+    <!-- Backup & Restore -->
+    <string name="backup_error">Αποτυχία: %1$s</string>
+    <string name="backup_export_subtitle">Αποθήκευση αντιγράφου όλων των δεδομένων σε αρχείο JSON</string>
+    <string name="backup_export_success">Εξαγωγή δεδομένων ολοκληρώθηκε</string>
+    <string name="backup_export_title">Εξαγωγή δεδομένων</string>
+    <string name="backup_import_confirm_action">Επαναφορά</string>
+    <string name="backup_import_confirm_message">Αυτό θα αντικαταστήσει τις τρέχουσες εγγραφές και το προφίλ σας με τα δεδομένα του αντιγράφου.</string>
+    <string name="backup_import_confirm_title">Επαναφορά αντιγράφου;</string>
+    <string name="backup_import_invalid">Μη έγκυρο αρχείο. Επιλέξτε ένα έγκυρο αρχείο εξαγωγής.</string>
+    <string name="backup_import_subtitle">Επαναφορά δεδομένων από προηγούμενο αρχείο εξαγωγής</string>
+    <string name="backup_import_success">Δεδομένα επαναφέρθηκαν επιτυχώς</string>
+    <string name="backup_import_title">Εισαγωγή δεδομένων</string>
+    <string name="backup_section_title">Δημιουργία &amp; Επαναφορά</string>
+
     <!-- Goal Calculator -->
     <string name="analytics_goal_calculator">Υπολογιστής Στόχου</string>
     <string name="analytics_goal_calculator_desc">Δείτε πόσο κοντά είστε στον οικονομικό σας στόχο</string>
@@ -140,13 +154,13 @@
     <string name="prediction_avg_growth">Μέση μηνιαία αύξηση: %1$s</string>
     <string name="prediction_chart_now">Τώρα</string>
     <string name="prediction_disclaimer">Οι προβλέψεις βασίζονται σε ιστορικά δεδομένα και δεν εγγυώνται μελλοντικά αποτελέσματα.</string>
-    <string name="prediction_info_conservative">Επιβράδυνση σε %1$s/μήνα, λαμβάνοντας υπόψη τη φυσική μεταβλητότητα</string>
-    <string name="prediction_info_expected">Ο μέσος ρυθμός σου %1$s/μήνα, διατηρούμενος</string>
-    <string name="prediction_info_optimistic">Επιτάχυνση σε %1$s/μήνα, αν η τάση συνεχιστεί</string>
+    <string name="prediction_info_conservative">Μοντελοποιεί επιβράδυνση στα %1$s/μήνα — αν η δυναμική χαθεί</string>
+    <string name="prediction_info_expected">Σταθμισμένο στον πρόσφατο ρυθμό %1$s/μήνα</string>
+    <string name="prediction_info_optimistic">Προβλέπει επιτάχυνση στα %1$s/μήνα — βάσει της ανοδικής σου τάσης</string>
     <string name="prediction_info_title">Πώς υπολογίζεται</string>
-    <string name="prediction_expected_desc">Πιο πιθανό σενάριο</string>
+    <string name="prediction_expected_desc">Ρεαλιστική πορεία στον τρέχοντα ρυθμό</string>
     <string name="prediction_expected_label">Αναμενόμενο</string>
-    <string name="prediction_maximum_desc">Αν η τρέχουσα τάση επιταχυνθεί</string>
+    <string name="prediction_maximum_desc">Αν η ανοδική τάση σου συνεχιστεί</string>
     <string name="prediction_maximum_label">Αισιόδοξο</string>
     <string name="prediction_minimum_desc">Αν η ανάπτυξη επιβραδυνθεί</string>
     <string name="prediction_minimum_label">Συντηρητικό</string>

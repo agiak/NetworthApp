@@ -1,7 +1,11 @@
 package com.agcoding.networkapp.settings.presentation
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.agcoding.networkapp.backup.domain.usecase.ExportDataUseCase
+import com.agcoding.networkapp.backup.domain.usecase.ImportDataUseCase
 import com.agcoding.networkapp.home.domain.repository.NetWorthRepository
 import com.agcoding.networkapp.settings.domain.usecase.GenerateDummyDataUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GenerateSpecificDataUseCase
@@ -12,6 +16,7 @@ import com.agcoding.networkapp.settings.domain.usecase.SetAppLanguageUseCase
 import com.agcoding.networkapp.settings.domain.usecase.SetAppThemeUseCase
 import com.agcoding.networkapp.shared.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +38,9 @@ class SettingsViewModel @Inject constructor(
     private val generateSpecificDataUseCase: GenerateSpecificDataUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val repository: NetWorthRepository,
+    private val exportDataUseCase: ExportDataUseCase,
+    private val importDataUseCase: ImportDataUseCase,
+    @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -46,12 +54,17 @@ class SettingsViewModel @Inject constructor(
     fun onIntent(intent: SettingsIntent) {
         when (intent) {
             SettingsIntent.ActivityRestarted -> _uiState.update { it.copy(shouldRestartActivity = false) }
+            SettingsIntent.CancelImport -> _uiState.update { it.copy(showImportConfirmDialog = false, pendingImportJson = null) }
+            SettingsIntent.ClearBackupResult -> _uiState.update { it.copy(backupResult = null) }
             SettingsIntent.ClearDeleteDataResult -> _uiState.update { it.copy(deleteDataResult = null) }
             SettingsIntent.ClearDummyDataResult -> _uiState.update { it.copy(dummyDataResult = null) }
+            SettingsIntent.ConfirmImport -> confirmImport()
             SettingsIntent.DeleteData -> deleteData()
             SettingsIntent.GenerateDummyData -> generateDummyData()
             SettingsIntent.GenerateSpecificData -> generateSpecificData()
             SettingsIntent.NavigateToProfileEdit -> { /* Handled in UI */ }
+            is SettingsIntent.ExportToUri -> exportToUri(intent.uri)
+            is SettingsIntent.LoadImportFile -> loadImportFile(intent.uri)
             is SettingsIntent.SetLanguage -> setLanguage(intent.language)
             is SettingsIntent.SetTheme -> setTheme(intent.theme)
         }
@@ -89,6 +102,63 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             setAppLanguageUseCase(language)
             _uiState.update { it.copy(shouldRestartActivity = true) }
+        }
+    }
+
+    private fun exportToUri(uri: Uri) {
+        viewModelScope.launch(ioDispatcher) {
+            _uiState.update { it.copy(isExporting = true) }
+            try {
+                val json = exportDataUseCase()
+                context.contentResolver.openOutputStream(uri)?.use { stream ->
+                    stream.write(json.toByteArray(Charsets.UTF_8))
+                }
+                _uiState.update { it.copy(isExporting = false, backupResult = BackupResult.ExportSuccess) }
+            } catch (e: Exception) {
+                Timber.e(e)
+                _uiState.update { it.copy(isExporting = false, backupResult = BackupResult.Failure(e.message)) }
+            }
+        }
+    }
+
+    private fun loadImportFile(uri: Uri) {
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                val json = context.contentResolver.openInputStream(uri)?.use { stream ->
+                    stream.readBytes().toString(Charsets.UTF_8)
+                } ?: run {
+                    _uiState.update { it.copy(backupResult = BackupResult.ImportInvalidFile) }
+                    return@launch
+                }
+                if (!importDataUseCase.validate(json)) {
+                    _uiState.update { it.copy(backupResult = BackupResult.ImportInvalidFile) }
+                    return@launch
+                }
+                _uiState.update { it.copy(pendingImportJson = json, showImportConfirmDialog = true) }
+            } catch (e: Exception) {
+                Timber.e(e)
+                _uiState.update { it.copy(backupResult = BackupResult.Failure(e.message)) }
+            }
+        }
+    }
+
+    private fun confirmImport() {
+        val json = _uiState.value.pendingImportJson ?: return
+        viewModelScope.launch(ioDispatcher) {
+            _uiState.update { it.copy(isImporting = true, showImportConfirmDialog = false) }
+            importDataUseCase(json).fold(
+                onSuccess = {
+                    _uiState.update {
+                        it.copy(isImporting = false, pendingImportJson = null, backupResult = BackupResult.ImportSuccess)
+                    }
+                },
+                onFailure = { error ->
+                    Timber.e(error)
+                    _uiState.update {
+                        it.copy(isImporting = false, pendingImportJson = null, backupResult = BackupResult.Failure(error.message))
+                    }
+                }
+            )
         }
     }
 

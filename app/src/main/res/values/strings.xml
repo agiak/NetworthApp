@@ -102,6 +102,20 @@
     <string name="filter_label_6m">Last 6 months</string>
     <string name="filter_label_all">All time</string>
 
+    <!-- Backup & Restore -->
+    <string name="backup_error">Backup failed: %1$s</string>
+    <string name="backup_export_subtitle">Save a backup of all your data as a JSON file</string>
+    <string name="backup_export_success">Data exported successfully</string>
+    <string name="backup_export_title">Export Data</string>
+    <string name="backup_import_confirm_action">Restore</string>
+    <string name="backup_import_confirm_message">This will replace your current entries and profile with the data from the backup.</string>
+    <string name="backup_import_confirm_title">Restore Backup?</string>
+    <string name="backup_import_invalid">Invalid backup file. Please select a valid export file.</string>
+    <string name="backup_import_subtitle">Restore data from a previously exported file</string>
+    <string name="backup_import_success">Data restored successfully</string>
+    <string name="backup_import_title">Import Data</string>
+    <string name="backup_section_title">Backup &amp; Restore</string>
+
     <!-- Goal Calculator -->
     <string name="analytics_goal_calculator">Goal Calculator</string>
     <string name="analytics_goal_calculator_desc">Track how close you are to your financial goal</string>
@@ -150,13 +164,13 @@
     <string name="prediction_avg_growth">Avg monthly growth: %1$s</string>
     <string name="prediction_chart_now">Now</string>
     <string name="prediction_disclaimer">Predictions are estimates based on historical performance and may not reflect future results.</string>
-    <string name="prediction_info_conservative">Slower growth at %1$s/month, accounting for natural variance</string>
-    <string name="prediction_info_expected">Your average growth of %1$s/month, sustained</string>
-    <string name="prediction_info_optimistic">Accelerated growth at %1$s/month, if momentum continues</string>
+    <string name="prediction_info_conservative">Models deceleration to %1$s/month — if growth momentum stalls</string>
+    <string name="prediction_info_expected">Weighted toward your recent %1$s/month growth pace</string>
+    <string name="prediction_info_optimistic">Projects acceleration to %1$s/month — based on your upward trend</string>
     <string name="prediction_info_title">How we calculate</string>
-    <string name="prediction_expected_desc">Most likely scenario</string>
+    <string name="prediction_expected_desc">Realistic trajectory at your current pace</string>
     <string name="prediction_expected_label">Expected</string>
-    <string name="prediction_maximum_desc">If current trend accelerates</string>
+    <string name="prediction_maximum_desc">If your growth trend keeps accelerating</string>
     <string name="prediction_maximum_label">Optimistic</string>
     <string name="prediction_minimum_desc">If growth slows down</string>
     <string name="prediction_minimum_label">Conservative</string>

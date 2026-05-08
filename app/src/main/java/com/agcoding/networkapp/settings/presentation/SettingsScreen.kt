@@ -1,6 +1,8 @@
 package com.agcoding.networkapp.settings.presentation
 
 import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,10 +21,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -38,6 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -60,10 +64,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
+import com.agcoding.networkapp.settings.presentation.components.BackupRestoreSection
 import com.agcoding.networkapp.settings.presentation.components.SettingsSectionHeader
 import com.agcoding.networkapp.shared.ui.theme.DarkBackground
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
+import java.time.LocalDate
 
 @Composable
 fun SettingsScreen(
@@ -92,6 +98,16 @@ private fun SettingsContent(
     val context = LocalContext.current
     val activity = context as? Activity
 
+    // Export file picker
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri -> uri?.let { onIntent(SettingsIntent.ExportToUri(it)) } }
+
+    // Import file picker
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri -> uri?.let { onIntent(SettingsIntent.LoadImportFile(it)) } }
+
     LaunchedEffect(uiState.dummyDataResult) {
         uiState.dummyDataResult?.let { result ->
             val message = when (result) {
@@ -114,11 +130,61 @@ private fun SettingsContent(
         }
     }
 
+    LaunchedEffect(uiState.backupResult) {
+        uiState.backupResult?.let { result ->
+            val message = when (result) {
+                BackupResult.ExportSuccess -> context.getString(R.string.backup_export_success)
+                BackupResult.ImportSuccess -> context.getString(R.string.backup_import_success)
+                BackupResult.ImportInvalidFile -> context.getString(R.string.backup_import_invalid)
+                is BackupResult.Failure -> context.getString(R.string.backup_error, result.cause ?: "")
+            }
+            snackbarHostState.showSnackbar(message)
+            onIntent(SettingsIntent.ClearBackupResult)
+        }
+    }
+
     LaunchedEffect(uiState.shouldRestartActivity) {
         if (uiState.shouldRestartActivity) {
             onIntent(SettingsIntent.ActivityRestarted)
             activity?.recreate()
         }
+    }
+
+    // Import confirmation dialog
+    if (uiState.showImportConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { onIntent(SettingsIntent.CancelImport) },
+            title = {
+                Text(
+                    text = stringResource(R.string.backup_import_confirm_title),
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.backup_import_confirm_message),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { onIntent(SettingsIntent.ConfirmImport) }) {
+                    Text(
+                        text = stringResource(R.string.backup_import_confirm_action),
+                        color = PositiveGreen,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onIntent(SettingsIntent.CancelImport) }) {
+                    Text(
+                        text = stringResource(R.string.btn_cancel),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            shape = RoundedCornerShape(20.dp)
+        )
     }
 
     Scaffold(
@@ -153,15 +219,13 @@ private fun SettingsContent(
 
             item {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column {
                         PreferenceRow(
-                            icon = Icons.Default.Info, // Placeholder for Translate
+                            icon = Icons.Default.Info,
                             title = stringResource(R.string.label_language),
                             selectedOption = when (uiState.appLanguage) {
                                 AppLanguage.ENGLISH -> 0
@@ -178,7 +242,7 @@ private fun SettingsContent(
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                         PreferenceRow(
-                            icon = Icons.Default.Settings, // Placeholder for Palette
+                            icon = Icons.Default.Settings,
                             title = stringResource(R.string.label_theme),
                             selectedOption = when (uiState.appTheme) {
                                 AppTheme.LIGHT -> 0
@@ -201,7 +265,7 @@ private fun SettingsContent(
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                         PreferenceRow(
-                            icon = Icons.Default.Info, // Placeholder for Payments
+                            icon = Icons.Default.Info,
                             title = stringResource(R.string.label_currency),
                             selectedOption = 0,
                             options = listOf(
@@ -219,37 +283,41 @@ private fun SettingsContent(
 
             item {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column {
-                        SmartFeatureRow(
-                            icon = Icons.Default.Info, // Placeholder for TrendingUp
-                            title = stringResource(R.string.label_forecasts),
-                            description = stringResource(R.string.desc_forecasts),
-                            isChecked = true
-                        )
+                        SmartFeatureRow(icon = Icons.Default.Info, title = stringResource(R.string.label_forecasts), description = stringResource(R.string.desc_forecasts), isChecked = true)
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-                        SmartFeatureRow(
-                            icon = Icons.Default.Notifications,
-                            title = stringResource(R.string.label_monthly_reminder),
-                            description = stringResource(R.string.desc_monthly_reminder),
-                            isChecked = true
-                        )
+                        SmartFeatureRow(icon = Icons.Default.Notifications, title = stringResource(R.string.label_monthly_reminder), description = stringResource(R.string.desc_monthly_reminder), isChecked = true)
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-                        SmartFeatureRow(
-                            icon = Icons.Default.Lock,
-                            title = stringResource(R.string.label_biometric_lock),
-                            description = stringResource(R.string.desc_biometric_lock),
-                            isChecked = false
-                        )
+                        SmartFeatureRow(icon = Icons.Default.Lock, title = stringResource(R.string.label_biometric_lock), description = stringResource(R.string.desc_biometric_lock), isChecked = false)
                     }
                 }
             }
-            
+
+            // ── Backup & Restore section ─────────────────────────────────────
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                SettingsSectionHeader(title = stringResource(R.string.backup_section_title))
+            }
+
+            item {
+                BackupRestoreSection(
+                    isExporting = uiState.isExporting,
+                    isImporting = uiState.isImporting,
+                    onExportClick = {
+                        val today = LocalDate.now().toString()
+                        exportLauncher.launch("networth_backup_$today.json")
+                    },
+                    onImportClick = {
+                        importLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
+                    }
+                )
+            }
+
+            // ── Developer section ────────────────────────────────────────────
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 SettingsSectionHeader(title = stringResource(R.string.settings_section_developer))
@@ -257,19 +325,14 @@ private fun SettingsContent(
 
             item {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Button(
                         onClick = { onIntent(SettingsIntent.GenerateSpecificData) },
                         enabled = !uiState.isGeneratingSpecific && !uiState.isDummyDataGenerating && !uiState.isDeleting,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        ),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         if (uiState.isGeneratingSpecific) {
@@ -280,15 +343,11 @@ private fun SettingsContent(
                             Text(stringResource(R.string.btn_generate_specific_data))
                         }
                     }
-
                     Button(
                         onClick = { onIntent(SettingsIntent.GenerateDummyData) },
                         enabled = !uiState.isDummyDataGenerating && !uiState.isDeleting && !uiState.isGeneratingSpecific,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        ),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         if (uiState.isDummyDataGenerating) {
@@ -299,23 +358,15 @@ private fun SettingsContent(
                             Text(stringResource(R.string.btn_generate_data))
                         }
                     }
-
                     Button(
                         onClick = { onIntent(SettingsIntent.DeleteData) },
                         enabled = !uiState.isDeleting && !uiState.isDummyDataGenerating,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         if (uiState.isDeleting) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onErrorContainer)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(stringResource(R.string.btn_deleting))
                         } else {
@@ -331,43 +382,20 @@ private fun SettingsContent(
 @Composable
 private fun ProfileCard(name: String, since: String, snapshots: Int, onEditClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .height(110.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp).height(110.dp),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = DarkBackground)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF76C893)), // Lighter green for avatar
-                contentAlignment = Alignment.Center
-            ) {
+        Row(modifier = Modifier.fillMaxSize().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(modifier = Modifier.size(60.dp).clip(CircleShape).background(Color(0xFF76C893)), contentAlignment = Alignment.Center) {
                 Text(text = name.take(1).uppercase(), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = name, color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text(
-                    text = stringResource(R.string.label_tracking_since, since, snapshots),
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Text(text = stringResource(R.string.label_tracking_since, since, snapshots), color = Color.Gray, style = MaterialTheme.typography.bodySmall)
             }
-            Button(
-                onClick = onEditClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray.copy(alpha = 0.5f)),
-                shape = RoundedCornerShape(16.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
-            ) {
+            Button(onClick = onEditClick, colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray.copy(alpha = 0.5f)), shape = RoundedCornerShape(16.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)) {
                 Text(text = stringResource(R.string.btn_edit), color = Color.White)
             }
         }
@@ -375,20 +403,10 @@ private fun ProfileCard(name: String, since: String, snapshots: Int, onEditClick
 }
 
 @Composable
-private fun PreferenceRow(
-    icon: ImageVector,
-    title: String,
-    selectedOption: Int,
-    options: List<String>,
-    onOptionSelected: (Int) -> Unit
-) {
+private fun PreferenceRow(icon: ImageVector, title: String, selectedOption: Int, options: List<String>, onOptionSelected: (Int) -> Unit) {
     Column(modifier = Modifier.padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            ) {
+            Surface(modifier = Modifier.size(32.dp), shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurface)
                 }
@@ -397,44 +415,21 @@ private fun PreferenceRow(
             Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
         }
         Spacer(modifier = Modifier.height(12.dp))
-        SegmentedControl(
-            options = options,
-            selectedOption = selectedOption,
-            onOptionSelected = onOptionSelected
-        )
+        SegmentedControl(options = options, selectedOption = selectedOption, onOptionSelected = onOptionSelected)
     }
 }
 
 @Composable
-private fun SegmentedControl(
-    options: List<String>,
-    selectedOption: Int,
-    onOptionSelected: (Int) -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().height(48.dp),
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-    ) {
+private fun SegmentedControl(options: List<String>, selectedOption: Int, onOptionSelected: (Int) -> Unit) {
+    Surface(modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)) {
         Row(modifier = Modifier.fillMaxSize()) {
             options.forEachIndexed { index, option ->
                 val isSelected = index == selectedOption
                 Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxSize()
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(if (isSelected) DarkBackground else Color.Transparent)
-                        .clickable { onOptionSelected(index) },
+                    modifier = Modifier.weight(1f).fillMaxSize().padding(4.dp).clip(RoundedCornerShape(20.dp)).background(if (isSelected) DarkBackground else Color.Transparent).clickable { onOptionSelected(index) },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = option,
-                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        fontSize = 14.sp
-                    )
+                    Text(text = option, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal, fontSize = 14.sp)
                 }
             }
         }
@@ -442,25 +437,10 @@ private fun SegmentedControl(
 }
 
 @Composable
-private fun SmartFeatureRow(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    isChecked: Boolean
-) {
+private fun SmartFeatureRow(icon: ImageVector, title: String, description: String, isChecked: Boolean) {
     var checked by remember { mutableStateOf(isChecked) }
-    
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Surface(
-            modifier = Modifier.size(40.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ) {
+    Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Surface(modifier = Modifier.size(40.dp), shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
             }
@@ -470,17 +450,7 @@ private fun SmartFeatureRow(
             Text(text = title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             Text(text = description, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
         }
-        Switch(
-            checked = checked,
-            onCheckedChange = { checked = it },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = PositiveGreen,
-                uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f),
-                uncheckedBorderColor = Color.Transparent
-            )
-        )
+        Switch(checked = checked, onCheckedChange = { checked = it }, colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = PositiveGreen, uncheckedThumbColor = Color.White, uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f), uncheckedBorderColor = Color.Transparent))
     }
 }
 

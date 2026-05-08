@@ -9,6 +9,13 @@ sealed class DummyDataResult {
     data class Failure(val cause: String?) : DummyDataResult()
 }
 
+sealed class BackupResult {
+    data object ExportSuccess : BackupResult()
+    data object ImportSuccess : BackupResult()
+    data object ImportInvalidFile : BackupResult()
+    data class Failure(val cause: String?) : BackupResult()
+}
+
 data class SettingsUiState(
     val appTheme: AppTheme = AppTheme.SYSTEM,
     val appLanguage: AppLanguage = AppLanguage.ENGLISH,
@@ -20,5 +27,10 @@ data class SettingsUiState(
     val shouldRestartActivity: Boolean = false,
     val snapshotCount: Int = 0,
     val trackingSince: String = "",
-    val userProfile: UserProfile = UserProfile()
+    val userProfile: UserProfile = UserProfile(),
+    val isExporting: Boolean = false,
+    val isImporting: Boolean = false,
+    val backupResult: BackupResult? = null,
+    val showImportConfirmDialog: Boolean = false,
+    val pendingImportJson: String? = null
 )

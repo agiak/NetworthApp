@@ -6,6 +6,7 @@ import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.abs
+import kotlin.math.exp
 import kotlin.math.sqrt
 
 class PredictionUiMapper @Inject constructor() {
@@ -16,45 +17,61 @@ class PredictionUiMapper @Inject constructor() {
         val sorted = allData.sortedBy { it.yearMonth }
         val lastValue = sorted.last().value
         val diffs = sorted.zipWithNext().map { (a, b) -> b.value - a.value }
+        val n = diffs.size
 
+        // ── Baseline stats ────────────────────────────────────────────────────
         val avgGrowth = diffs.average()
 
-        val variance = if (diffs.size > 1)
+        val variance = if (n > 1)
             diffs.map { (it - avgGrowth) * (it - avgGrowth) }.average()
         else (avgGrowth * 0.1) * (avgGrowth * 0.1)
-        val rawStdDev = sqrt(variance)
-        val σ = rawStdDev.coerceAtLeast(abs(avgGrowth) * 0.15 + 50.0)
+        // Minimum uncertainty floor so bands are always visible
+        val σ = sqrt(variance).coerceAtLeast(abs(avgGrowth) * 0.15 + 50.0)
 
-        // Trend: compare the most recent 1/3 of history vs the older 2/3
-        val splitIdx = (diffs.size * 2 / 3).coerceAtLeast(1).coerceAtMost(diffs.size - 1)
-        val olderAvg = diffs.take(splitIdx).average()
-        val recentAvg = diffs.drop(splitIdx).let { if (it.isEmpty()) avgGrowth else it.average() }
-        val trendDelta = recentAvg - olderAvg // positive → improving, negative → declining
+        // ── Weighted average (linear weights, recent = higher weight) ─────────
+        // Month 1 (oldest) gets weight 1, month n (newest) gets weight n
+        val weightSum = n * (n + 1) / 2.0
+        val weightedAvg = diffs.mapIndexed { i, d -> d * (i + 1) }.sum() / weightSum
 
-        // Conservative: lower monthly rate, with a small extra penalty if trend is declining
-        val conservativeMonthly = if (avgGrowth > 0) {
-            val trendPenalty = (-trendDelta).coerceAtLeast(0.0) * 0.15
-            val raw = avgGrowth - σ * 0.7 - trendPenalty
-            raw.coerceAtLeast(avgGrowth * 0.15)   // floor at 15 % of avg, never 0
-        } else {
-            avgGrowth - σ * 0.3
-        }
+        // ── Acceleration analysis (half-split) ───────────────────────────────
+        val halveMid = (n / 2).coerceAtLeast(1)
+        val firstHalfAvg = diffs.take(halveMid).average()
+        val secondHalfAvg = diffs.drop(halveMid).let { if (it.isEmpty()) avgGrowth else it.average() }
+        val acceleration = secondHalfAvg - firstHalfAvg
 
-        // Optimistic: moderate boost, with a small uplift if trend is already positive
-        val optimisticMonthly = if (avgGrowth > 0) {
-            val trendBoost = trendDelta.coerceAtLeast(0.0) * 0.15
-            avgGrowth + σ * 0.7 + trendBoost
-        } else {
-            avgGrowth + σ * 0.4  // declining avg → assume partial recovery
-        }
+        // Acceleration is meaningful only with 4+ data points
+        val hasAccelerationData = n >= 4
+        val isAccelerating = hasAccelerationData && acceleration > 0
 
         val months = range.months.toDouble()
-        val expected = lastValue + avgGrowth * months
-        val minimum = lastValue + conservativeMonthly * months   // intentionally NOT clamped to 0
-        val maximum = lastValue + optimisticMonthly * months
 
-        val (chartExpected, chartMinimum, chartMaximum) =
-            buildChartSeries(lastValue, avgGrowth, conservativeMonthly, optimisticMonthly, range)
+        // ── Expected: weighted average captures recent momentum ───────────────
+        val expectedMonthly = if (hasAccelerationData) weightedAvg else avgGrowth
+        val expected = lastValue + expectedMonthly * months
+
+        // ── Conservative: models deceleration or stall ────────────────────────
+        val conservativeMonthly = computeConservativeRate(
+            isAccelerating, hasAccelerationData, avgGrowth,
+            firstHalfAvg, weightedAvg, σ, acceleration
+        )
+        val minimum = lastValue + conservativeMonthly * months
+
+        // ── Maximum (Momentum): projects acceleration forward, dampened ────────
+        val (optimisticAvgRate, optimisticEndRate) = computeMomentumRates(
+            isAccelerating, hasAccelerationData,
+            secondHalfAvg, weightedAvg, acceleration, σ, months
+        )
+        val maximum = lastValue + optimisticAvgRate * months
+
+        // ── Chart data ────────────────────────────────────────────────────────
+        val (chartExpected, chartMinimum, chartMaximum) = buildChartSeries(
+            startValue = lastValue,
+            expectedMonthly = expectedMonthly,
+            conservativeMonthly = conservativeMonthly,
+            optimisticStartRate = if (hasAccelerationData) secondHalfAvg else avgGrowth,
+            optimisticEndRate = optimisticEndRate,
+            range = range
+        )
 
         return PredictionMapResult(
             hasData = true,
@@ -63,7 +80,7 @@ class PredictionUiMapper @Inject constructor() {
             maximumValue = formatCurrency(maximum),
             avgMonthlyGrowth = formatChange(avgGrowth),
             conservativeMonthlyRate = formatChange(conservativeMonthly),
-            optimisticMonthlyRate = formatChange(optimisticMonthly),
+            optimisticMonthlyRate = formatChange(optimisticEndRate),
             chartExpected = chartExpected,
             chartMinimum = chartMinimum,
             chartMaximum = chartMaximum,
@@ -75,19 +92,123 @@ class PredictionUiMapper @Inject constructor() {
         )
     }
 
+    /**
+     * Conservative: models what happens if momentum stalls or decelerates.
+     *
+     * - If growth was accelerating   → assume it stalls back toward the older average
+     * - If growth was flat/declining → assume the deceleration continues modestly
+     */
+    private fun computeConservativeRate(
+        isAccelerating: Boolean,
+        hasAccelerationData: Boolean,
+        avgGrowth: Double,
+        firstHalfAvg: Double,
+        weightedAvg: Double,
+        σ: Double,
+        acceleration: Double
+    ): Double {
+        val floor = if (avgGrowth > 0) avgGrowth * 0.15 else avgGrowth * 1.25
+        return when {
+            !hasAccelerationData -> {
+                // Not enough history: σ-based conservative
+                if (avgGrowth > 0) (avgGrowth - σ * 0.7).coerceAtLeast(floor)
+                else avgGrowth - σ * 0.3
+            }
+            isAccelerating -> {
+                // Was accelerating → conservative: growth stalls, reverts toward older era
+                val stalledRate = firstHalfAvg - σ * 0.2
+                stalledRate.coerceAtLeast(floor)
+            }
+            else -> {
+                // Was flat or decelerating → conservative: trend continues (acceleration is negative)
+                val trendPenalty = (-acceleration).coerceAtLeast(0.0) * 0.2
+                val decelerated = weightedAvg - σ * 0.65 - trendPenalty
+                if (avgGrowth > 0) decelerated.coerceAtLeast(floor) else decelerated
+            }
+        }
+    }
+
+    /**
+     * Momentum (maximum): projects acceleration forward using a dampened S-curve.
+     *
+     * - Start rate = current secondHalfAvg (where the user is right now)
+     * - End rate   = startRate + acceleration × dampingFactor(months)
+     * - Average rate (trapezoidal) = (startRate + endRate) / 2
+     *
+     * The S-curve f(m) = 1 − e^(−m/48) means:
+     *   12m  → 22%,  24m → 39%,  60m → 71%,  120m → 92%  of full acceleration captured.
+     *
+     * Returns Pair(avgRateForFinalValue, endRateForLabel)
+     */
+    private fun computeMomentumRates(
+        isAccelerating: Boolean,
+        hasAccelerationData: Boolean,
+        secondHalfAvg: Double,
+        weightedAvg: Double,
+        acceleration: Double,
+        σ: Double,
+        months: Double
+    ): Pair<Double, Double> {
+        if (!hasAccelerationData || !isAccelerating) {
+            // Fallback: flat optimistic rate (weighted avg + modest σ boost)
+            val rate = (if (isAccelerating) secondHalfAvg else weightedAvg) + σ * 0.5
+            return Pair(rate, rate)
+        }
+
+        val dampingFactor = 1.0 - exp(-months / 48.0)
+        val rawEndRate = secondHalfAvg + acceleration * dampingFactor
+
+        // Cap: never more than 2× the acceleration magnitude above the start rate
+        val maxBoost = minOf(
+            abs(acceleration) * 2.0,
+            abs(secondHalfAvg).coerceAtLeast(σ) * 1.5
+        )
+        val endRate = rawEndRate
+            .coerceAtLeast(secondHalfAvg)          // never reduce the rate in the optimistic scenario
+            .coerceAtMost(secondHalfAvg + maxBoost) // cap unrealistic exponential projections
+
+        // Trapezoidal average: rate ramps linearly from start to end over the projection period
+        val avgRate = (secondHalfAvg + endRate) / 2.0
+
+        return Pair(avgRate, endRate)
+    }
+
+    /**
+     * Chart series:
+     * - Expected & Conservative: straight lines (constant monthly rate)
+     * - Maximum (Momentum): curved line — rate increases linearly from startRate to endRate
+     */
     private fun buildChartSeries(
         startValue: Double,
-        avgMonthly: Double,
+        expectedMonthly: Double,
         conservativeMonthly: Double,
-        optimisticMonthly: Double,
+        optimisticStartRate: Double,
+        optimisticEndRate: Double,
         range: PredictionRange
     ): Triple<List<ChartPoint>, List<ChartPoint>, List<ChartPoint>> {
         val steps = 24
         val totalMonths = range.months.toDouble()
 
-        val rawExpected = (0..steps).map { i -> startValue + avgMonthly * (i * totalMonths / steps) }
-        val rawMin = (0..steps).map { i -> startValue + conservativeMonthly * (i * totalMonths / steps) }
-        val rawMax = (0..steps).map { i -> startValue + optimisticMonthly * (i * totalMonths / steps) }
+        val rawExpected = (0..steps).map { i ->
+            startValue + expectedMonthly * (i * totalMonths / steps)
+        }
+        val rawMin = (0..steps).map { i ->
+            startValue + conservativeMonthly * (i * totalMonths / steps)
+        }
+
+        // Maximum: curved projection — rate ramps from startRate → endRate
+        val rawMax = buildList {
+            add(startValue)
+            var value = startValue
+            val rateRange = optimisticEndRate - optimisticStartRate
+            for (s in 1..steps) {
+                val stepMonths = totalMonths / steps
+                val progress = if (steps > 1) (s - 1).toDouble() / (steps - 1) else 1.0
+                val rateAtStep = optimisticStartRate + rateRange * progress
+                value += rateAtStep * stepMonths
+                add(value)
+            }
+        }
 
         val allValues = rawExpected + rawMin + rawMax
         val minVal = allValues.min()
