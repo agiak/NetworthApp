@@ -37,9 +37,11 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
         val showBottomBar = currentRoute != Screen.AllMonths.route &&
                            currentRoute != Screen.EditEntry.route &&
                            currentRoute != Screen.EntryDetails.route &&
+                           currentRoute != Screen.Compare.route &&
                            currentRoute != Screen.Goal.route &&
                            currentRoute != Screen.History.route &&
                            currentRoute != Screen.Prediction.route &&
+                           currentRoute != Screen.Recap.route &&
                            currentRoute != Screen.ProfileEdit.route &&
                            currentRoute != Screen.ProfileSetup.route &&
                            currentRoute != Screen.ProfileTargetSetup.route

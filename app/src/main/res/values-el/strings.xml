@@ -87,10 +87,20 @@
     <string name="analytics_no_data">Δεν υπάρχουν δεδομένα. Προσθέστε εγγραφές για να δείτε αναλύσεις.</string>
     <string name="analytics_total_growth">Συνολική ανάπτυξη</string>
     <string name="analytics_worst_month">Χειρότερος μήνας</string>
+    <string name="analytics_consistency">Συνέπεια</string>
+    <string name="analytics_filter_title">Επιλογή περιόδου</string>
+    <string name="analytics_projection">Πρόβλεψη 12Μ</string>
+    <string name="analytics_projection_at_pace">με τον τρέχοντα ρυθμό</string>
+    <string name="analytics_streak">Τρέχον Σερί</string>
+    <string name="analytics_trend">Τάση</string>
     <string name="filter_12m">12Μ</string>
     <string name="filter_3m">3Μ</string>
     <string name="filter_6m">6Μ</string>
     <string name="filter_all">Όλα</string>
+    <string name="filter_label_12m">Τελευταίους 12 μήνες</string>
+    <string name="filter_label_3m">Τελευταίους 3 μήνες</string>
+    <string name="filter_label_6m">Τελευταίους 6 μήνες</string>
+    <string name="filter_label_all">Όλο το ιστορικό</string>
 
     <!-- Backup & Restore -->
     <string name="backup_error">Αποτυχία: %1$s</string>
@@ -105,6 +115,69 @@
     <string name="backup_import_success">Δεδομένα επαναφέρθηκαν επιτυχώς</string>
     <string name="backup_import_title">Εισαγωγή δεδομένων</string>
     <string name="backup_section_title">Δημιουργία &amp; Επαναφορά</string>
+
+    <!-- Compare Periods -->
+    <string name="compare_title">Σύγκριση Περιόδων</string>
+    <string name="compare_mode_year">Έτος με Έτος</string>
+    <string name="compare_mode_half">6Μ vs 6Μ</string>
+    <string name="compare_mode_quarter">3Μ vs 3Μ</string>
+    <string name="compare_mode_rolling_year">12Μ vs 12Μ</string>
+    <string name="compare_mode_custom">Προσαρμοσμένο</string>
+    <string name="compare_no_data">Δεν υπάρχουν αρκετά δεδομένα. Προσθέστε περισσότερες εγγραφές.</string>
+    <string name="compare_custom_incomplete">Ορίστε και τις δύο περιόδους παραπάνω για να δείτε τη σύγκριση.</string>
+    <string name="compare_custom_period_a">Τρέχουσα Περίοδος</string>
+    <string name="compare_custom_period_b">Προηγούμενη Περίοδος</string>
+    <string name="compare_custom_from">Από</string>
+    <string name="compare_custom_to">Έως</string>
+    <string name="compare_custom_not_set">Μη ορισμένο</string>
+    <string name="compare_entry_card">Σύγκριση Περιόδων</string>
+    <string name="compare_entry_card_desc">Συγκρίνετε την ανάπτυξή σας σε διαφορετικές χρονικές περιόδους</string>
+    <string name="compare_total_growth">Συνολική Ανάπτυξη</string>
+    <string name="compare_avg_monthly">Μέση Μηνιαία Αύξηση</string>
+    <string name="compare_growth_speed">Ταχύτητα Ανάπτυξης</string>
+    <string name="compare_stability">Συνέπεια</string>
+    <string name="compare_best_period">Καλύτερος Μήνας</string>
+    <string name="compare_diff_more">%1$s περισσότερα</string>
+    <string name="compare_diff_less">%1$s λιγότερα</string>
+    <string name="compare_speed_accelerating">Επιτάχυνση</string>
+    <string name="compare_speed_slowing">Επιβράδυνση</string>
+    <string name="compare_speed_stable">Σταθερός Ρυθμός</string>
+    <string name="compare_speed_accelerating_desc">Το χαρτοφυλάκιό σας αναπτύσσεται ταχύτερα από πριν</string>
+    <string name="compare_speed_slowing_desc">Η δυναμική ανάπτυξης επιβραδύνθηκε σε σχέση με την προηγούμενη περίοδο</string>
+    <string name="compare_speed_stable_desc">Η πρόοδός σας παρέμεινε σταθερή μεταξύ των περιόδων</string>
+    <string name="compare_stability_better">Πιο Συνεπής</string>
+    <string name="compare_stability_worse">Πιο Ασταθής</string>
+    <string name="compare_stability_similar">Παρόμοια Σταθερότητα</string>
+    <string name="compare_stability_better_desc">Αυτή η περίοδος είχε πιο σταθερή, προβλέψιμη ανάπτυξη</string>
+    <string name="compare_stability_worse_desc">Αυτή η περίοδος είχε μεγαλύτερες διακυμάνσεις από μήνα σε μήνα</string>
+    <string name="compare_stability_similar_desc">Παρόμοιο επίπεδο συνέπειας μεταξύ των δύο περιόδων</string>
+    <string name="compare_best_month_desc">%1$s με κέρδος %2$s</string>
+    <string name="compare_chart_title">ΤΡΟΧΙΕΣ ΑΝΑΠΤΥΞΗΣ</string>
+    <string name="compare_chart_subtitle">Κανονικοποιημένο για σύγκριση</string>
+
+    <!-- Yearly Recap -->
+    <string name="analytics_yearly_recap">Ετήσια Ανασκόπηση</string>
+    <string name="analytics_yearly_recap_desc">Δείτε τα οικονομικά σας highlights ανά έτος</string>
+    <string name="recap_title">Ετήσια Ανασκόπηση</string>
+    <string name="recap_no_data">Δεν υπάρχουν δεδομένα για το %1$d. Προσθέστε εγγραφές.</string>
+    <string name="recap_year_growth_title">Ετήσια Ανάπτυξη</string>
+    <string name="recap_from_to">%1$s → %2$s</string>
+    <string name="recap_months_tracked">%1$d μήνες παρακολούθησης</string>
+    <string name="recap_new_all_time_high">Νέο Ιστορικό Υψηλό</string>
+    <string name="recap_best_month">Καλύτερος Μήνας</string>
+    <string name="recap_worst_month">Χειρότερος Μήνας</string>
+    <string name="recap_avg_monthly">Μέση Μηνιαία Ανάπτυξη</string>
+    <string name="recap_biggest_jump">Μεγαλύτερη Άνοδος</string>
+    <string name="recap_goal_section">Στόχος</string>
+    <string name="recap_goal_total">%1$s του συνολικού σου στόχου ολοκληρώθηκε</string>
+    <string name="recap_goal_year_progress">Φέτος πρόσθεσες %1$s στον στόχο σου</string>
+    <string name="recap_trend_title">Τάση</string>
+    <string name="recap_trend_accelerated">Η ανάπτυξη επιταχύνεται — εξαιρετική δυναμική!</string>
+    <string name="recap_trend_stable">Η ανάπτυξη είναι σταθερή και συνεπής</string>
+    <string name="recap_trend_decelerated">Η ανάπτυξη επιβραδύνθηκε φέτος</string>
+    <string name="recap_trend_declined">Δύσκολη χρονιά, αλλά μπορείς να την αναστρέψεις</string>
+    <string name="recap_chart_title">ΕΞΕΛΙΞΗ ΚΑΘΑΡΗΣ ΑΞΙΑΣ</string>
+    <string name="recap_month_by_month">Ανά Μήνα</string>
 
     <!-- Goal Calculator -->
     <string name="analytics_goal_calculator">Υπολογιστής Στόχου</string>

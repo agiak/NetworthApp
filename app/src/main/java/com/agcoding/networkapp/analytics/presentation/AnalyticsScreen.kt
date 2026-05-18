@@ -53,11 +53,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
 import com.agcoding.networkapp.analytics.presentation.components.AnalyticsChartCard
 import com.agcoding.networkapp.analytics.presentation.components.AnalyticsSummaryCard
+import com.agcoding.networkapp.analytics.presentation.components.ComparePeriodsEntryCard
 import com.agcoding.networkapp.analytics.presentation.components.FuturePredictionEntryCard
 import com.agcoding.networkapp.analytics.presentation.components.GoalCalculatorEntryCard
 import com.agcoding.networkapp.analytics.presentation.components.MonthByMonthRow
 import com.agcoding.networkapp.analytics.presentation.components.ProjectionCard
 import com.agcoding.networkapp.analytics.presentation.components.TrendCard
+import com.agcoding.networkapp.analytics.presentation.components.YearlyRecapEntryCard
 import com.agcoding.networkapp.analytics.presentation.model.MonthlyEntryUiModel
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
@@ -69,6 +71,8 @@ fun AnalyticsScreen(
     onNavigateToAllMonths: () -> Unit,
     onNavigateToPrediction: () -> Unit,
     onNavigateToGoal: () -> Unit,
+    onNavigateToRecap: () -> Unit,
+    onNavigateToCompare: () -> Unit,
     viewModel: AnalyticsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -77,7 +81,9 @@ fun AnalyticsScreen(
         onIntent = viewModel::onIntent,
         onNavigateToAllMonths = onNavigateToAllMonths,
         onNavigateToPrediction = onNavigateToPrediction,
-        onNavigateToGoal = onNavigateToGoal
+        onNavigateToGoal = onNavigateToGoal,
+        onNavigateToRecap = onNavigateToRecap,
+        onNavigateToCompare = onNavigateToCompare
     )
 }
 
@@ -88,7 +94,9 @@ private fun AnalyticsContent(
     onIntent: (AnalyticsIntent) -> Unit,
     onNavigateToAllMonths: () -> Unit,
     onNavigateToPrediction: () -> Unit,
-    onNavigateToGoal: () -> Unit
+    onNavigateToGoal: () -> Unit,
+    onNavigateToRecap: () -> Unit,
+    onNavigateToCompare: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -291,6 +299,14 @@ private fun AnalyticsContent(
                     }
 
                     item {
+                        YearlyRecapEntryCard(onClick = onNavigateToRecap)
+                    }
+
+                    item {
+                        ComparePeriodsEntryCard(onClick = onNavigateToCompare)
+                    }
+
+                    item {
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -483,7 +499,9 @@ private fun AnalyticsContentPreview() {
             onIntent = {},
             onNavigateToAllMonths = {},
             onNavigateToPrediction = {},
-            onNavigateToGoal = {}
+            onNavigateToGoal = {},
+            onNavigateToRecap = {},
+            onNavigateToCompare = {}
         )
     }
 }

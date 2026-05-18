@@ -116,6 +116,69 @@
     <string name="backup_import_title">Import Data</string>
     <string name="backup_section_title">Backup &amp; Restore</string>
 
+    <!-- Compare Periods -->
+    <string name="compare_title">Compare Periods</string>
+    <string name="compare_mode_year">Year vs Year</string>
+    <string name="compare_mode_half">6M vs 6M</string>
+    <string name="compare_mode_quarter">3M vs 3M</string>
+    <string name="compare_mode_rolling_year">12M vs 12M</string>
+    <string name="compare_mode_custom">Custom</string>
+    <string name="compare_no_data">Not enough data to compare. Add more entries over time.</string>
+    <string name="compare_custom_incomplete">Set both date ranges above to see the comparison.</string>
+    <string name="compare_custom_period_a">Current Period</string>
+    <string name="compare_custom_period_b">Previous Period</string>
+    <string name="compare_custom_from">From</string>
+    <string name="compare_custom_to">To</string>
+    <string name="compare_custom_not_set">Not set</string>
+    <string name="compare_entry_card">Compare Periods</string>
+    <string name="compare_entry_card_desc">Compare your growth across different time periods</string>
+    <string name="compare_total_growth">Total Growth</string>
+    <string name="compare_avg_monthly">Avg Monthly Growth</string>
+    <string name="compare_growth_speed">Growth Speed</string>
+    <string name="compare_stability">Consistency</string>
+    <string name="compare_best_period">Best Month</string>
+    <string name="compare_diff_more">%1$s more</string>
+    <string name="compare_diff_less">%1$s less</string>
+    <string name="compare_speed_accelerating">Accelerating</string>
+    <string name="compare_speed_slowing">Slowing Down</string>
+    <string name="compare_speed_stable">Staying Stable</string>
+    <string name="compare_speed_accelerating_desc">Your portfolio is growing faster than before</string>
+    <string name="compare_speed_slowing_desc">Your growth momentum slowed compared to last period</string>
+    <string name="compare_speed_stable_desc">Your progression remained consistent between periods</string>
+    <string name="compare_stability_better">More Consistent</string>
+    <string name="compare_stability_worse">More Volatile</string>
+    <string name="compare_stability_similar">Similarly Stable</string>
+    <string name="compare_stability_better_desc">This period had more steady, predictable growth</string>
+    <string name="compare_stability_worse_desc">This period had more month-to-month fluctuations</string>
+    <string name="compare_stability_similar_desc">Similar consistency level between both periods</string>
+    <string name="compare_best_month_desc">%1$s with a gain of %2$s</string>
+    <string name="compare_chart_title">GROWTH TRAJECTORIES</string>
+    <string name="compare_chart_subtitle">Normalized for comparison</string>
+
+    <!-- Yearly Recap -->
+    <string name="analytics_yearly_recap">Yearly Recap</string>
+    <string name="analytics_yearly_recap_desc">View your financial highlights by year</string>
+    <string name="recap_title">Yearly Recap</string>
+    <string name="recap_no_data">No data for %1$d. Add entries to see your recap.</string>
+    <string name="recap_year_growth_title">Year Growth</string>
+    <string name="recap_from_to">%1$s → %2$s</string>
+    <string name="recap_months_tracked">%1$d months tracked</string>
+    <string name="recap_new_all_time_high">New All-Time High</string>
+    <string name="recap_best_month">Best Month</string>
+    <string name="recap_worst_month">Worst Month</string>
+    <string name="recap_avg_monthly">Avg Monthly Growth</string>
+    <string name="recap_biggest_jump">Biggest Jump</string>
+    <string name="recap_goal_section">Goal</string>
+    <string name="recap_goal_total">%1$s of your overall goal completed</string>
+    <string name="recap_goal_year_progress">This year you added %1$s toward your goal</string>
+    <string name="recap_trend_title">Trend</string>
+    <string name="recap_trend_accelerated">Growth is accelerating — great momentum!</string>
+    <string name="recap_trend_stable">Growth is steady and consistent</string>
+    <string name="recap_trend_decelerated">Growth slowed down this year</string>
+    <string name="recap_trend_declined">Challenging year, but you can turn it around</string>
+    <string name="recap_chart_title">NET WORTH EVOLUTION</string>
+    <string name="recap_month_by_month">Month by Month</string>
+
     <!-- Goal Calculator -->
     <string name="analytics_goal_calculator">Goal Calculator</string>
     <string name="analytics_goal_calculator_desc">Track how close you are to your financial goal</string>

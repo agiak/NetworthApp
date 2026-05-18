@@ -9,11 +9,13 @@ import androidx.navigation.navArgument
 import com.agcoding.networkapp.analytics.presentation.AllMonthsScreen
 import com.agcoding.networkapp.analytics.presentation.AnalyticsScreen
 import com.agcoding.networkapp.analytics.presentation.prediction.PredictionScreen
+import com.agcoding.networkapp.compare.presentation.CompareScreen
 import com.agcoding.networkapp.goal.presentation.GoalScreen
 import com.agcoding.networkapp.history.presentation.EditEntryScreen
 import com.agcoding.networkapp.history.presentation.EntryDetailsScreen
 import com.agcoding.networkapp.history.presentation.HistoryScreen
 import com.agcoding.networkapp.home.presentation.HomeScreen
+import com.agcoding.networkapp.recap.presentation.RecapScreen
 import com.agcoding.networkapp.settings.presentation.ProfileScreen
 import com.agcoding.networkapp.settings.presentation.ProfileTargetSetupScreen
 import com.agcoding.networkapp.settings.presentation.SettingsScreen
@@ -68,8 +70,16 @@ fun NavGraph(
             AnalyticsScreen(
                 onNavigateToAllMonths = { navController.navigate(Screen.AllMonths.route) },
                 onNavigateToPrediction = { navController.navigate(Screen.Prediction.route) },
-                onNavigateToGoal = { navController.navigate(Screen.Goal.route) }
+                onNavigateToGoal = { navController.navigate(Screen.Goal.route) },
+                onNavigateToRecap = { navController.navigate(Screen.Recap.route) },
+                onNavigateToCompare = { navController.navigate(Screen.Compare.route) }
             )
+        }
+        composable(Screen.Compare.route) {
+            CompareScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable(Screen.Recap.route) {
+            RecapScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable(Screen.AllMonths.route) {
             AllMonthsScreen(onNavigateBack = { navController.popBackStack() })
