@@ -15,26 +15,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.agcoding.networkapp.R
-import com.agcoding.networkapp.shared.navigation.Screen
+import com.agcoding.networkapp.shared.navigation.AnalyticsRoute
+import com.agcoding.networkapp.shared.navigation.HomeRoute
+import com.agcoding.networkapp.shared.navigation.SettingsRoute
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val currentBackStack by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStack?.destination?.route
+    val currentDestination = currentBackStack?.destination
 
     val navigationItems = listOf(
-        NavigationItem(Screen.Home, Icons.Default.Home, stringResource(R.string.nav_home)),
-        NavigationItem(Screen.Analytics, Icons.Default.DateRange, stringResource(R.string.nav_analytics)),
-        NavigationItem(Screen.Settings, Icons.Default.Settings, stringResource(R.string.nav_settings))
+        NavigationItem(HomeRoute, Icons.Default.Home, stringResource(R.string.nav_home)),
+        NavigationItem(AnalyticsRoute, Icons.Default.DateRange, stringResource(R.string.nav_analytics)),
+        NavigationItem(SettingsRoute, Icons.Default.Settings, stringResource(R.string.nav_settings)),
     )
 
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
         navigationItems.forEach { item ->
-            val isSelected = currentRoute == item.screen.route
+            val isSelected = currentDestination?.hasRoute(item.route::class) == true
             NavigationBarItem(
                 icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
                 label = { Text(text = item.label) },
@@ -42,11 +45,11 @@ fun BottomNavigationBar(navController: NavController) {
                 colors = NavigationBarItemDefaults.colors(
                     indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
                     selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    selectedTextColor = MaterialTheme.colorScheme.primary
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
                 ),
                 onClick = {
-                    navController.navigate(item.screen.route) {
-                        popUpTo(Screen.Home.route) { saveState = true }
+                    navController.navigate(item.route) {
+                        popUpTo<HomeRoute> { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }

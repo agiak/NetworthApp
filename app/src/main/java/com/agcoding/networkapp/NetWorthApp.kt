@@ -1,61 +1,108 @@
 package com.agcoding.networkapp
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.agcoding.networkapp.biometric.presentation.lock.LockScreen
+import com.agcoding.networkapp.biometric.presentation.lock.LockViewModel
 import com.agcoding.networkapp.navigation.NavGraph
+import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
-import com.agcoding.networkapp.shared.navigation.Screen
+import com.agcoding.networkapp.shared.navigation.AccountsRoute
+import com.agcoding.networkapp.shared.navigation.AllMonthsRoute
+import com.agcoding.networkapp.shared.navigation.CompareRoute
+import com.agcoding.networkapp.shared.navigation.EditEntryRoute
+import com.agcoding.networkapp.shared.navigation.EntryDetailsRoute
+import com.agcoding.networkapp.shared.navigation.GoalRoute
+import com.agcoding.networkapp.shared.navigation.HistoryRoute
+import com.agcoding.networkapp.shared.navigation.PredictionRoute
+import com.agcoding.networkapp.shared.navigation.ProfileEditRoute
+import com.agcoding.networkapp.shared.navigation.ProfileSetupRoute
+import com.agcoding.networkapp.shared.navigation.ProfileTargetSetupRoute
+import com.agcoding.networkapp.shared.navigation.RecapRoute
+import com.agcoding.networkapp.shared.navigation.SecuritySetupRoute
 import com.agcoding.networkapp.shared.ui.components.BottomNavigationBar
-import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
+import com.agcoding.networkapp.shared.ui.theme.AppTheme
 
 @Composable
 fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
-    val appTheme by appViewModel.appTheme.collectAsStateWithLifecycle()
-    val isProfileCreated by appViewModel.isProfileCreated.collectAsStateWithLifecycle()
+    val appTheme             by appViewModel.appTheme.collectAsStateWithLifecycle()
+    val appThemeVariant      by appViewModel.appThemeVariant.collectAsStateWithLifecycle()
+    val appLanguage          by appViewModel.appLanguage.collectAsStateWithLifecycle()
+    val isProfileCreated     by appViewModel.isProfileCreated.collectAsStateWithLifecycle()
+    val isSecurityEnabled    by appViewModel.isSecurityEnabled.collectAsStateWithLifecycle()
+    val hasSeenSecuritySetup by appViewModel.hasSeenSecuritySetup.collectAsStateWithLifecycle()
+    val isAuthenticated      by appViewModel.isAuthenticated.collectAsStateWithLifecycle()
 
-    val isDarkTheme = when (appTheme) {
-        AppTheme.DARK -> true
-        AppTheme.LIGHT -> false
-        AppTheme.SYSTEM -> isSystemInDarkTheme()
+    LaunchedEffect(appLanguage) {
+        val tag = when (appLanguage) {
+            AppLanguage.ENGLISH -> "en"
+            AppLanguage.GREEK   -> "el"
+        }
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
     }
 
     if (isProfileCreated == null) return
 
-    NetWorthTheme(darkTheme = isDarkTheme) {
-        val navController = rememberNavController()
-        val currentBackStack by navController.currentBackStackEntryAsState()
-        val currentRoute = currentBackStack?.destination?.route
-        val showBottomBar = currentRoute != Screen.AllMonths.route &&
-                           currentRoute != Screen.EditEntry.route &&
-                           currentRoute != Screen.EntryDetails.route &&
-                           currentRoute != Screen.Compare.route &&
-                           currentRoute != Screen.Goal.route &&
-                           currentRoute != Screen.History.route &&
-                           currentRoute != Screen.Prediction.route &&
-                           currentRoute != Screen.Recap.route &&
-                           currentRoute != Screen.ProfileEdit.route &&
-                           currentRoute != Screen.ProfileSetup.route &&
-                           currentRoute != Screen.ProfileTargetSetup.route
+    val isDark = when (appTheme) {
+        AppTheme.DARK   -> true
+        AppTheme.LIGHT  -> false
+        AppTheme.SYSTEM -> isSystemInDarkTheme()
+    }
 
-        Scaffold(
-            bottomBar = {
-                if (showBottomBar) BottomNavigationBar(navController = navController)
-            }
-        ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues)) {
-                NavGraph(
-                    navController = navController,
-                    isProfileCreated = isProfileCreated!!
-                )
+    AppTheme(variant = appThemeVariant, isDark = isDark) {
+        // Lock screen: only after setup is complete AND security is enabled AND not yet authenticated
+        val requireLock = isProfileCreated == true &&
+                          hasSeenSecuritySetup &&
+                          isSecurityEnabled &&
+                          !isAuthenticated
+
+        if (requireLock) {
+            val lockVm: LockViewModel = hiltViewModel()
+            val lockState by lockVm.uiState.collectAsStateWithLifecycle()
+            LockScreen(state = lockState, onIntent = lockVm::onIntent)
+        } else {
+            val navController = rememberNavController()
+            val currentDest = navController.currentBackStackEntryAsState().value?.destination
+
+            val showBottomBar = currentDest?.let { d ->
+                !d.hasRoute<AllMonthsRoute>() &&
+                !d.hasRoute<AccountsRoute>() &&
+                !d.hasRoute<CompareRoute>() &&
+                !d.hasRoute<EditEntryRoute>() &&
+                !d.hasRoute<EntryDetailsRoute>() &&
+                !d.hasRoute<GoalRoute>() &&
+                !d.hasRoute<HistoryRoute>() &&
+                !d.hasRoute<PredictionRoute>() &&
+                !d.hasRoute<ProfileEditRoute>() &&
+                !d.hasRoute<ProfileSetupRoute>() &&
+                !d.hasRoute<ProfileTargetSetupRoute>() &&
+                !d.hasRoute<RecapRoute>() &&
+                !d.hasRoute<SecuritySetupRoute>()
+            } ?: true
+
+            Scaffold(
+                bottomBar = { if (showBottomBar) BottomNavigationBar(navController) }
+            ) { padding ->
+                Box(Modifier.padding(padding)) {
+                    NavGraph(
+                        navController        = navController,
+                        isProfileCreated     = isProfileCreated!!,
+                        hasSeenSecuritySetup = hasSeenSecuritySetup,
+                    )
+                }
             }
         }
     }

@@ -19,12 +19,12 @@ sealed class BackupResult {
 data class SettingsUiState(
     val appTheme: AppTheme = AppTheme.SYSTEM,
     val appLanguage: AppLanguage = AppLanguage.ENGLISH,
+    val isSecurityEnabled: Boolean = false,
     val isDummyDataGenerating: Boolean = false,
     val dummyDataResult: DummyDataResult? = null,
     val isGeneratingSpecific: Boolean = false,
     val isDeleting: Boolean = false,
     val deleteDataResult: DummyDataResult? = null,
-    val shouldRestartActivity: Boolean = false,
     val snapshotCount: Int = 0,
     val trackingSince: String = "",
     val userProfile: UserProfile = UserProfile(),

@@ -292,4 +292,45 @@
     <string name="title_edit_profile">Επεξεργασία Προφίλ</string>
     <string name="title_setup_profile">Δημιουργία Προφίλ</string>
     <string name="title_setup_target">Ορίστε τον στόχο σας</string>
+
+    <!-- Security Setup Prompt -->
+    <string name="security_setup_title">Ασφάλεια εφαρμογής</string>
+    <string name="security_setup_body">Προστατέψτε τα οικονομικά σας δεδομένα με 4-ψήφιο PIN. Μπορείτε επίσης να προσθέσετε βιομετρική σύνδεση.</string>
+    <string name="security_setup_btn_yes">Ρύθμιση ασφάλειας</string>
+    <string name="security_setup_btn_skip">Παράλειψη</string>
+
+    <!-- PIN Success -->
+    <string name="pin_success_title">Όλα έτοιμα!</string>
+    <string name="pin_success_subtitle">Η εφαρμογή σας είναι τώρα προστατευμένη</string>
+    <string name="btn_lets_start">Ας ξεκινήσουμε</string>
+
+    <!-- Biometric Setup Step -->
+    <string name="biometric_setup_title">Χρήση βιομετρικών;</string>
+    <string name="biometric_setup_body">Επιταχύνετε τη σύνδεση με δακτυλικό αποτύπωμα ή Face ID</string>
+    <string name="biometric_setup_btn_yes">Ναι, χρήση βιομετρικών</string>
+    <string name="biometric_setup_btn_no">Όχι, μόνο PIN</string>
+
+    <!-- Settings Security -->
+    <string name="label_app_security">Ασφάλεια εφαρμογής</string>
+    <string name="desc_app_security">Κλείδωμα εφαρμογής με PIN και βιομετρικά</string>
+
+    <!-- Lock Screen -->
+    <string name="lock_subtitle">Επαλήθευση ταυτότητας για συνέχεια</string>
+    <string name="lock_use_biometric">Χρήση βιομετρικού</string>
+    <string name="lock_wrong_pin">Λάθος PIN. Δοκιμάστε ξανά.</string>
+    <string name="biometric_prompt_title">Επαλήθευση</string>
+    <string name="biometric_prompt_subtitle">Χρησιμοποιήστε δακτυλικό αποτύπωμα ή πρόσωπο</string>
+    <string name="biometric_prompt_negative_btn">Χρήση PIN</string>
+
+    <!-- Setup PIN -->
+    <string name="setup_pin_title">Δημιουργία PIN</string>
+    <string name="setup_pin_subtitle">Θα το χρησιμοποιείτε για ξεκλείδωμα</string>
+    <string name="setup_pin_confirm_title">Επιβεβαίωση PIN</string>
+    <string name="setup_pin_confirm_subtitle">Εισάγετε το PIN ξανά για επιβεβαίωση</string>
+    <string name="setup_pin_mismatch">Τα PIN δεν ταιριάζουν. Ξεκινήστε ξανά.</string>
+
+    <!-- Widget -->
+    <string name="widget_label_change">Μεταβολή</string>
+    <string name="widget_label_no_data">Δεν υπάρχουν δεδομένα</string>
+    <string name="widget_description">Εμφανίζει την τρέχουσα καθαρή αξία</string>
 </resources>

@@ -1,6 +1,5 @@
 package com.agcoding.networkapp.settings.presentation
 
-import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -74,16 +73,17 @@ import java.time.LocalDate
 @Composable
 fun SettingsScreen(
     onNavigateToProfileEdit: () -> Unit,
+    onNavigateToSetupPin: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsContent(
         uiState = uiState,
         onIntent = { intent ->
-            if (intent is SettingsIntent.NavigateToProfileEdit) {
-                onNavigateToProfileEdit()
-            } else {
-                viewModel.onIntent(intent)
+            when (intent) {
+                SettingsIntent.NavigateToProfileEdit -> onNavigateToProfileEdit()
+                SettingsIntent.NavigateToSetupPin    -> onNavigateToSetupPin()
+                else -> viewModel.onIntent(intent)
             }
         }
     )
@@ -96,7 +96,6 @@ private fun SettingsContent(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
-    val activity = context as? Activity
 
     // Export file picker
     val exportLauncher = rememberLauncherForActivityResult(
@@ -140,13 +139,6 @@ private fun SettingsContent(
             }
             snackbarHostState.showSnackbar(message)
             onIntent(SettingsIntent.ClearBackupResult)
-        }
-    }
-
-    LaunchedEffect(uiState.shouldRestartActivity) {
-        if (uiState.shouldRestartActivity) {
-            onIntent(SettingsIntent.ActivityRestarted)
-            activity?.recreate()
         }
     }
 
@@ -292,7 +284,16 @@ private fun SettingsContent(
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                         SmartFeatureRow(icon = Icons.Default.Notifications, title = stringResource(R.string.label_monthly_reminder), description = stringResource(R.string.desc_monthly_reminder), isChecked = true)
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-                        SmartFeatureRow(icon = Icons.Default.Lock, title = stringResource(R.string.label_biometric_lock), description = stringResource(R.string.desc_biometric_lock), isChecked = false)
+                        SmartFeatureRow(
+                            icon = Icons.Default.Lock,
+                            title = stringResource(R.string.label_app_security),
+                            description = stringResource(R.string.desc_app_security),
+                            isChecked = uiState.isSecurityEnabled,
+                            onCheckedChange = { enabled ->
+                                if (enabled) onIntent(SettingsIntent.NavigateToSetupPin)
+                                else onIntent(SettingsIntent.DisableSecurity)
+                            }
+                        )
                     }
                 }
             }
@@ -437,8 +438,15 @@ private fun SegmentedControl(options: List<String>, selectedOption: Int, onOptio
 }
 
 @Composable
-private fun SmartFeatureRow(icon: ImageVector, title: String, description: String, isChecked: Boolean) {
-    var checked by remember { mutableStateOf(isChecked) }
+private fun SmartFeatureRow(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    isChecked: Boolean,
+    onCheckedChange: ((Boolean) -> Unit)? = null,
+) {
+    var localChecked by remember { mutableStateOf(isChecked) }
+    val checked = if (onCheckedChange != null) isChecked else localChecked
     Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
         Surface(modifier = Modifier.size(40.dp), shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
             Box(contentAlignment = Alignment.Center) {
@@ -450,7 +458,18 @@ private fun SmartFeatureRow(icon: ImageVector, title: String, description: Strin
             Text(text = title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             Text(text = description, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
         }
-        Switch(checked = checked, onCheckedChange = { checked = it }, colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = PositiveGreen, uncheckedThumbColor = Color.White, uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f), uncheckedBorderColor = Color.Transparent))
+        Switch(
+            checked = checked,
+            onCheckedChange = { newValue ->
+                if (onCheckedChange != null) onCheckedChange(newValue)
+                else localChecked = newValue
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White, checkedTrackColor = PositiveGreen,
+                uncheckedThumbColor = Color.White, uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f),
+                uncheckedBorderColor = Color.Transparent,
+            )
+        )
     }
 }
 

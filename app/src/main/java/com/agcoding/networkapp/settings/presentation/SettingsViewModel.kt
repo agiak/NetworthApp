@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.agcoding.networkapp.backup.domain.usecase.ExportDataUseCase
 import com.agcoding.networkapp.backup.domain.usecase.ImportDataUseCase
+import com.agcoding.networkapp.biometric.domain.usecase.DisableSecurityUseCase
+import com.agcoding.networkapp.biometric.domain.usecase.IsSecurityEnabledUseCase
 import com.agcoding.networkapp.home.domain.repository.NetWorthRepository
 import com.agcoding.networkapp.settings.domain.usecase.GenerateDummyDataUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GenerateSpecificDataUseCase
@@ -40,6 +42,8 @@ class SettingsViewModel @Inject constructor(
     private val repository: NetWorthRepository,
     private val exportDataUseCase: ExportDataUseCase,
     private val importDataUseCase: ImportDataUseCase,
+    private val isSecurityEnabledUseCase: IsSecurityEnabledUseCase,
+    private val disableSecurityUseCase: DisableSecurityUseCase,
     @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
@@ -53,7 +57,6 @@ class SettingsViewModel @Inject constructor(
 
     fun onIntent(intent: SettingsIntent) {
         when (intent) {
-            SettingsIntent.ActivityRestarted -> _uiState.update { it.copy(shouldRestartActivity = false) }
             SettingsIntent.CancelImport -> _uiState.update { it.copy(showImportConfirmDialog = false, pendingImportJson = null) }
             SettingsIntent.ClearBackupResult -> _uiState.update { it.copy(backupResult = null) }
             SettingsIntent.ClearDeleteDataResult -> _uiState.update { it.copy(deleteDataResult = null) }
@@ -62,7 +65,9 @@ class SettingsViewModel @Inject constructor(
             SettingsIntent.DeleteData -> deleteData()
             SettingsIntent.GenerateDummyData -> generateDummyData()
             SettingsIntent.GenerateSpecificData -> generateSpecificData()
+            SettingsIntent.DisableSecurity -> disableSecurity()
             SettingsIntent.NavigateToProfileEdit -> { /* Handled in UI */ }
+            SettingsIntent.NavigateToSetupPin -> { /* Handled in UI */ }
             is SettingsIntent.ExportToUri -> exportToUri(intent.uri)
             is SettingsIntent.LoadImportFile -> loadImportFile(intent.uri)
             is SettingsIntent.SetLanguage -> setLanguage(intent.language)
@@ -70,9 +75,16 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    private fun disableSecurity() {
+        viewModelScope.launch(ioDispatcher) { disableSecurityUseCase() }
+    }
+
     private fun observeSettings() {
         viewModelScope.launch {
             getAppThemeUseCase().collect { theme -> _uiState.update { it.copy(appTheme = theme) } }
+        }
+        viewModelScope.launch {
+            isSecurityEnabledUseCase().collect { enabled -> _uiState.update { it.copy(isSecurityEnabled = enabled) } }
         }
         viewModelScope.launch {
             getAppLanguageUseCase().collect { language -> _uiState.update { it.copy(appLanguage = language) } }
@@ -99,10 +111,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun setLanguage(language: com.agcoding.networkapp.settings.domain.model.AppLanguage) {
-        viewModelScope.launch(ioDispatcher) {
-            setAppLanguageUseCase(language)
-            _uiState.update { it.copy(shouldRestartActivity = true) }
-        }
+        viewModelScope.launch(ioDispatcher) { setAppLanguageUseCase(language) }
     }
 
     private fun exportToUri(uri: Uri) {

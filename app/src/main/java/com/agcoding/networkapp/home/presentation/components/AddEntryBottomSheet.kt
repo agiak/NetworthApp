@@ -24,9 +24,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -209,13 +210,16 @@ fun AddEntryBottomSheet(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            val appColors = LocalAppColorScheme.current
             Button(
                 onClick = onSave,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    containerColor = appColors.actionPrimary,
+                    contentColor   = appColors.actionContent,
+                    disabledContainerColor = appColors.actionPrimary.copy(alpha = 0.38f),
+                    disabledContentColor   = appColors.actionContent.copy(alpha = 0.38f),
                 ),
                 enabled = entryInput.isNotEmpty() && !isSaving
             ) {

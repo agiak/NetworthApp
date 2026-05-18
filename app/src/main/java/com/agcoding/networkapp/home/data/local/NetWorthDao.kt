@@ -21,6 +21,9 @@ interface NetWorthDao {
     @Update
     suspend fun updateEntry(entry: NetWorthEntity)
 
+    @Query("SELECT * FROM net_worth_entries ORDER BY dateEpochDay DESC LIMIT 2")
+    suspend fun getLatestTwoEntries(): List<NetWorthEntity>
+
     @Query("DELETE FROM net_worth_entries")
     suspend fun deleteAllEntries()
 }

@@ -279,6 +279,47 @@
     <string name="label_biometric_lock">Biometric lock</string>
     <string name="desc_biometric_lock">Require fingerprint to open</string>
 
+    <!-- Security Setup Prompt -->
+    <string name="security_setup_title">Secure your app</string>
+    <string name="security_setup_body">Protect your financial data with a 4-digit PIN. You can also add biometric login.</string>
+    <string name="security_setup_btn_yes">Set up security</string>
+    <string name="security_setup_btn_skip">Skip for now</string>
+
+    <!-- PIN Success -->
+    <string name="pin_success_title">You\'re all set!</string>
+    <string name="pin_success_subtitle">Your app is now protected</string>
+    <string name="btn_lets_start">Let\'s Start</string>
+
+    <!-- Biometric Setup Step -->
+    <string name="biometric_setup_title">Use biometrics?</string>
+    <string name="biometric_setup_body">Speed up login with your fingerprint or face ID</string>
+    <string name="biometric_setup_btn_yes">Yes, use biometrics</string>
+    <string name="biometric_setup_btn_no">No, PIN only</string>
+
+    <!-- Settings Security -->
+    <string name="label_app_security">App Security</string>
+    <string name="desc_app_security">Lock app with PIN and optional biometrics</string>
+
+    <!-- Lock Screen -->
+    <string name="lock_subtitle">Verify your identity to continue</string>
+    <string name="lock_use_biometric">Use biometric</string>
+    <string name="lock_wrong_pin">Wrong PIN. Try again.</string>
+    <string name="biometric_prompt_title">Authenticate</string>
+    <string name="biometric_prompt_subtitle">Use your fingerprint or face to unlock</string>
+    <string name="biometric_prompt_negative_btn">Use PIN</string>
+
+    <!-- Setup PIN -->
+    <string name="setup_pin_title">Create a PIN</string>
+    <string name="setup_pin_subtitle">You\'ll use this to unlock the app</string>
+    <string name="setup_pin_confirm_title">Confirm your PIN</string>
+    <string name="setup_pin_confirm_subtitle">Enter your PIN again to confirm</string>
+    <string name="setup_pin_mismatch">PINs don\'t match. Try again.</string>
+
+    <!-- Widget -->
+    <string name="widget_label_change">Change</string>
+    <string name="widget_label_no_data">No data yet</string>
+    <string name="widget_description">Shows your current net worth</string>
+
     <!-- Profile -->
     <string name="btn_continue">Continue</string>
     <string name="btn_save">Save Changes</string>
