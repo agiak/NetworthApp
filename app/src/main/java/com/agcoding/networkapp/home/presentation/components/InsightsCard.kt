@@ -35,6 +35,7 @@ import java.util.Locale
 @Composable
 fun InsightsCard(
     insight: InsightData,
+    currencySymbol: String = "€",
     modifier: Modifier = Modifier
 ) {
     val bgColor: Color
@@ -56,7 +57,7 @@ fun InsightsCard(
             title = stringResource(R.string.insight_best_month_title, monthName)
             description = stringResource(
                 R.string.insight_best_month_desc,
-                "€${String.format(Locale.US, "%,.0f", insight.growthAmount)}"
+                "$currencySymbol${String.format(Locale.US, "%,.0f", insight.growthAmount)}"
             )
         }
         is InsightData.Forecast -> {
@@ -65,7 +66,7 @@ fun InsightsCard(
             icon = "🎯"
             title = stringResource(
                 R.string.insight_forecast_title,
-                "€${String.format(Locale.US, "%,.0f", insight.targetAmount)}",
+                "$currencySymbol${String.format(Locale.US, "%,.0f", insight.targetAmount)}",
                 monthName
             )
             description = stringResource(R.string.insight_forecast_desc)

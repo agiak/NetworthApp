@@ -9,6 +9,7 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val userName: String = "",
     val userInitial: String = "",
+    val currencySymbol: String = "€",
     val targetAmount: String = "",
     val currentNetWorth: String = "€0",
     val changeThisMonth: String = "",

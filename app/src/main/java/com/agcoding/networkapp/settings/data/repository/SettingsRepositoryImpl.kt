@@ -1,6 +1,7 @@
 package com.agcoding.networkapp.settings.data.repository
 
 import android.content.Context
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
 import com.agcoding.networkapp.settings.domain.model.UserProfile
@@ -21,13 +22,17 @@ class SettingsRepositoryImpl @Inject constructor(
 
     private val _appTheme = MutableStateFlow(readTheme())
     private val _appLanguage = MutableStateFlow(readLanguage())
+    private val _appCurrency = MutableStateFlow(readCurrency())
     private val _userProfile = MutableStateFlow(readUserProfile())
     private val _isProfileCreated = MutableStateFlow(readIsProfileCreated())
+    private val _hasSeenOnboarding = MutableStateFlow(prefs.getBoolean(KEY_ONBOARDING_SEEN, false))
 
     override fun getAppTheme(): Flow<AppTheme> = _appTheme
     override fun getAppLanguage(): Flow<AppLanguage> = _appLanguage
+    override fun getAppCurrency(): Flow<AppCurrency> = _appCurrency
     override fun getUserProfile(): Flow<UserProfile> = _userProfile
     override fun isProfileCreated(): Flow<Boolean> = _isProfileCreated
+    override fun hasSeenOnboarding(): Flow<Boolean> = _hasSeenOnboarding
 
     override suspend fun setAppTheme(theme: AppTheme) {
         prefs.edit().putString(KEY_THEME, theme.key).apply()
@@ -37,6 +42,11 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setAppLanguage(language: AppLanguage) {
         prefs.edit().putString(KEY_LANGUAGE, language.key).commit()
         _appLanguage.value = language
+    }
+
+    override suspend fun setAppCurrency(currency: AppCurrency) {
+        prefs.edit().putString(KEY_CURRENCY, currency.key).apply()
+        _appCurrency.value = currency
     }
 
     override suspend fun setUserProfile(profile: UserProfile) {
@@ -57,6 +67,11 @@ class SettingsRepositoryImpl @Inject constructor(
         _isProfileCreated.value = created
     }
 
+    override suspend fun markOnboardingSeen() {
+        prefs.edit().putBoolean(KEY_ONBOARDING_SEEN, true).apply()
+        _hasSeenOnboarding.value = true
+    }
+
     private fun readTheme(): AppTheme {
         val key = prefs.getString(KEY_THEME, AppTheme.SYSTEM.key) ?: AppTheme.SYSTEM.key
         return AppTheme.entries.firstOrNull { it.key == key } ?: AppTheme.SYSTEM
@@ -65,6 +80,11 @@ class SettingsRepositoryImpl @Inject constructor(
     private fun readLanguage(): AppLanguage {
         val key = prefs.getString(KEY_LANGUAGE, AppLanguage.ENGLISH.key) ?: AppLanguage.ENGLISH.key
         return AppLanguage.entries.firstOrNull { it.key == key } ?: AppLanguage.ENGLISH
+    }
+
+    private fun readCurrency(): AppCurrency {
+        val key = prefs.getString(KEY_CURRENCY, AppCurrency.EUR.key) ?: AppCurrency.EUR.key
+        return AppCurrency.entries.firstOrNull { it.key == key } ?: AppCurrency.EUR
     }
 
     private fun readUserProfile(): UserProfile {
@@ -83,7 +103,9 @@ class SettingsRepositoryImpl @Inject constructor(
 
     companion object {
         private const val KEY_CREATED_AT = "created_at"
+        private const val KEY_CURRENCY = "currency"
         private const val KEY_LANGUAGE = "language"
+        private const val KEY_ONBOARDING_SEEN = "onboarding_seen"
         private const val KEY_PROFILE_CREATED = "is_profile_created"
         private const val KEY_THEME = "theme"
         private const val KEY_USER_EMAIL = "user_email"

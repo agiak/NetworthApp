@@ -1,5 +1,6 @@
 package com.agcoding.networkapp.settings.presentation
 
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
 import com.agcoding.networkapp.settings.domain.model.UserProfile
@@ -19,6 +20,7 @@ sealed class BackupResult {
 data class SettingsUiState(
     val appTheme: AppTheme = AppTheme.SYSTEM,
     val appLanguage: AppLanguage = AppLanguage.ENGLISH,
+    val appCurrency: AppCurrency = AppCurrency.EUR,
     val isSecurityEnabled: Boolean = false,
     val isDummyDataGenerating: Boolean = false,
     val dummyDataResult: DummyDataResult? = null,

@@ -4,6 +4,7 @@ import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import com.agcoding.networkapp.home.presentation.model.InsightData
 import com.agcoding.networkapp.home.presentation.model.NetWorthDisplayData
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.shared.utils.formatForDisplay
 import java.time.YearMonth
 import java.util.Locale
@@ -12,7 +13,7 @@ import kotlin.math.ceil
 
 class NetWorthDomainToUiMapper @Inject constructor() {
 
-    fun map(monthlyData: List<MonthlyNetWorth>): NetWorthDisplayData {
+    fun map(monthlyData: List<MonthlyNetWorth>, currency: AppCurrency = AppCurrency.EUR): NetWorthDisplayData {
         if (monthlyData.isEmpty()) return NetWorthDisplayData()
 
         val sortedDesc = monthlyData.sortedByDescending { it.yearMonth }
@@ -26,12 +27,10 @@ class NetWorthDomainToUiMapper @Inject constructor() {
             val diff = latest.value - previous.value
             val pct = if (previous.value != 0.0) (diff / previous.value) * 100.0 else 0.0
             isPositiveChange = diff >= 0
-            
-            // Format to match screenshot: "€850 this month" and "+ 4.9 %"
-            changeThisMonth = diff.formatAsCurrency() 
+            changeThisMonth = diff.formatAsCurrency(currency)
             changePercentage = "${if (pct >= 0) "+ " else "- "}${String.format(Locale.US, "%.1f", Math.abs(pct))} %"
         } else {
-            changeThisMonth = "€0"
+            changeThisMonth = "${currency.symbol}0"
             changePercentage = "0 %"
             isPositiveChange = true
         }
@@ -54,19 +53,19 @@ class NetWorthDomainToUiMapper @Inject constructor() {
         
         val ytdDiff = latest.value - ytdStartValue
         val ytdPct = if (ytdStartValue != 0.0) (ytdDiff / ytdStartValue) * 100 else 0.0
-        
-        val ytdGrowth = ytdDiff.formatAsChange()
+
+        val ytdGrowth = ytdDiff.formatAsChange(currency)
         val ytdPercentage = "${if (ytdPct >= 0) "+" else ""}${String.format(Locale.US, "%.0f", Math.abs(ytdPct))}%"
 
         val avgPerMonth: String = if (sortedDesc.size >= 2) {
             val avg = (sortedDesc.first().value - sortedDesc.last().value) / (sortedDesc.size - 1)
-            avg.formatAsCurrency()
-        } else "€0"
+            avg.formatAsCurrency(currency)
+        } else "${currency.symbol}0"
 
         val streak = buildStreakCount(sortedDesc)
 
         return NetWorthDisplayData(
-            currentNetWorth = latest.value.formatAsCurrency(),
+            currentNetWorth = latest.value.formatAsCurrency(currency),
             changeThisMonth = changeThisMonth,
             changePercentage = changePercentage,
             isPositiveChange = isPositiveChange,
@@ -123,10 +122,11 @@ class NetWorthDomainToUiMapper @Inject constructor() {
         return insights.take(3)
     }
 
-    private fun Double.formatAsCurrency(): String = "€${String.format(Locale.US, "%,.0f", this)}"
+    private fun Double.formatAsCurrency(currency: AppCurrency): String =
+        "${currency.symbol}${String.format(Locale.US, "%,.0f", this)}"
 
-    private fun Double.formatAsChange(): String {
+    private fun Double.formatAsChange(currency: AppCurrency): String {
         val prefix = if (this >= 0) "+" else ""
-        return "$prefix€${String.format(Locale.US, "%,.0f", this)}"
+        return "$prefix${currency.symbol}${String.format(Locale.US, "%,.0f", this)}"
     }
 }

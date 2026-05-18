@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
 import com.agcoding.networkapp.settings.presentation.components.BackupRestoreSection
@@ -74,6 +75,7 @@ import java.time.LocalDate
 fun SettingsScreen(
     onNavigateToProfileEdit: () -> Unit,
     onNavigateToSetupPin: () -> Unit,
+    onNavigateToOnboarding: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -81,6 +83,7 @@ fun SettingsScreen(
         uiState = uiState,
         onIntent = { intent ->
             when (intent) {
+                SettingsIntent.NavigateToOnboarding  -> onNavigateToOnboarding()
                 SettingsIntent.NavigateToProfileEdit -> onNavigateToProfileEdit()
                 SettingsIntent.NavigateToSetupPin    -> onNavigateToSetupPin()
                 else -> viewModel.onIntent(intent)
@@ -259,13 +262,24 @@ private fun SettingsContent(
                         PreferenceRow(
                             icon = Icons.Default.Info,
                             title = stringResource(R.string.label_currency),
-                            selectedOption = 0,
+                            selectedOption = when (uiState.appCurrency) {
+                                AppCurrency.EUR -> 0
+                                AppCurrency.USD -> 1
+                                AppCurrency.GBP -> 2
+                            },
                             options = listOf(
                                 stringResource(R.string.currency_eur),
                                 stringResource(R.string.currency_usd),
                                 stringResource(R.string.currency_gbp)
                             ),
-                            onOptionSelected = {}
+                            onOptionSelected = {
+                                val currency = when (it) {
+                                    0 -> AppCurrency.EUR
+                                    1 -> AppCurrency.USD
+                                    else -> AppCurrency.GBP
+                                }
+                                onIntent(SettingsIntent.SetCurrency(currency))
+                            }
                         )
                     }
                 }
@@ -294,6 +308,35 @@ private fun SettingsContent(
                                 else onIntent(SettingsIntent.DisableSecurity)
                             }
                         )
+                    }
+                }
+            }
+
+            item { SettingsSectionHeader(title = stringResource(R.string.header_about)) }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onIntent(SettingsIntent.NavigateToOnboarding) }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(modifier = Modifier.size(40.dp), shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(imageVector = Icons.Default.Info, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface)
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = stringResource(R.string.label_view_onboarding), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                            Text(text = stringResource(R.string.desc_view_onboarding), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }

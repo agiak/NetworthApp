@@ -21,18 +21,22 @@ import com.agcoding.networkapp.navigation.NavGraph
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
 import com.agcoding.networkapp.shared.navigation.AccountsRoute
+import com.agcoding.networkapp.shared.navigation.AddSnapshotRoute
 import com.agcoding.networkapp.shared.navigation.AllMonthsRoute
 import com.agcoding.networkapp.shared.navigation.CompareRoute
 import com.agcoding.networkapp.shared.navigation.EditEntryRoute
 import com.agcoding.networkapp.shared.navigation.EntryDetailsRoute
 import com.agcoding.networkapp.shared.navigation.GoalRoute
 import com.agcoding.networkapp.shared.navigation.HistoryRoute
+import com.agcoding.networkapp.shared.navigation.OnboardingRoute
 import com.agcoding.networkapp.shared.navigation.PredictionRoute
 import com.agcoding.networkapp.shared.navigation.ProfileEditRoute
 import com.agcoding.networkapp.shared.navigation.ProfileSetupRoute
 import com.agcoding.networkapp.shared.navigation.ProfileTargetSetupRoute
 import com.agcoding.networkapp.shared.navigation.RecapRoute
 import com.agcoding.networkapp.shared.navigation.SecuritySetupRoute
+import com.agcoding.networkapp.shared.shortcut.ShortcutEvent
+import com.agcoding.networkapp.shared.shortcut.ShortcutEventBus
 import com.agcoding.networkapp.shared.ui.components.BottomNavigationBar
 import com.agcoding.networkapp.shared.ui.theme.AppTheme
 
@@ -44,6 +48,7 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
     val isProfileCreated     by appViewModel.isProfileCreated.collectAsStateWithLifecycle()
     val isSecurityEnabled    by appViewModel.isSecurityEnabled.collectAsStateWithLifecycle()
     val hasSeenSecuritySetup by appViewModel.hasSeenSecuritySetup.collectAsStateWithLifecycle()
+    val hasSeenOnboarding    by appViewModel.hasSeenOnboarding.collectAsStateWithLifecycle()
     val isAuthenticated      by appViewModel.isAuthenticated.collectAsStateWithLifecycle()
 
     LaunchedEffect(appLanguage) {
@@ -77,7 +82,17 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
             val navController = rememberNavController()
             val currentDest = navController.currentBackStackEntryAsState().value?.destination
 
+            // Navigate to AddSnapshotRoute when the shortcut fires
+            val pendingShortcut by ShortcutEventBus.pendingEvent.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingShortcut) {
+                if (pendingShortcut == ShortcutEvent.AddSnapshot && isProfileCreated == true && hasSeenSecuritySetup) {
+                    navController.navigate(AddSnapshotRoute)
+                    ShortcutEventBus.consume()
+                }
+            }
+
             val showBottomBar = currentDest?.let { d ->
+                !d.hasRoute<AddSnapshotRoute>() &&
                 !d.hasRoute<AllMonthsRoute>() &&
                 !d.hasRoute<AccountsRoute>() &&
                 !d.hasRoute<CompareRoute>() &&
@@ -85,6 +100,7 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
                 !d.hasRoute<EntryDetailsRoute>() &&
                 !d.hasRoute<GoalRoute>() &&
                 !d.hasRoute<HistoryRoute>() &&
+                !d.hasRoute<OnboardingRoute>() &&
                 !d.hasRoute<PredictionRoute>() &&
                 !d.hasRoute<ProfileEditRoute>() &&
                 !d.hasRoute<ProfileSetupRoute>() &&
@@ -100,6 +116,7 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
                     NavGraph(
                         navController        = navController,
                         isProfileCreated     = isProfileCreated!!,
+                        hasSeenOnboarding    = hasSeenOnboarding,
                         hasSeenSecuritySetup = hasSeenSecuritySetup,
                     )
                 }

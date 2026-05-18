@@ -320,6 +320,26 @@
     <string name="widget_label_no_data">No data yet</string>
     <string name="widget_description">Shows your current net worth</string>
 
+    <!-- Onboarding -->
+    <string name="onboarding_1_title">Welcome to Net Worth Tracker</string>
+    <string name="onboarding_1_body">Track your financial growth over time and see how your net worth evolves month by month.</string>
+    <string name="onboarding_2_title">Log snapshots instantly</string>
+    <string name="onboarding_2_body">Add a new net worth snapshot in seconds. Your history is stored privately on your device.</string>
+    <string name="onboarding_3_title">Set goals, stay on track</string>
+    <string name="onboarding_3_body">Define a target and watch your progress unfold with insights, trends, and forecasts.</string>
+    <string name="btn_get_started">Get Started</string>
+    <string name="btn_next">Next</string>
+    <string name="btn_skip">Skip</string>
+
+    <!-- Settings — About section -->
+    <string name="header_about">ABOUT</string>
+    <string name="label_view_onboarding">Introduction</string>
+    <string name="desc_view_onboarding">Review the app introduction screens</string>
+
+    <!-- App Shortcuts -->
+    <string name="shortcut_add_short">Add snapshot</string>
+    <string name="shortcut_add_long">Add net worth snapshot</string>
+
     <!-- Profile -->
     <string name="btn_continue">Continue</string>
     <string name="btn_save">Save Changes</string>

@@ -21,11 +21,14 @@ import com.agcoding.networkapp.history.presentation.EditEntryScreen
 import com.agcoding.networkapp.history.presentation.EntryDetailsScreen
 import com.agcoding.networkapp.history.presentation.HistoryScreen
 import com.agcoding.networkapp.home.presentation.HomeScreen
+import com.agcoding.networkapp.onboarding.OnboardingScreen
+import com.agcoding.networkapp.onboarding.OnboardingViewModel
 import com.agcoding.networkapp.recap.presentation.RecapScreen
 import com.agcoding.networkapp.settings.presentation.ProfileScreen
 import com.agcoding.networkapp.settings.presentation.ProfileTargetSetupScreen
 import com.agcoding.networkapp.settings.presentation.SettingsScreen
 import com.agcoding.networkapp.shared.navigation.AccountsRoute
+import com.agcoding.networkapp.shared.navigation.AddSnapshotRoute
 import com.agcoding.networkapp.shared.navigation.AllMonthsRoute
 import com.agcoding.networkapp.shared.navigation.AnalyticsRoute
 import com.agcoding.networkapp.shared.navigation.CompareRoute
@@ -34,6 +37,7 @@ import com.agcoding.networkapp.shared.navigation.EntryDetailsRoute
 import com.agcoding.networkapp.shared.navigation.GoalRoute
 import com.agcoding.networkapp.shared.navigation.HistoryRoute
 import com.agcoding.networkapp.shared.navigation.HomeRoute
+import com.agcoding.networkapp.shared.navigation.OnboardingRoute
 import com.agcoding.networkapp.shared.navigation.PredictionRoute
 import com.agcoding.networkapp.shared.navigation.ProfileEditRoute
 import com.agcoding.networkapp.shared.navigation.ProfileSetupRoute
@@ -41,16 +45,19 @@ import com.agcoding.networkapp.shared.navigation.ProfileTargetSetupRoute
 import com.agcoding.networkapp.shared.navigation.RecapRoute
 import com.agcoding.networkapp.shared.navigation.SecuritySetupRoute
 import com.agcoding.networkapp.shared.navigation.SettingsRoute
+import com.agcoding.networkapp.snapshot.AddSnapshotScreen
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
     isProfileCreated: Boolean,
     hasSeenSecuritySetup: Boolean,
+    hasSeenOnboarding: Boolean,
 ) {
     // Frozen at first composition to prevent NavHost reset mid-session
     val startDestination = remember {
         when {
+            !hasSeenOnboarding    -> OnboardingRoute()
             !isProfileCreated     -> ProfileSetupRoute
             !hasSeenSecuritySetup -> SecuritySetupRoute()
             else                  -> HomeRoute
@@ -77,6 +84,29 @@ fun NavGraph(
                         popUpTo<ProfileTargetSetupRoute> { inclusive = true }
                     }
                 }
+            )
+        }
+
+        // ── Onboarding (first launch OR re-open from Settings) ─────────────────
+        composable<OnboardingRoute> { entry ->
+            val route: OnboardingRoute = entry.toRoute()
+            val vm: OnboardingViewModel = hiltViewModel()
+
+            LaunchedEffect(Unit) {
+                vm.finished.collect {
+                    if (route.fromSettings) {
+                        navController.navigateUp()
+                    } else {
+                        navController.navigate(ProfileSetupRoute) {
+                            popUpTo<OnboardingRoute> { inclusive = true }
+                        }
+                    }
+                }
+            }
+
+            OnboardingScreen(
+                onFinish = { vm.finish() },
+                onSkip   = { vm.finish() },
             )
         }
 
@@ -152,11 +182,15 @@ fun NavGraph(
 
         composable<SettingsRoute> {
             SettingsScreen(
-                onNavigateToProfileEdit = { navController.navigate(ProfileEditRoute) },
-                onNavigateToSetupPin    = {
-                    navController.navigate(SecuritySetupRoute(skipPrompt = true))
-                },
+                onNavigateToProfileEdit  = { navController.navigate(ProfileEditRoute) },
+                onNavigateToSetupPin     = { navController.navigate(SecuritySetupRoute(skipPrompt = true)) },
+                onNavigateToOnboarding   = { navController.navigate(OnboardingRoute(fromSettings = true)) },
             )
+        }
+
+        // ── Add Snapshot (via app shortcut) ────────────────────────────────────
+        composable<AddSnapshotRoute> {
+            AddSnapshotScreen(onNavigateBack = { navController.navigateUp() })
         }
     }
 }

@@ -189,7 +189,7 @@ private fun HomeContent(
                                 Text(text = stringResource(R.string.label_new_count, uiState.insights.size), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                             }
                             uiState.insights.forEach { insight ->
-                                InsightsCard(insight = insight)
+                                InsightsCard(insight = insight, currencySymbol = uiState.currencySymbol)
                             }
                         }
                     }
@@ -212,6 +212,7 @@ private fun HomeContent(
                 entryInput = uiState.entryInput,
                 selectedDate = uiState.selectedDate,
                 isSaving = uiState.isSaving,
+                currencySymbol = uiState.currencySymbol,
                 onValueChange = { onIntent(HomeIntent.UpdateEntryInput(it)) },
                 onDateChange = { onIntent(HomeIntent.UpdateEntryDate(it)) },
                 onSave = { onIntent(HomeIntent.SaveEntry) },

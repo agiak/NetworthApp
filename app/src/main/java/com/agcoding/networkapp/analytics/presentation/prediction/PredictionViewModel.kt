@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.agcoding.networkapp.analytics.presentation.prediction.mapper.PredictionUiMapper
 import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.domain.usecase.GetMonthlyNetWorthUseCase
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
+import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PredictionViewModel @Inject constructor(
     private val getMonthlyNetWorthUseCase: GetMonthlyNetWorthUseCase,
+    private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
     private val mapper: PredictionUiMapper
 ) : ViewModel() {
 
@@ -24,7 +27,15 @@ class PredictionViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PredictionUiState())
     val uiState: StateFlow<PredictionUiState> = _uiState.asStateFlow()
 
+    private var currentCurrency: AppCurrency = AppCurrency.EUR
+
     init {
+        viewModelScope.launch {
+            getAppCurrencyUseCase().collect { currency ->
+                currentCurrency = currency
+                recompute(_uiState.value.selectedRange)
+            }
+        }
         viewModelScope.launch {
             getMonthlyNetWorthUseCase().collect { result ->
                 result.fold(
@@ -49,7 +60,7 @@ class PredictionViewModel @Inject constructor(
     }
 
     private fun recompute(range: PredictionRange) {
-        val result = mapper.map(_allData.value, range)
+        val result = mapper.map(_allData.value, range, currentCurrency)
         _uiState.update {
             it.copy(
                 isLoading = false,

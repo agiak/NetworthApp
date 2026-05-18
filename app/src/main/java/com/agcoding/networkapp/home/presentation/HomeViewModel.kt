@@ -2,12 +2,15 @@ package com.agcoding.networkapp.home.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.domain.model.NetWorthEntry
 import com.agcoding.networkapp.home.domain.usecase.AddNetWorthEntryUseCase
 import com.agcoding.networkapp.home.domain.usecase.GetMonthlyNetWorthUseCase
 import com.agcoding.networkapp.home.domain.usecase.GetNetWorthEntriesUseCase
 import com.agcoding.networkapp.home.presentation.mapper.NetWorthDomainToUiMapper
 import com.agcoding.networkapp.home.presentation.mapper.NetWorthEntryToUiMapper
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
+import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
 import com.agcoding.networkapp.shared.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +31,7 @@ class HomeViewModel @Inject constructor(
     private val getNetWorthEntriesUseCase: GetNetWorthEntriesUseCase,
     private val addNetWorthEntryUseCase: AddNetWorthEntryUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
     private val mapper: NetWorthDomainToUiMapper,
     private val entryMapper: NetWorthEntryToUiMapper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
@@ -39,10 +43,15 @@ class HomeViewModel @Inject constructor(
     private var dataJob: Job? = null
     private var recentEntriesJob: Job? = null
 
+    private var cachedMonthlyData: List<MonthlyNetWorth> = emptyList()
+    private var cachedRawEntries: List<NetWorthEntry> = emptyList()
+    private var currentCurrency: AppCurrency = AppCurrency.EUR
+
     init {
         loadData()
         loadRecentEntries()
         loadUserProfile()
+        observeCurrency()
     }
 
     fun onIntent(intent: HomeIntent) {
@@ -60,33 +69,64 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun observeCurrency() {
+        viewModelScope.launch {
+            getAppCurrencyUseCase().collect { currency ->
+                currentCurrency = currency
+                _uiState.update { it.copy(currencySymbol = currency.symbol) }
+                applyMonthlyData(cachedMonthlyData)
+                applyRecentEntries(cachedRawEntries)
+                // Re-format target with new symbol
+                val raw = _uiState.value.targetAmountRaw
+                if (raw > 0.0) {
+                    val formatted = "${currency.symbol}${String.format(java.util.Locale.US, "%,.0f", raw)}"
+                    _uiState.update { it.copy(targetAmount = formatted) }
+                }
+            }
+        }
+    }
+
+    private fun applyMonthlyData(monthlyData: List<MonthlyNetWorth>) {
+        if (monthlyData.isEmpty()) return
+        val displayData = mapper.map(monthlyData, currentCurrency)
+        val rawNetWorth = monthlyData.sortedBy { it.yearMonth }.lastOrNull()?.value ?: 0.0
+        _uiState.update { state ->
+            state.copy(
+                isLoading = false,
+                currentNetWorth = displayData.currentNetWorth,
+                currentNetWorthRaw = rawNetWorth,
+                changeThisMonth = displayData.changeThisMonth,
+                changePercentage = displayData.changePercentage,
+                isPositiveChange = displayData.isPositiveChange,
+                lastUpdatedDate = displayData.lastUpdatedDate,
+                chartData = displayData.chartData,
+                insights = displayData.insights,
+                ytdGrowth = displayData.ytdGrowth,
+                ytdPercentage = displayData.ytdPercentage,
+                avgPerMonth = displayData.avgPerMonth,
+                streakMonths = displayData.streakMonths,
+                isStreakPositive = displayData.isStreakPositive,
+                error = null
+            )
+        }
+    }
+
+    private fun applyRecentEntries(entries: List<NetWorthEntry>) {
+        val recent = entries
+            .sortedByDescending { it.date }
+            .take(5)
+            .map { entryMapper.mapToUiModel(it, currentCurrency) }
+        _uiState.update { it.copy(recentEntries = recent) }
+    }
+
     private fun loadData() {
         dataJob?.cancel()
         dataJob = viewModelScope.launch {
             getMonthlyNetWorthUseCase().collect { result ->
                 result.fold(
                     onSuccess = { monthlyData ->
-                        val displayData = mapper.map(monthlyData)
-                        val rawNetWorth = monthlyData.sortedBy { it.yearMonth }.lastOrNull()?.value ?: 0.0
-                        _uiState.update { state ->
-                            state.copy(
-                                isLoading = false,
-                                currentNetWorth = displayData.currentNetWorth,
-                                currentNetWorthRaw = rawNetWorth,
-                                changeThisMonth = displayData.changeThisMonth,
-                                changePercentage = displayData.changePercentage,
-                                isPositiveChange = displayData.isPositiveChange,
-                                lastUpdatedDate = displayData.lastUpdatedDate,
-                                chartData = displayData.chartData,
-                                insights = displayData.insights,
-                                ytdGrowth = displayData.ytdGrowth,
-                                ytdPercentage = displayData.ytdPercentage,
-                                avgPerMonth = displayData.avgPerMonth,
-                                streakMonths = displayData.streakMonths,
-                                isStreakPositive = displayData.isStreakPositive,
-                                error = null
-                            )
-                        }
+                        cachedMonthlyData = monthlyData
+                        applyMonthlyData(monthlyData)
                     },
                     onFailure = { error ->
                         Timber.e(error)
@@ -103,11 +143,8 @@ class HomeViewModel @Inject constructor(
             getNetWorthEntriesUseCase().collect { result ->
                 result.fold(
                     onSuccess = { entries ->
-                        val recent = entries
-                            .sortedByDescending { it.date }
-                            .take(5)
-                            .map { entryMapper.mapToUiModel(it) }
-                        _uiState.update { it.copy(recentEntries = recent) }
+                        cachedRawEntries = entries
+                        applyRecentEntries(entries)
                     },
                     onFailure = { /* secondary data — silently ignored */ }
                 )
@@ -120,7 +157,7 @@ class HomeViewModel @Inject constructor(
             getUserProfileUseCase().collect { profile ->
                 val initial = profile.name.take(1).uppercase()
                 val formattedTarget = if (profile.targetAmount > 0.0) {
-                    "€${String.format(java.util.Locale.US, "%,.0f", profile.targetAmount)}"
+                    "${currentCurrency.symbol}${String.format(java.util.Locale.US, "%,.0f", profile.targetAmount)}"
                 } else ""
                 _uiState.update {
                     it.copy(

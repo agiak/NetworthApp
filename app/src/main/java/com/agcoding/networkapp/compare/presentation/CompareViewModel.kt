@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.agcoding.networkapp.compare.presentation.mapper.CompareUiMapper
 import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.domain.usecase.GetMonthlyNetWorthUseCase
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
+import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CompareViewModel @Inject constructor(
     private val getMonthlyNetWorthUseCase: GetMonthlyNetWorthUseCase,
+    private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
     private val mapper: CompareUiMapper
 ) : ViewModel() {
 
@@ -24,7 +27,15 @@ class CompareViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CompareUiState())
     val uiState: StateFlow<CompareUiState> = _uiState.asStateFlow()
 
+    private var currentCurrency: AppCurrency = AppCurrency.EUR
+
     init {
+        viewModelScope.launch {
+            getAppCurrencyUseCase().collect { currency ->
+                currentCurrency = currency
+                recompute()
+            }
+        }
         viewModelScope.launch {
             getMonthlyNetWorthUseCase().collect { result ->
                 result.fold(
@@ -75,7 +86,8 @@ class CompareViewModel @Inject constructor(
             customCurrentStart = s.customCurrentStart,
             customCurrentEnd = s.customCurrentEnd,
             customPreviousStart = s.customPreviousStart,
-            customPreviousEnd = s.customPreviousEnd
+            customPreviousEnd = s.customPreviousEnd,
+            currency = currentCurrency,
         )
         _uiState.update {
             it.copy(

@@ -1,6 +1,7 @@
 package com.agcoding.networkapp.settings.presentation
 
 import android.net.Uri
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
 
@@ -14,10 +15,12 @@ sealed interface SettingsIntent {
     data object GenerateDummyData : SettingsIntent
     data object GenerateSpecificData : SettingsIntent
     data object DisableSecurity : SettingsIntent
+    data object NavigateToOnboarding : SettingsIntent
     data object NavigateToProfileEdit : SettingsIntent
     data object NavigateToSetupPin : SettingsIntent
     data class ExportToUri(val uri: Uri) : SettingsIntent
     data class LoadImportFile(val uri: Uri) : SettingsIntent
+    data class SetCurrency(val currency: AppCurrency) : SettingsIntent
     data class SetLanguage(val language: AppLanguage) : SettingsIntent
     data class SetTheme(val theme: AppTheme) : SettingsIntent
 }

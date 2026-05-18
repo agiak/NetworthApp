@@ -3,17 +3,22 @@ package com.agcoding.networkapp.goal.presentation.mapper
 import com.agcoding.networkapp.goal.presentation.GoalStatus
 import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.abs
 
 class GoalUiMapper @Inject constructor() {
 
+    private var symbol: String = "€"
+
     fun map(
         allData: List<MonthlyNetWorth>,
         targetAmount: Double,
-        timeframeMonths: Int
+        timeframeMonths: Int,
+        currency: AppCurrency = AppCurrency.EUR,
     ): GoalMapResult {
+        symbol = currency.symbol
         if (allData.isEmpty() || targetAmount <= 0 || timeframeMonths <= 0) return GoalMapResult()
 
         val sorted = allData.sortedBy { it.yearMonth }
@@ -126,12 +131,12 @@ class GoalUiMapper @Inject constructor() {
     }
 
     private fun formatCurrency(value: Double): String {
-        val prefix = if (value < 0) "-€" else "€"
+        val prefix = if (value < 0) "-$symbol" else symbol
         return "$prefix${String.format(Locale.US, "%,.0f", abs(value))}"
     }
 
     private fun formatChange(value: Double): String {
         val absStr = String.format(Locale.US, "%,.0f", abs(value))
-        return if (value >= 0) "+€$absStr" else "-€$absStr"
+        return if (value >= 0) "+$symbol$absStr" else "-$symbol$absStr"
     }
 }

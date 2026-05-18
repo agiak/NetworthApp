@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.domain.usecase.GetMonthlyNetWorthUseCase
 import com.agcoding.networkapp.recap.presentation.mapper.RecapUiMapper
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
+import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +22,7 @@ import javax.inject.Inject
 class RecapViewModel @Inject constructor(
     private val getMonthlyNetWorthUseCase: GetMonthlyNetWorthUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
     private val mapper: RecapUiMapper
 ) : ViewModel() {
 
@@ -28,7 +31,15 @@ class RecapViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(RecapUiState())
     val uiState: StateFlow<RecapUiState> = _uiState.asStateFlow()
 
+    private var currentCurrency: AppCurrency = AppCurrency.EUR
+
     init {
+        viewModelScope.launch {
+            getAppCurrencyUseCase().collect { currency ->
+                currentCurrency = currency
+                recompute()
+            }
+        }
         viewModelScope.launch {
             getMonthlyNetWorthUseCase().collect { result ->
                 result.fold(
@@ -67,7 +78,7 @@ class RecapViewModel @Inject constructor(
     }
 
     private fun recompute() {
-        val result = mapper.map(_allData.value, _uiState.value.selectedYear, _targetAmount.value)
+        val result = mapper.map(_allData.value, _uiState.value.selectedYear, _targetAmount.value, currentCurrency)
         _uiState.update {
             it.copy(
                 isLoading = false,

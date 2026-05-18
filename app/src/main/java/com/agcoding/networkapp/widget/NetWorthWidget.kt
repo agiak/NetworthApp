@@ -27,7 +27,9 @@ import androidx.glance.text.TextStyle
 import com.agcoding.networkapp.MainActivity
 import com.agcoding.networkapp.R
 import com.agcoding.networkapp.home.data.local.NetWorthEntity
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.flow.first
 import kotlin.math.abs
 
 class NetWorthWidget : GlanceAppWidget() {
@@ -38,11 +40,12 @@ class NetWorthWidget : GlanceAppWidget() {
             NetWorthWidgetEntryPoint::class.java,
         )
         val entries = entryPoint.netWorthDao().getLatestTwoEntries()
-        provideContent { WidgetContent(context, entries) }
+        val currency = entryPoint.settingsRepository().getAppCurrency().first()
+        provideContent { WidgetContent(context, entries, currency) }
     }
 
     @Composable
-    private fun WidgetContent(context: Context, entries: List<NetWorthEntity>) {
+    private fun WidgetContent(context: Context, entries: List<NetWorthEntity>, currency: AppCurrency) {
         val latest   = entries.getOrNull(0)
         val previous = entries.getOrNull(1)
         val change   = if (latest != null && previous != null) latest.value - previous.value else null
@@ -70,7 +73,7 @@ class NetWorthWidget : GlanceAppWidget() {
                 Spacer(GlanceModifier.height(2.dp))
                 if (latest != null) {
                     Text(
-                        text = formatCurrency(latest.value),
+                        text = formatCurrency(latest.value, currency.symbol),
                         style = TextStyle(
                             color = ColorProvider(day = Color.White, night = Color.White),
                             fontSize = 18.sp,
@@ -81,7 +84,7 @@ class NetWorthWidget : GlanceAppWidget() {
                         val prefix = if (change >= 0) "+" else "-"
                         val changeColor = if (change >= 0) Color(0xFF5DCAA5) else Color(0xFFF09595)
                         Text(
-                            text = "$prefix${formatCurrency(abs(change))}",
+                            text = "$prefix${formatCurrency(abs(change), currency.symbol)}",
                             style = TextStyle(
                                 color = ColorProvider(day = changeColor, night = changeColor),
                                 fontSize = 11.sp,
@@ -101,5 +104,5 @@ class NetWorthWidget : GlanceAppWidget() {
         }
     }
 
-    private fun formatCurrency(value: Double) = "€%,.0f".format(value)
+    private fun formatCurrency(value: Double, symbol: String) = "$symbol%,.0f".format(value)
 }

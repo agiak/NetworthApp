@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Option B — Rising bar chart
+    3 bars of increasing height, rightmost in green.
+    Classic analytics / finance read at any size.
+
+    ▏   ▏
+    ▏   ▏
+    ▏█  ▏
+    ▏█  █
+    ▏████
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Bar 1 (short, left) — white -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,78 L28,71 Q28,68 31,68 L39,68 Q42,68 42,71 L42,78 Z" />
+
+    <!-- Bar 2 (medium, centre) — white -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M47,78 L47,57 Q47,54 50,54 L58,54 Q61,54 61,57 L61,78 Z" />
+
+    <!-- Bar 3 (tall, right) — green accent -->
+    <path
+        android:fillColor="#76C893"
+        android:pathData="M66,78 L66,39 Q66,36 69,36 L77,36 Q80,36 80,39 L80,78 Z" />
+
+    <!-- Baseline -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeAlpha="0.25"
+        android:strokeLineCap="round"
+        android:pathData="M24,78 L84,78" />
+
+</vector>

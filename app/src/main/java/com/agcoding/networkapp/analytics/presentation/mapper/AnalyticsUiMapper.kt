@@ -4,6 +4,7 @@ import com.agcoding.networkapp.analytics.presentation.TimeFilter
 import com.agcoding.networkapp.analytics.presentation.model.MonthlyEntryUiModel
 import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -43,7 +44,10 @@ data class AnalyticsMapResult(
 
 class AnalyticsUiMapper @Inject constructor() {
 
-    fun map(allData: List<MonthlyNetWorth>, filter: TimeFilter): AnalyticsMapResult {
+    private var symbol: String = "€"
+
+    fun map(allData: List<MonthlyNetWorth>, filter: TimeFilter, currency: AppCurrency = AppCurrency.EUR): AnalyticsMapResult {
+        symbol = currency.symbol
         val filtered = applyFilter(allData, filter)
         if (filtered.isEmpty()) return AnalyticsMapResult()
 
@@ -199,11 +203,11 @@ class AnalyticsUiMapper @Inject constructor() {
     }
 
     private fun formatCurrency(value: Double) =
-        "€${String.format(Locale.US, "%,.0f", value)}"
+        "$symbol${String.format(Locale.US, "%,.0f", value)}"
 
     private fun formatChange(value: Double): String {
         val absStr = String.format(Locale.US, "%,.0f", abs(value))
-        return if (value >= 0) "+€$absStr" else "-€$absStr"
+        return if (value >= 0) "+$symbol$absStr" else "-$symbol$absStr"
     }
 
     private fun formatPercent(pct: Double): String {

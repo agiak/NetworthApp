@@ -9,6 +9,7 @@ import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
 import com.agcoding.networkapp.settings.domain.usecase.GetAppLanguageUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GetAppThemeUseCase
+import com.agcoding.networkapp.settings.domain.usecase.HasSeenOnboardingUseCase
 import com.agcoding.networkapp.settings.domain.usecase.IsProfileCreatedUseCase
 import com.agcoding.networkapp.shared.domain.preferences.ThemePreferencesRepository
 import com.agcoding.networkapp.shared.ui.theme.AppThemeVariant
@@ -27,6 +28,7 @@ class AppViewModel @Inject constructor(
     private val themePreferencesRepository: ThemePreferencesRepository,
     private val isSecurityEnabledUseCase: IsSecurityEnabledUseCase,
     private val hasSeenSecuritySetupUseCase: HasSeenSecuritySetupUseCase,
+    private val hasSeenOnboardingUseCase: HasSeenOnboardingUseCase,
     private val authStateManager: AuthStateManager,
 ) : ViewModel() {
 
@@ -48,6 +50,9 @@ class AppViewModel @Inject constructor(
     private val _hasSeenSecuritySetup = MutableStateFlow(false)
     val hasSeenSecuritySetup: StateFlow<Boolean> = _hasSeenSecuritySetup.asStateFlow()
 
+    private val _hasSeenOnboarding = MutableStateFlow(false)
+    val hasSeenOnboarding: StateFlow<Boolean> = _hasSeenOnboarding.asStateFlow()
+
     val isAuthenticated: StateFlow<Boolean> = authStateManager.isAuthenticated
 
     init {
@@ -57,5 +62,6 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch { isProfileCreatedUseCase().collect { _isProfileCreated.value = it } }
         viewModelScope.launch { isSecurityEnabledUseCase().collect { _isSecurityEnabled.value = it } }
         viewModelScope.launch { hasSeenSecuritySetupUseCase().collect { _hasSeenSecuritySetup.value = it } }
+        viewModelScope.launch { hasSeenOnboardingUseCase().collect { _hasSeenOnboarding.value = it } }
     }
 }

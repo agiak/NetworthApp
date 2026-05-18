@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Option D — Circle ring with sparkline inside
+    Thin white ring containing a green trend line.
+    Feels refined and "dashboard" — distinct from the others.
+
+      ╭─────────╮
+     ╱    ╱╲    ╲
+    │   ╱╱  ╲╱╲  │
+    │  ╱        ╲ │
+     ╲           ╱
+      ╰─────────╯
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer circle ring (white) -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:pathData="M24,54 a30,30 0 1,0 60,0 a30,30 0 1,0 -60,0" />
+
+    <!-- Subtle inner area fill below the trend line (very low opacity) -->
+    <path
+        android:fillColor="#76C893"
+        android:fillAlpha="0.12"
+        android:pathData="M34,70 L46,59 L56,64 L68,49 L76,41 L76,72 Z" />
+
+    <!-- Trend line inside the ring (green) -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#76C893"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M34,70 L46,59 L56,64 L68,49 L76,41" />
+
+    <!-- Terminal dot at peak -->
+    <path
+        android:fillColor="#76C893"
+        android:pathData="M71,41 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+
+    <!-- White inner dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M74,41 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+
+</vector>

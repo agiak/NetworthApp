@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.agcoding.networkapp.goal.presentation.mapper.GoalUiMapper
 import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.domain.usecase.GetMonthlyNetWorthUseCase
+import com.agcoding.networkapp.settings.domain.model.AppCurrency
+import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +21,7 @@ import javax.inject.Inject
 class GoalViewModel @Inject constructor(
     private val getMonthlyNetWorthUseCase: GetMonthlyNetWorthUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
     private val mapper: GoalUiMapper
 ) : ViewModel() {
 
@@ -26,7 +29,15 @@ class GoalViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(GoalUiState())
     val uiState: StateFlow<GoalUiState> = _uiState.asStateFlow()
 
+    private var currentCurrency: AppCurrency = AppCurrency.EUR
+
     init {
+        viewModelScope.launch {
+            getAppCurrencyUseCase().collect { currency ->
+                currentCurrency = currency
+                recompute()
+            }
+        }
         viewModelScope.launch {
             getMonthlyNetWorthUseCase().collect { result ->
                 result.fold(
@@ -89,7 +100,7 @@ class GoalViewModel @Inject constructor(
             return
         }
 
-        val result = mapper.map(data, targetAmount, timeframeMonths)
+        val result = mapper.map(data, targetAmount, timeframeMonths, currentCurrency)
         _uiState.update {
             it.copy(
                 isLoading = false,

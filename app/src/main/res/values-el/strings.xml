@@ -333,4 +333,24 @@
     <string name="widget_label_change">Μεταβολή</string>
     <string name="widget_label_no_data">Δεν υπάρχουν δεδομένα</string>
     <string name="widget_description">Εμφανίζει την τρέχουσα καθαρή αξία</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_1_title">Καλωσήρθατε στο Net Worth Tracker</string>
+    <string name="onboarding_1_body">Παρακολουθήστε την οικονομική σας εξέλιξη και δείτε πώς αυξάνεται η αξία σας μήνα με μήνα.</string>
+    <string name="onboarding_2_title">Καταχωρίστε γρήγορα</string>
+    <string name="onboarding_2_body">Προσθέστε νέα εγγραφή καθαρής αξίας σε δευτερόλεπτα. Τα δεδομένα σας αποθηκεύονται τοπικά.</string>
+    <string name="onboarding_3_title">Θέστε στόχους, μείνετε σε τροχιά</string>
+    <string name="onboarding_3_body">Ορίστε στόχο και παρακολουθήστε την πρόοδό σας με insights, τάσεις και προβλέψεις.</string>
+    <string name="btn_get_started">Ας ξεκινήσουμε</string>
+    <string name="btn_next">Επόμενο</string>
+    <string name="btn_skip">Παράλειψη</string>
+
+    <!-- Settings — About section -->
+    <string name="header_about">ΣΧΕΤΙΚΑ</string>
+    <string name="label_view_onboarding">Εισαγωγή</string>
+    <string name="desc_view_onboarding">Δείτε ξανά τις οθόνες εισαγωγής</string>
+
+    <!-- App Shortcuts -->
+    <string name="shortcut_add_short">Νέα εγγραφή</string>
+    <string name="shortcut_add_long">Προσθήκη εγγραφής καθαρής αξίας</string>
 </resources>

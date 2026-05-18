@@ -54,6 +54,7 @@ fun AddEntryBottomSheet(
     entryInput: String,
     selectedDate: LocalDate,
     isSaving: Boolean,
+    currencySymbol: String = "€",
     onValueChange: (String) -> Unit,
     onDateChange: (LocalDate) -> Unit,
     onSave: () -> Unit,
@@ -122,7 +123,7 @@ fun AddEntryBottomSheet(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "€",
+                    text = currencySymbol,
                     style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                     fontWeight = FontWeight.Bold

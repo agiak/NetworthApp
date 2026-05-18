@@ -11,9 +11,11 @@ import com.agcoding.networkapp.biometric.domain.usecase.IsSecurityEnabledUseCase
 import com.agcoding.networkapp.home.domain.repository.NetWorthRepository
 import com.agcoding.networkapp.settings.domain.usecase.GenerateDummyDataUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GenerateSpecificDataUseCase
+import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GetAppLanguageUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GetAppThemeUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
+import com.agcoding.networkapp.settings.domain.usecase.SetAppCurrencyUseCase
 import com.agcoding.networkapp.settings.domain.usecase.SetAppLanguageUseCase
 import com.agcoding.networkapp.settings.domain.usecase.SetAppThemeUseCase
 import com.agcoding.networkapp.shared.di.IoDispatcher
@@ -34,8 +36,10 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val getAppThemeUseCase: GetAppThemeUseCase,
     private val getAppLanguageUseCase: GetAppLanguageUseCase,
+    private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
     private val setAppThemeUseCase: SetAppThemeUseCase,
     private val setAppLanguageUseCase: SetAppLanguageUseCase,
+    private val setAppCurrencyUseCase: SetAppCurrencyUseCase,
     private val generateDummyDataUseCase: GenerateDummyDataUseCase,
     private val generateSpecificDataUseCase: GenerateSpecificDataUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
@@ -66,10 +70,12 @@ class SettingsViewModel @Inject constructor(
             SettingsIntent.GenerateDummyData -> generateDummyData()
             SettingsIntent.GenerateSpecificData -> generateSpecificData()
             SettingsIntent.DisableSecurity -> disableSecurity()
+            SettingsIntent.NavigateToOnboarding -> { /* Handled in UI */ }
             SettingsIntent.NavigateToProfileEdit -> { /* Handled in UI */ }
             SettingsIntent.NavigateToSetupPin -> { /* Handled in UI */ }
             is SettingsIntent.ExportToUri -> exportToUri(intent.uri)
             is SettingsIntent.LoadImportFile -> loadImportFile(intent.uri)
+            is SettingsIntent.SetCurrency -> setCurrency(intent.currency)
             is SettingsIntent.SetLanguage -> setLanguage(intent.language)
             is SettingsIntent.SetTheme -> setTheme(intent.theme)
         }
@@ -88,6 +94,9 @@ class SettingsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             getAppLanguageUseCase().collect { language -> _uiState.update { it.copy(appLanguage = language) } }
+        }
+        viewModelScope.launch {
+            getAppCurrencyUseCase().collect { currency -> _uiState.update { it.copy(appCurrency = currency) } }
         }
         viewModelScope.launch {
             getUserProfileUseCase().collect { profile -> _uiState.update { it.copy(userProfile = profile) } }
@@ -112,6 +121,10 @@ class SettingsViewModel @Inject constructor(
 
     private fun setLanguage(language: com.agcoding.networkapp.settings.domain.model.AppLanguage) {
         viewModelScope.launch(ioDispatcher) { setAppLanguageUseCase(language) }
+    }
+
+    private fun setCurrency(currency: com.agcoding.networkapp.settings.domain.model.AppCurrency) {
+        viewModelScope.launch(ioDispatcher) { setAppCurrencyUseCase(currency) }
     }
 
     private fun exportToUri(uri: Uri) {
