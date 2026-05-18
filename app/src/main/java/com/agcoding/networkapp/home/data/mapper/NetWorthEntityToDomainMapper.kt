@@ -9,6 +9,7 @@ class NetWorthEntityToDomainMapper @Inject constructor() {
     fun map(entity: NetWorthEntity): NetWorthEntry = NetWorthEntry(
         id = entity.id,
         value = entity.value,
-        date = LocalDate.ofEpochDay(entity.dateEpochDay)
+        date = LocalDate.ofEpochDay(entity.dateEpochDay),
+        note = entity.note,
     )
 }

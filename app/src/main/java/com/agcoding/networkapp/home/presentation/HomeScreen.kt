@@ -209,14 +209,16 @@ private fun HomeContent(
 
         if (uiState.isAddEntrySheetVisible) {
             AddEntryBottomSheet(
-                entryInput = uiState.entryInput,
-                selectedDate = uiState.selectedDate,
-                isSaving = uiState.isSaving,
+                entryInput    = uiState.entryInput,
+                selectedDate  = uiState.selectedDate,
+                isSaving      = uiState.isSaving,
                 currencySymbol = uiState.currencySymbol,
+                noteInput     = uiState.noteInput,
                 onValueChange = { onIntent(HomeIntent.UpdateEntryInput(it)) },
-                onDateChange = { onIntent(HomeIntent.UpdateEntryDate(it)) },
-                onSave = { onIntent(HomeIntent.SaveEntry) },
-                onDismiss = { onIntent(HomeIntent.HideAddEntrySheet) }
+                onDateChange  = { onIntent(HomeIntent.UpdateEntryDate(it)) },
+                onNoteChange  = { onIntent(HomeIntent.UpdateEntryNote(it)) },
+                onSave        = { onIntent(HomeIntent.SaveEntry) },
+                onDismiss     = { onIntent(HomeIntent.HideAddEntrySheet) }
             )
         }
     }

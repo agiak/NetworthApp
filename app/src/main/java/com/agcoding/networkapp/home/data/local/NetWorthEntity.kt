@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class NetWorthEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val value: Double,
-    val dateEpochDay: Long
+    val dateEpochDay: Long,
+    @androidx.room.ColumnInfo(defaultValue = "") val note: String = "",
 )

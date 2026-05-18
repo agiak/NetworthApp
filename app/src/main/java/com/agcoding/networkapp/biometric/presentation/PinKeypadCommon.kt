@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -62,6 +63,7 @@ fun PinKeypad(
         listOf(if (extraLeftLabel != null) "EXTRA" else "", "0", "⌫"),
     )
 
+    val view = LocalView.current
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         rows.forEach { row ->
             Row(
@@ -80,6 +82,7 @@ fun PinKeypad(
                             .clip(MaterialTheme.shapes.medium)
                             .background(if (!isEmpty) keyColor else Color.Transparent)
                             .clickable(enabled = !isEmpty) {
+                                view.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
                                 when {
                                     key == "⌫"  -> onBackspace()
                                     isExtra     -> onExtraLeft?.invoke()

@@ -3,10 +3,13 @@ package com.agcoding.networkapp.history.presentation
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.agcoding.networkapp.home.domain.usecase.DeleteNetWorthEntryUseCase
 import com.agcoding.networkapp.home.domain.usecase.GetNetWorthEntryByIdUseCase
 import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
+import com.agcoding.networkapp.shared.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +24,9 @@ import javax.inject.Inject
 class EntryDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getNetWorthEntryByIdUseCase: GetNetWorthEntryByIdUseCase,
+    private val deleteNetWorthEntryUseCase: DeleteNetWorthEntryUseCase,
     private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val entryId: Long = checkNotNull(savedStateHandle["entryId"])
@@ -44,6 +49,18 @@ class EntryDetailsViewModel @Inject constructor(
         loadEntry()
     }
 
+    fun deleteEntry() {
+        viewModelScope.launch(ioDispatcher) {
+            deleteNetWorthEntryUseCase(entryId).fold(
+                onSuccess = { _uiState.update { it.copy(isDeleted = true) } },
+                onFailure = { error ->
+                    Timber.e(error)
+                    _uiState.update { it.copy(error = error.message) }
+                }
+            )
+        }
+    }
+
     private fun loadEntry() {
         viewModelScope.launch {
             getNetWorthEntryByIdUseCase(entryId).collect { result ->
@@ -55,7 +72,8 @@ class EntryDetailsViewModel @Inject constructor(
                                 it.copy(
                                     isLoading = false,
                                     formattedAmount = "${currentCurrency.symbol}${String.format(Locale.US, "%,.0f", entry.value)}",
-                                    formattedDate = entry.date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()))
+                                    formattedDate = entry.date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault())),
+                                    note = entry.note,
                                 )
                             }
                         } else {

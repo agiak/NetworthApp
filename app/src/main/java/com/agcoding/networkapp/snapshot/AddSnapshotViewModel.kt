@@ -20,6 +20,7 @@ import javax.inject.Inject
 
 data class AddSnapshotUiState(
     val entryInput: String = "",
+    val noteInput: String = "",
     val selectedDate: LocalDate = LocalDate.now(),
     val currencySymbol: String = "€",
     val isSaving: Boolean = false,
@@ -30,6 +31,7 @@ data class AddSnapshotUiState(
 sealed interface AddSnapshotIntent {
     data class UpdateInput(val value: String) : AddSnapshotIntent
     data class UpdateDate(val date: LocalDate) : AddSnapshotIntent
+    data class UpdateNote(val value: String) : AddSnapshotIntent
     data object Save : AddSnapshotIntent
     data object ClearError : AddSnapshotIntent
 }
@@ -56,6 +58,7 @@ class AddSnapshotViewModel @Inject constructor(
         when (intent) {
             is AddSnapshotIntent.UpdateInput -> _uiState.update { it.copy(entryInput = intent.value) }
             is AddSnapshotIntent.UpdateDate  -> _uiState.update { it.copy(selectedDate = intent.date) }
+            is AddSnapshotIntent.UpdateNote  -> _uiState.update { it.copy(noteInput = intent.value) }
             AddSnapshotIntent.Save           -> save()
             AddSnapshotIntent.ClearError     -> _uiState.update { it.copy(error = null) }
         }
@@ -65,7 +68,7 @@ class AddSnapshotViewModel @Inject constructor(
         val input = _uiState.value.entryInput.toDoubleOrNull() ?: return
         viewModelScope.launch(ioDispatcher) {
             _uiState.update { it.copy(isSaving = true) }
-            val entry = NetWorthEntry(value = input, date = _uiState.value.selectedDate)
+            val entry = NetWorthEntry(value = input, date = _uiState.value.selectedDate, note = _uiState.value.noteInput)
             addNetWorthEntryUseCase(entry).fold(
                 onSuccess = { _uiState.update { it.copy(isSaving = false, isDone = true) } },
                 onFailure = { error ->

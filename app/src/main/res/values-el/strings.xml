@@ -334,6 +334,13 @@
     <string name="widget_label_no_data">Δεν υπάρχουν δεδομένα</string>
     <string name="widget_description">Εμφανίζει την τρέχουσα καθαρή αξία</string>
 
+    <!-- Entry notes & delete -->
+    <string name="hint_note">Σημείωση (προαιρετικό)</string>
+    <string name="label_note">Σημείωση</string>
+    <string name="btn_delete_entry">Διαγραφή</string>
+    <string name="delete_entry_confirm_title">Διαγραφή εγγραφής;</string>
+    <string name="delete_entry_confirm_message">Αυτό το snapshot θα διαγραφεί μόνιμα.</string>
+
     <!-- Onboarding -->
     <string name="onboarding_1_title">Καλωσήρθατε στο Net Worth Tracker</string>
     <string name="onboarding_1_body">Παρακολουθήστε την οικονομική σας εξέλιξη και δείτε πώς αυξάνεται η αξία σας μήνα με μήνα.</string>

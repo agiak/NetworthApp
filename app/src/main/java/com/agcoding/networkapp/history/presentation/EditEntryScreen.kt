@@ -26,7 +26,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -154,6 +153,22 @@ private fun EditEntryContent(
                     cursorColor = PositiveGreen
                 ),
                 textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = uiState.noteInput,
+                onValueChange = { onIntent(EditEntryIntent.UpdateNote(it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.hint_note)) },
+                maxLines = 3,
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PositiveGreen,
+                    unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
+                    cursorColor = PositiveGreen,
+                ),
             )
 
             Spacer(modifier = Modifier.height(16.dp))

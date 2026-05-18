@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,7 +29,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
@@ -43,6 +42,8 @@ fun AnalyticsChartCard(
     startLabel: String,
     midLabel: String,
     endLabel: String,
+    topLabel: String = "",
+    bottomLabel: String = "",
     modifier: Modifier = Modifier
 ) {
     val animationProgress = remember(chartData) { Animatable(0f) }
@@ -118,6 +119,29 @@ fun AnalyticsChartCard(
                         color = PositiveGreen,
                         radius = 3.5.dp.toPx(),
                         center = Offset(lastX, lastY)
+                    )
+                }
+            }
+
+            // Y-axis labels (highest at top, lowest at bottom)
+            if (topLabel.isNotEmpty() || bottomLabel.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .align(Alignment.CenterStart)
+                        .padding(start = 14.dp, top = 12.dp, bottom = 38.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = topLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.75f),
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                    )
+                    Text(
+                        text = bottomLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray,
                     )
                 }
             }

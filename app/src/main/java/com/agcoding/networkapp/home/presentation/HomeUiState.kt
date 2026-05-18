@@ -29,6 +29,7 @@ data class HomeUiState(
     val recentEntries: List<EntryUiModel> = emptyList(),
     val isAddEntrySheetVisible: Boolean = false,
     val entryInput: String = "",
+    val noteInput: String = "",
     val selectedDate: LocalDate = LocalDate.now(),
     val isSaving: Boolean = false,
     val error: String? = null

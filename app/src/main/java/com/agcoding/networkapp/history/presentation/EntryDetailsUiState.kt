@@ -5,5 +5,7 @@ data class EntryDetailsUiState(
     val entryId: Long = 0L,
     val formattedAmount: String = "",
     val formattedDate: String = "",
+    val note: String = "",
+    val isDeleted: Boolean = false,
     val error: String? = null
 )

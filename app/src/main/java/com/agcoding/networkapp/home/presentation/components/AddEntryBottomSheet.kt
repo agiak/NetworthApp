@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,6 +25,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -36,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,8 +59,10 @@ fun AddEntryBottomSheet(
     selectedDate: LocalDate,
     isSaving: Boolean,
     currencySymbol: String = "€",
+    noteInput: String = "",
     onValueChange: (String) -> Unit,
     onDateChange: (LocalDate) -> Unit,
+    onNoteChange: (String) -> Unit = {},
     onSave: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -178,7 +184,22 @@ fun AddEntryBottomSheet(
                 modifier = Modifier.padding(start = 4.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = noteInput,
+                onValueChange = onNoteChange,
+                modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 52.dp),
+                placeholder = { Text(stringResource(R.string.hint_note), style = MaterialTheme.typography.bodyMedium) },
+                maxLines = 2,
+                shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                ),
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             val keyRows = listOf(
                 listOf("1", "2", "3"),
@@ -280,8 +301,9 @@ private fun DateChip(
 
 @Composable
 private fun KeypadButton(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val view = LocalView.current
     Surface(
-        onClick = onClick,
+        onClick = { view.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP); onClick() },
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = modifier.height(60.dp)

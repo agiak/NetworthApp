@@ -8,5 +8,6 @@ interface NetWorthRepository {
     fun getEntryById(id: Long): Flow<Result<NetWorthEntry?>>
     suspend fun addEntry(entry: NetWorthEntry): Result<Unit>
     suspend fun updateEntry(entry: NetWorthEntry): Result<Unit>
+    suspend fun deleteEntry(id: Long): Result<Unit>
     suspend fun deleteAllEntries(): Result<Unit>
 }

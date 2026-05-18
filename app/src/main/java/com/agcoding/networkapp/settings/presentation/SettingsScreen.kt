@@ -66,7 +66,6 @@ import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
 import com.agcoding.networkapp.settings.presentation.components.BackupRestoreSection
 import com.agcoding.networkapp.settings.presentation.components.SettingsSectionHeader
-import com.agcoding.networkapp.shared.ui.theme.DarkBackground
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 import java.time.LocalDate
@@ -425,10 +424,11 @@ private fun SettingsContent(
 
 @Composable
 private fun ProfileCard(name: String, since: String, snapshots: Int, onEditClick: () -> Unit) {
+    val colors = com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme.current
     Card(
         modifier = Modifier.fillMaxWidth().padding(16.dp).height(110.dp),
         shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkBackground)
+        colors = CardDefaults.cardColors(containerColor = colors.backgroundCard)
     ) {
         Row(modifier = Modifier.fillMaxSize().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(60.dp).clip(CircleShape).background(Color(0xFF76C893)), contentAlignment = Alignment.Center) {
@@ -436,11 +436,16 @@ private fun ProfileCard(name: String, since: String, snapshots: Int, onEditClick
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = name, color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text(text = stringResource(R.string.label_tracking_since, since, snapshots), color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                Text(text = name, color = colors.contentPrimary, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.label_tracking_since, since, snapshots), color = colors.contentSecondary, style = MaterialTheme.typography.bodySmall)
             }
-            Button(onClick = onEditClick, colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray.copy(alpha = 0.5f)), shape = RoundedCornerShape(16.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)) {
-                Text(text = stringResource(R.string.btn_edit), color = Color.White)
+            Button(
+                onClick = onEditClick,
+                colors = ButtonDefaults.buttonColors(containerColor = colors.backgroundSecondary),
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+            ) {
+                Text(text = stringResource(R.string.btn_edit), color = colors.contentPrimary)
             }
         }
     }
@@ -470,10 +475,17 @@ private fun SegmentedControl(options: List<String>, selectedOption: Int, onOptio
             options.forEachIndexed { index, option ->
                 val isSelected = index == selectedOption
                 Box(
-                    modifier = Modifier.weight(1f).fillMaxSize().padding(4.dp).clip(RoundedCornerShape(20.dp)).background(if (isSelected) DarkBackground else Color.Transparent).clickable { onOptionSelected(index) },
+                    modifier = Modifier.weight(1f).fillMaxSize().padding(4.dp).clip(RoundedCornerShape(20.dp))
+                        .background(if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent)
+                        .clickable { onOptionSelected(index) },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = option, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal, fontSize = 14.sp)
+                    Text(
+                        text = option,
+                        color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = 14.sp,
+                    )
                 }
             }
         }

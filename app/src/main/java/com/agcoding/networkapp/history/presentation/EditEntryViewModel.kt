@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,7 +38,8 @@ class EditEntryViewModel @Inject constructor(
     fun onIntent(intent: EditEntryIntent) {
         when (intent) {
             is EditEntryIntent.UpdateAmount -> _uiState.update { it.copy(amountInput = intent.value) }
-            is EditEntryIntent.UpdateDate -> _uiState.update { it.copy(selectedDate = intent.date) }
+            is EditEntryIntent.UpdateDate  -> _uiState.update { it.copy(selectedDate = intent.date) }
+            is EditEntryIntent.UpdateNote  -> _uiState.update { it.copy(noteInput = intent.value) }
             EditEntryIntent.Save -> saveEntry()
             EditEntryIntent.ClearError -> _uiState.update { it.copy(error = null) }
         }
@@ -54,7 +54,8 @@ class EditEntryViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 amountInput = entry.value.toLong().toString(),
-                                selectedDate = entry.date
+                                selectedDate = entry.date,
+                                noteInput = entry.note,
                             )
                         }
                     } else {
@@ -73,7 +74,7 @@ class EditEntryViewModel @Inject constructor(
         val amount = _uiState.value.amountInput.toDoubleOrNull() ?: return
         viewModelScope.launch(ioDispatcher) {
             _uiState.update { it.copy(isSaving = true) }
-            val entry = NetWorthEntry(id = entryId, value = amount, date = _uiState.value.selectedDate)
+            val entry = NetWorthEntry(id = entryId, value = amount, date = _uiState.value.selectedDate, note = _uiState.value.noteInput)
             updateNetWorthEntryUseCase(entry).fold(
                 onSuccess = {
                     _uiState.update { it.copy(isSaving = false, isComplete = true) }

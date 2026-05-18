@@ -39,7 +39,7 @@ class NetWorthRepositoryImpl @Inject constructor(
 
     override suspend fun addEntry(entry: NetWorthEntry): Result<Unit> = withContext(ioDispatcher) {
         try {
-            dao.insertEntry(NetWorthEntity(value = entry.value, dateEpochDay = entry.date.toEpochDay()))
+            dao.insertEntry(NetWorthEntity(value = entry.value, dateEpochDay = entry.date.toEpochDay(), note = entry.note))
             refreshWidget()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -49,11 +49,21 @@ class NetWorthRepositoryImpl @Inject constructor(
 
     override suspend fun updateEntry(entry: NetWorthEntry): Result<Unit> = withContext(ioDispatcher) {
         try {
-            dao.updateEntry(NetWorthEntity(id = entry.id, value = entry.value, dateEpochDay = entry.date.toEpochDay()))
+            dao.updateEntry(NetWorthEntity(id = entry.id, value = entry.value, dateEpochDay = entry.date.toEpochDay(), note = entry.note))
             refreshWidget()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(AppError.DatabaseError(e.message ?: "Failed to update entry"))
+        }
+    }
+
+    override suspend fun deleteEntry(id: Long): Result<Unit> = withContext(ioDispatcher) {
+        try {
+            dao.deleteEntry(id)
+            refreshWidget()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(AppError.DatabaseError(e.message ?: "Failed to delete entry"))
         }
     }
 

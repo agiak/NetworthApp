@@ -340,6 +340,13 @@
     <string name="shortcut_add_short">Add snapshot</string>
     <string name="shortcut_add_long">Add net worth snapshot</string>
 
+    <!-- Entry notes & delete -->
+    <string name="hint_note">Note (optional)</string>
+    <string name="label_note">Note</string>
+    <string name="btn_delete_entry">Delete</string>
+    <string name="delete_entry_confirm_title">Delete snapshot?</string>
+    <string name="delete_entry_confirm_message">This snapshot will be permanently removed.</string>
+
     <!-- Profile -->
     <string name="btn_continue">Continue</string>
     <string name="btn_save">Save Changes</string>

@@ -62,9 +62,10 @@ class HomeViewModel @Inject constructor(
                 if (recentEntriesJob?.isActive != true) loadRecentEntries()
             }
             HomeIntent.ShowAddEntrySheet -> _uiState.update { it.copy(isAddEntrySheetVisible = true) }
-            HomeIntent.HideAddEntrySheet -> _uiState.update { it.copy(isAddEntrySheetVisible = false, entryInput = "", selectedDate = LocalDate.now()) }
+            HomeIntent.HideAddEntrySheet -> _uiState.update { it.copy(isAddEntrySheetVisible = false, entryInput = "", noteInput = "", selectedDate = LocalDate.now()) }
             is HomeIntent.UpdateEntryInput -> _uiState.update { it.copy(entryInput = intent.value) }
             is HomeIntent.UpdateEntryDate -> _uiState.update { it.copy(selectedDate = intent.date) }
+            is HomeIntent.UpdateEntryNote -> _uiState.update { it.copy(noteInput = intent.value) }
             HomeIntent.SaveEntry -> saveEntry()
         }
     }
@@ -176,10 +177,10 @@ class HomeViewModel @Inject constructor(
         val input = _uiState.value.entryInput.toDoubleOrNull() ?: return
         viewModelScope.launch(ioDispatcher) {
             _uiState.update { it.copy(isSaving = true) }
-            val entry = NetWorthEntry(value = input, date = _uiState.value.selectedDate)
+            val entry = NetWorthEntry(value = input, date = _uiState.value.selectedDate, note = _uiState.value.noteInput)
             addNetWorthEntryUseCase(entry).fold(
                 onSuccess = {
-                    _uiState.update { it.copy(isSaving = false, isAddEntrySheetVisible = false, entryInput = "", selectedDate = LocalDate.now()) }
+                    _uiState.update { it.copy(isSaving = false, isAddEntrySheetVisible = false, entryInput = "", noteInput = "", selectedDate = LocalDate.now()) }
                 },
                 onFailure = { error ->
                     Timber.e(error)

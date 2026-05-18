@@ -174,10 +174,12 @@ private fun AnalyticsContent(
                 ) {
                     item {
                         AnalyticsChartCard(
-                            chartData = uiState.chartData,
+                            chartData  = uiState.chartData,
                             startLabel = uiState.chartStartLabel,
-                            midLabel = uiState.chartMidLabel,
-                            endLabel = uiState.chartEndLabel
+                            midLabel   = uiState.chartMidLabel,
+                            endLabel   = uiState.chartEndLabel,
+                            topLabel   = uiState.highestNetWorth,
+                            bottomLabel = uiState.lowestNetWorth,
                         )
                     }
 
