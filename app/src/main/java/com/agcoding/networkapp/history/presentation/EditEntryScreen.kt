@@ -58,6 +58,7 @@ import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.home.presentation.components.EntryDatePickerDialog
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
+import com.agcoding.networkapp.shared.ui.utils.ThousandSeparatorTransformation
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -134,7 +135,7 @@ private fun EditEntryContent(
 
             OutlinedTextField(
                 value = uiState.amountInput,
-                onValueChange = { onIntent(EditEntryIntent.UpdateAmount(it)) },
+                onValueChange = { onIntent(EditEntryIntent.UpdateAmount(it.filter { c -> c.isDigit() || c == '.' })) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
@@ -148,6 +149,7 @@ private fun EditEntryContent(
                     )
                 },
                 singleLine = true,
+                visualTransformation = ThousandSeparatorTransformation(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done

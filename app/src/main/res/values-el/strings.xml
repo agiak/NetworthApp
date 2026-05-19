@@ -255,6 +255,10 @@
     <string name="label_amount">Ποσό</string>
     <string name="label_date">Ημερομηνία</string>
     <string name="label_empty_history">Δεν υπάρχουν εγγραφές ακόμα</string>
+    <string name="label_no_search_results">Δεν βρέθηκαν αποτελέσματα</string>
+    <string name="label_empty_home_title">Δεν υπάρχουν εγγραφές ακόμα</string>
+    <string name="label_empty_home_subtitle">Προσθέστε την πρώτη σας εγγραφή για να αρχίσετε να παρακολουθείτε την οικονομική σας πρόοδο.</string>
+    <string name="btn_add_first_snapshot">Προσθήκη πρώτης εγγραφής</string>
     <string name="section_recent_entries">Πρόσφατες Εγγραφές</string>
     <string name="title_edit_entry">Επεξεργασία Εγγραφής</string>
     <string name="title_entry_details">Λεπτομέρειες Εγγραφής</string>

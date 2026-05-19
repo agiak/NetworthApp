@@ -8,6 +8,7 @@ import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.domain.model.NetWorthEntry
 import com.agcoding.networkapp.home.domain.usecase.GetMonthlyNetWorthUseCase
 import com.agcoding.networkapp.home.domain.usecase.GetNetWorthEntriesUseCase
+import com.agcoding.networkapp.home.domain.usecase.computeMonthlyForAccount
 import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.YearMonth
 import javax.inject.Inject
 
 @HiltViewModel
@@ -87,21 +87,4 @@ class AllMonthsViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = false, monthlyEntries = entries) }
     }
 
-    private fun computeMonthlyForAccount(entries: List<NetWorthEntry>, accountId: Long): List<MonthlyNetWorth> {
-        val acctEntries = entries.filter { it.accountId == accountId }
-        if (acctEntries.isEmpty()) return emptyList()
-        val firstMonth = acctEntries.map { YearMonth.from(it.date) }.min()
-        val lastMonth  = acctEntries.map { YearMonth.from(it.date) }.max()
-        val byMonth    = acctEntries.groupBy { YearMonth.from(it.date) }
-        var lastVal    = byMonth[firstMonth]!!.maxByOrNull { it.date }!!.value
-        val result     = mutableListOf<MonthlyNetWorth>()
-        var current    = firstMonth
-        while (!current.isAfter(lastMonth)) {
-            val month = byMonth[current]
-            if (month != null) lastVal = month.maxByOrNull { it.date }!!.value
-            result.add(MonthlyNetWorth(current, lastVal, month?.maxByOrNull { it.date }?.date ?: current.atDay(15), month == null))
-            current = current.plusMonths(1)
-        }
-        return result
-    }
 }

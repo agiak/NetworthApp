@@ -49,6 +49,7 @@ import com.agcoding.networkapp.R
 import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
+import com.agcoding.networkapp.shared.ui.utils.formatWithSeparator
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -149,7 +150,7 @@ fun AddEntryBottomSheet(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (entryInput.isEmpty()) "0" else entryInput,
+                    text = if (entryInput.isEmpty()) "0" else formatWithSeparator(entryInput),
                     style = MaterialTheme.typography.displayLarge,
                     color = if (entryInput.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) else MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold

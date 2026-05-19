@@ -85,57 +85,62 @@ private fun HistoryContent(
             )
         },
     ) { paddingValues ->
-        when {
-            uiState.isLoading -> {
-                Box(Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-            uiState.groupedEntries.isEmpty() -> {
-                Box(Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.label_empty_history),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Gray,
-                    )
-                }
-            }
-            else -> {
-                Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-                    // Search bar
-                    OutlinedTextField(
-                        value = uiState.searchQuery,
-                        onValueChange = { onIntent(HistoryIntent.UpdateSearch(it)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        placeholder = { Text(stringResource(R.string.hint_search_history)) },
-                        leadingIcon = {
-                            Icon(Icons.Default.Search, contentDescription = null,
-                                modifier = Modifier.size(20.dp))
-                        },
-                        trailingIcon = {
-                            if (uiState.searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { onIntent(HistoryIntent.UpdateSearch("")) }) {
-                                    Icon(Icons.Default.Close, contentDescription = null,
-                                        modifier = Modifier.size(18.dp))
-                                }
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            if (!uiState.isLoading) {
+                OutlinedTextField(
+                    value = uiState.searchQuery,
+                    onValueChange = { onIntent(HistoryIntent.UpdateSearch(it)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    placeholder = { Text(stringResource(R.string.hint_search_history)) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = null,
+                            modifier = Modifier.size(20.dp))
+                    },
+                    trailingIcon = {
+                        if (uiState.searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { onIntent(HistoryIntent.UpdateSearch("")) }) {
+                                Icon(Icons.Default.Close, contentDescription = null,
+                                    modifier = Modifier.size(18.dp))
                             }
-                        },
-                        singleLine = true,
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-                        ),
+                        }
+                    },
+                    singleLine = true,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                    ),
+                )
+                if (uiState.accounts.size > 1) {
+                    AccountFilterRow(
+                        accounts = uiState.accounts,
+                        selectedAccountId = uiState.selectedAccountId,
+                        onSelect = { onIntent(HistoryIntent.SelectAccount(it)) },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
-                    if (uiState.accounts.size > 1) {
-                        AccountFilterRow(
-                            accounts = uiState.accounts,
-                            selectedAccountId = uiState.selectedAccountId,
-                            onSelect = { onIntent(HistoryIntent.SelectAccount(it)) },
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                }
+            }
+            when {
+                uiState.isLoading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                uiState.groupedEntries.isEmpty() -> {
+                    val hasActiveFilter = uiState.searchQuery.isNotEmpty() || uiState.selectedAccountId != null
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = stringResource(
+                                if (hasActiveFilter) R.string.label_no_search_results
+                                else R.string.label_empty_history
+                            ),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.Gray,
                         )
                     }
+                }
+                else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),

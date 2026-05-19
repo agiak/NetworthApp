@@ -49,6 +49,7 @@ import com.agcoding.networkapp.R
 import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.home.presentation.components.EntryDatePickerDialog
 import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
+import com.agcoding.networkapp.shared.ui.utils.formatWithSeparator
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -144,7 +145,7 @@ private fun AddSnapshotContent(
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                text       = if (uiState.entryInput.isEmpty()) "0" else uiState.entryInput,
+                text       = if (uiState.entryInput.isEmpty()) "0" else formatWithSeparator(uiState.entryInput),
                 style      = MaterialTheme.typography.displayLarge,
                 color      = if (uiState.entryInput.isEmpty()) colors.contentSecondary.copy(alpha = 0.4f) else colors.contentPrimary,
                 fontWeight = FontWeight.Bold,

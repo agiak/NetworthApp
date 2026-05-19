@@ -255,6 +255,10 @@
     <string name="label_amount">Amount</string>
     <string name="label_date">Date</string>
     <string name="label_empty_history">No entries yet</string>
+    <string name="label_no_search_results">No results found</string>
+    <string name="label_empty_home_title">No snapshots yet</string>
+    <string name="label_empty_home_subtitle">Add your first net worth entry to start tracking your financial progress.</string>
+    <string name="btn_add_first_snapshot">Add first snapshot</string>
     <string name="section_recent_entries">Recent Entries</string>
     <string name="title_edit_entry">Edit Entry</string>
     <string name="title_entry_details">Entry Details</string>

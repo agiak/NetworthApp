@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
+
 data class AccountDetailUiState(
     val isLoading: Boolean = true,
     val accountName: String = "",
@@ -54,31 +55,27 @@ class AccountDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AccountDetailUiState())
     val uiState: StateFlow<AccountDetailUiState> = _uiState.asStateFlow()
 
-    private var currentCurrency: AppCurrency = AppCurrency.EUR
-
     init {
-        viewModelScope.launch {
-            getAppCurrencyUseCase().collect { currentCurrency = it }
-        }
         viewModelScope.launch {
             combine(
                 getAccountsUseCase(),
                 getNetWorthEntriesUseCase(),
-            ) { accounts, entriesResult ->
+                getAppCurrencyUseCase(),
+            ) { accounts, entriesResult, currency ->
                 val account = accounts.find { it.id == accountId }
                 val entries = entriesResult.getOrElse { emptyList() }
                     .filter { it.accountId == accountId }
                     .sortedBy { it.date }
-                account to entries
-            }.collect { (account, entries) ->
+                Triple(account, entries, currency)
+            }.collect { (account, entries, currency) ->
                 if (account == null) return@collect
-                buildState(account.name, account.colorHex, entries)
+                buildState(account.name, account.colorHex, entries, currency)
             }
         }
     }
 
-    private fun buildState(name: String, colorHex: String, entries: List<NetWorthEntry>) {
-        val sym = currentCurrency.symbol
+    private fun buildState(name: String, colorHex: String, entries: List<NetWorthEntry>, currency: AppCurrency) {
+        val sym = currency.symbol
         if (entries.isEmpty()) {
             _uiState.update { it.copy(isLoading = false, accountName = name, accountColorHex = colorHex, hasData = false) }
             return

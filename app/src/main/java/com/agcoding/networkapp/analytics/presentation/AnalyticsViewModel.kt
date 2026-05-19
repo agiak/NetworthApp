@@ -8,6 +8,7 @@ import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.domain.model.NetWorthEntry
 import com.agcoding.networkapp.home.domain.usecase.GetMonthlyNetWorthUseCase
 import com.agcoding.networkapp.home.domain.usecase.GetNetWorthEntriesUseCase
+import com.agcoding.networkapp.home.domain.usecase.computeMonthlyForAccount
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.YearMonth
 import javax.inject.Inject
 
 @HiltViewModel
@@ -132,6 +132,8 @@ class AnalyticsViewModel @Inject constructor(
         }
     }
 
+    // computeMonthlyForAccount is a top-level function in home.domain.usecase
+
     private fun buildComparison(
         entries: List<NetWorthEntry>,
         accounts: List<com.agcoding.networkapp.account.domain.model.Account>,
@@ -154,38 +156,4 @@ class AnalyticsViewModel @Inject constructor(
         }
     }
 
-    private fun computeMonthlyForAccount(
-        entries: List<NetWorthEntry>,
-        accountId: Long,
-    ): List<MonthlyNetWorth> {
-        val accountEntries = entries.filter { it.accountId == accountId }
-        if (accountEntries.isEmpty()) return emptyList()
-
-        val firstMonth = accountEntries.map { YearMonth.from(it.date) }.min()
-        val lastMonth  = accountEntries.map { YearMonth.from(it.date) }.max()
-        val entriesByMonth = accountEntries.groupBy { YearMonth.from(it.date) }
-
-        val result = mutableListOf<MonthlyNetWorth>()
-        var lastValue = accountEntries.filter { YearMonth.from(it.date) == firstMonth }
-            .maxByOrNull { it.date }!!.value
-        var current = firstMonth
-
-        while (!current.isAfter(lastMonth)) {
-            val monthEntries = entriesByMonth[current]
-            val isCarried    = monthEntries == null
-            if (!isCarried) {
-                lastValue = monthEntries!!.maxByOrNull { it.date }!!.value
-            }
-            result.add(
-                MonthlyNetWorth(
-                    yearMonth        = current,
-                    value            = lastValue,
-                    lastUpdatedDate  = monthEntries?.maxByOrNull { it.date }?.date ?: current.atDay(15),
-                    isCarriedForward = isCarried,
-                )
-            )
-            current = current.plusMonths(1)
-        }
-        return result
-    }
 }

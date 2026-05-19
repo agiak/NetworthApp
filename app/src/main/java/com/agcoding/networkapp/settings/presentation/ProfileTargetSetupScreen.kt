@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
+import com.agcoding.networkapp.shared.ui.utils.ThousandSeparatorTransformation
 
 @Composable
 fun ProfileTargetSetupScreen(
@@ -99,12 +100,13 @@ private fun ProfileTargetSetupContent(
                 )
                 OutlinedTextField(
                     value = uiState.target,
-                    onValueChange = onTargetChange,
+                    onValueChange = { onTargetChange(it.filter { c -> c.isDigit() }) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     leadingIcon = { Icon(Icons.Default.Star, contentDescription = null, tint = PositiveGreen) },
-                    placeholder = { Text("100000", color = Color.LightGray) },
+                    placeholder = { Text("100,000", color = Color.LightGray) },
                     singleLine = true,
+                    visualTransformation = ThousandSeparatorTransformation(),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Done

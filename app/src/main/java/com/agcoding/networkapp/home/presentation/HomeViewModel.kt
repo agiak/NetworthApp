@@ -137,7 +137,28 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun applyMonthlyData(monthlyData: List<MonthlyNetWorth>) {
-        if (monthlyData.isEmpty()) return
+        if (monthlyData.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    isLoading        = false,
+                    currentNetWorth  = "${currentCurrency.symbol}0",
+                    currentNetWorthRaw = 0.0,
+                    changeThisMonth  = "",
+                    changePercentage = "",
+                    isPositiveChange = true,
+                    lastUpdatedDate  = "",
+                    chartData        = emptyList(),
+                    insights         = emptyList(),
+                    ytdGrowth        = "${currentCurrency.symbol}0",
+                    ytdPercentage    = "0%",
+                    avgPerMonth      = "${currentCurrency.symbol}0",
+                    streakMonths     = 0,
+                    isStreakPositive = true,
+                    error            = null,
+                )
+            }
+            return
+        }
         val displayData = mapper.map(monthlyData, currentCurrency)
         val rawNetWorth = monthlyData.sortedBy { it.yearMonth }.lastOrNull()?.value ?: 0.0
         _uiState.update { state ->

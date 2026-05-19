@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -105,120 +107,139 @@ private fun HomeContent(
         }
     }
 
+    val hasData = !uiState.isLoading && uiState.chartData.isNotEmpty()
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            Button(
-                onClick = { onIntent(HomeIntent.ShowAddEntrySheet) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.height(56.dp),
-                contentPadding = PaddingValues(horizontal = 24.dp)
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = stringResource(R.string.label_add_entry), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            if (hasData) {
+                Button(
+                    onClick = { onIntent(HomeIntent.ShowAddEntrySheet) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.height(56.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = stringResource(R.string.label_add_entry), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                }
             }
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             HomeHeader(name = uiState.userName, initial = uiState.userInitial, onProfileClick = onNavigateToProfileEdit)
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 100.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                item {
-                    NetWorthHeroCard(
-                        netWorth = uiState.currentNetWorth,
-                        change = uiState.changeThisMonth,
-                        percentage = uiState.changePercentage,
-                        isPositive = uiState.isPositiveChange,
-                        chartData = uiState.chartData,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
-                item {
-                    AccountsCard(
-                        breakdown = uiState.accountBreakdown,
-                        onClick = onNavigateToAccounts,
-                        onAddAccount = onNavigateToCreateAccount,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
-                if (uiState.hasGoal) {
-                    item {
-                        GoalTeaserCard(
-                            currentNetWorthRaw = uiState.currentNetWorthRaw,
-                            targetAmountRaw = uiState.targetAmountRaw,
-                            targetAmountFormatted = uiState.targetAmount,
-                            onClick = onNavigateToGoal,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
+            when {
+                uiState.isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .height(IntrinsicSize.Max),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                !hasData -> {
+                    HomeEmptyState(
+                        onAddEntry = { onIntent(HomeIntent.ShowAddEntrySheet) },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 100.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        StatCard(
-                            title = stringResource(R.string.stat_ytd_growth),
-                            value = uiState.ytdGrowth,
-                            subValue = uiState.ytdPercentage,
-                            isPositive = true,
-                            modifier = Modifier.weight(1f).fillMaxHeight()
-                        )
-                        StatCard(
-                            title = stringResource(R.string.stat_avg_month),
-                            value = uiState.avgPerMonth,
-                            subValue = stringResource(R.string.stat_last_12_mo),
-                            modifier = Modifier.weight(1f).fillMaxHeight()
-                        )
-                        StatCard(
-                            title = stringResource(R.string.stat_streak),
-                            value = "${uiState.streakMonths}",
-                            subValue = stringResource(R.string.stat_months_up),
-                            icon = "🔥",
-                            modifier = Modifier.weight(1f).fillMaxHeight()
-                        )
-                    }
-                }
-                if (uiState.insights.isNotEmpty()) {
-                    item {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(text = stringResource(R.string.label_insights), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                                Text(text = stringResource(R.string.label_new_count, uiState.insights.size), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-                            }
-                            uiState.insights.forEach { insight ->
-                                InsightsCard(insight = insight, currencySymbol = uiState.currencySymbol)
+                        item {
+                            NetWorthHeroCard(
+                                netWorth = uiState.currentNetWorth,
+                                change = uiState.changeThisMonth,
+                                percentage = uiState.changePercentage,
+                                isPositive = uiState.isPositiveChange,
+                                chartData = uiState.chartData,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+                        item {
+                            AccountsCard(
+                                breakdown = uiState.accountBreakdown,
+                                onClick = onNavigateToAccounts,
+                                onAddAccount = onNavigateToCreateAccount,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+                        if (uiState.hasGoal) {
+                            item {
+                                GoalTeaserCard(
+                                    currentNetWorthRaw = uiState.currentNetWorthRaw,
+                                    targetAmountRaw = uiState.targetAmountRaw,
+                                    targetAmountFormatted = uiState.targetAmount,
+                                    onClick = onNavigateToGoal,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
                             }
                         }
-                    }
-                }
-                if (uiState.recentEntries.isNotEmpty()) {
-                    item {
-                        RecentEntriesSection(
-                            entries = uiState.recentEntries,
-                            onShowAll = onNavigateToHistory,
-                            onEntryClick = onNavigateToEntryDetails,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                                    .height(IntrinsicSize.Max),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                StatCard(
+                                    title = stringResource(R.string.stat_ytd_growth),
+                                    value = uiState.ytdGrowth,
+                                    subValue = uiState.ytdPercentage,
+                                    isPositive = true,
+                                    modifier = Modifier.weight(1f).fillMaxHeight()
+                                )
+                                StatCard(
+                                    title = stringResource(R.string.stat_avg_month),
+                                    value = uiState.avgPerMonth,
+                                    subValue = stringResource(R.string.stat_last_12_mo),
+                                    modifier = Modifier.weight(1f).fillMaxHeight()
+                                )
+                                StatCard(
+                                    title = stringResource(R.string.stat_streak),
+                                    value = "${uiState.streakMonths}",
+                                    subValue = stringResource(R.string.stat_months_up),
+                                    icon = "🔥",
+                                    modifier = Modifier.weight(1f).fillMaxHeight()
+                                )
+                            }
+                        }
+                        if (uiState.insights.isNotEmpty()) {
+                            item {
+                                Column(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(text = stringResource(R.string.label_insights), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                        Text(text = stringResource(R.string.label_new_count, uiState.insights.size), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                                    }
+                                    uiState.insights.forEach { insight ->
+                                        InsightsCard(insight = insight, currencySymbol = uiState.currencySymbol)
+                                    }
+                                }
+                            }
+                        }
+                        if (uiState.recentEntries.isNotEmpty()) {
+                            item {
+                                RecentEntriesSection(
+                                    entries = uiState.recentEntries,
+                                    onShowAll = onNavigateToHistory,
+                                    onEntryClick = onNavigateToEntryDetails,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -239,6 +260,61 @@ private fun HomeContent(
                 onAccountSelected = { onIntent(HomeIntent.SelectAccount(it)) },
                 onSave           = { onIntent(HomeIntent.SaveEntry) },
                 onDismiss        = { onIntent(HomeIntent.HideAddEntrySheet) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeEmptyState(
+    onAddEntry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(text = "📈", fontSize = 36.sp)
+        }
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = stringResource(R.string.label_empty_home_title),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.label_empty_home_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(32.dp))
+        Button(
+            onClick = onAddEntry,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.onBackground,
+                contentColor = MaterialTheme.colorScheme.background,
+            ),
+        ) {
+            Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.btn_add_first_snapshot),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
             )
         }
     }
