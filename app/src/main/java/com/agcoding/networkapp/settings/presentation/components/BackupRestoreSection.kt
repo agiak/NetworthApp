@@ -38,10 +38,13 @@ import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 fun BackupRestoreSection(
     isExporting: Boolean,
     isImporting: Boolean,
+    isExportingCsv: Boolean = false,
     onExportClick: () -> Unit,
     onImportClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onExportCsvClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
+    val busy = isExporting || isImporting || isExportingCsv
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -57,20 +60,33 @@ fun BackupRestoreSection(
                 subtitle = stringResource(R.string.backup_export_subtitle),
                 isLoading = isExporting,
                 onClick = onExportClick,
-                enabled = !isExporting && !isImporting
+                enabled = !busy,
             )
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
             )
             BackupActionRow(
                 icon = Icons.Default.DateRange,
+                iconTint = MaterialTheme.colorScheme.tertiary,
+                title = stringResource(R.string.backup_export_csv_title),
+                subtitle = stringResource(R.string.backup_export_csv_subtitle),
+                isLoading = isExportingCsv,
+                onClick = onExportCsvClick,
+                enabled = !busy,
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+            )
+            BackupActionRow(
+                icon = Icons.Default.KeyboardArrowRight,
                 iconTint = MaterialTheme.colorScheme.primary,
                 title = stringResource(R.string.backup_import_title),
                 subtitle = stringResource(R.string.backup_import_subtitle),
                 isLoading = isImporting,
                 onClick = onImportClick,
-                enabled = !isImporting && !isExporting
+                enabled = !busy,
             )
         }
     }

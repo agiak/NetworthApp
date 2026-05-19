@@ -105,6 +105,8 @@
     <!-- Backup & Restore -->
     <string name="backup_error">Αποτυχία: %1$s</string>
     <string name="backup_export_subtitle">Αποθήκευση αντιγράφου όλων των δεδομένων σε αρχείο JSON</string>
+    <string name="backup_export_csv_title">Εξαγωγή σε CSV</string>
+    <string name="backup_export_csv_subtitle">Εξαγωγή εγγραφών σε αρχείο CSV για spreadsheets</string>
     <string name="backup_export_success">Εξαγωγή δεδομένων ολοκληρώθηκε</string>
     <string name="backup_export_title">Εξαγωγή δεδομένων</string>
     <string name="backup_import_confirm_action">Επαναφορά</string>
@@ -365,6 +367,9 @@
     <string name="account_main_desc">Προεπιλεγμένος λογαριασμός · δημιουργήθηκε αυτόματα</string>
     <string name="account_setup_add_btn">Προσθήκη άλλου λογαριασμού</string>
     <string name="title_edit_account">Επεξεργασία Λογαριασμού</string>
+
+    <!-- History search -->
+    <string name="hint_search_history">Αναζήτηση κατά ποσό ή σημείωση…</string>
 
     <!-- Entry notes & delete -->
     <string name="hint_note">Σημείωση (προαιρετικό)</string>

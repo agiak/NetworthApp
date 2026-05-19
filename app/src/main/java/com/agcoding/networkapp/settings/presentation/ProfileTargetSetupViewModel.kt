@@ -37,13 +37,28 @@ class ProfileTargetSetupViewModel @Inject constructor(
     fun onTargetChange(target: String) = _uiState.update { it.copy(target = target) }
 
     fun onSave() {
-        val targetValue = _uiState.value.target.toDoubleOrNull() ?: return
+        val targetValue = _uiState.value.target.toDoubleOrNull() ?: 0.0
         viewModelScope.launch(ioDispatcher) {
             _uiState.update { it.copy(isSaving = true) }
             val currentProfile = getUserProfileUseCase().first()
             setUserProfileUseCase(
                 currentProfile.copy(
                     targetAmount = targetValue,
+                    createdAt = currentProfile.createdAt ?: LocalDate.now()
+                )
+            )
+            setProfileCreatedUseCase(true)
+            _uiState.update { it.copy(isSaving = false, isComplete = true) }
+        }
+    }
+
+    fun onSkip() {
+        viewModelScope.launch(ioDispatcher) {
+            _uiState.update { it.copy(isSaving = true) }
+            val currentProfile = getUserProfileUseCase().first()
+            setUserProfileUseCase(
+                currentProfile.copy(
+                    targetAmount = 0.0,
                     createdAt = currentProfile.createdAt ?: LocalDate.now()
                 )
             )

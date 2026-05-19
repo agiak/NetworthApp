@@ -1,14 +1,19 @@
 package com.agcoding.networkapp.history.presentation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -49,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.home.presentation.components.EntryDatePickerDialog
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
@@ -171,6 +177,15 @@ private fun EditEntryContent(
                 ),
             )
 
+            if (uiState.accounts.size > 1) {
+                Spacer(modifier = Modifier.height(16.dp))
+                EditAccountSelector(
+                    accounts = uiState.accounts,
+                    selectedAccountId = uiState.selectedAccountId,
+                    onAccountSelected = { onIntent(EditEntryIntent.SelectAccount(it)) },
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             val formattedDate = uiState.selectedDate.format(
@@ -239,6 +254,38 @@ private fun EditEntryContent(
     }
 }
 
+
+@Composable
+private fun EditAccountSelector(
+    accounts: List<Account>,
+    selectedAccountId: Long,
+    onAccountSelected: (Long) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        accounts.forEach { account ->
+            val isSelected  = account.id == selectedAccountId
+            val accentColor = try { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(account.colorHex)) }
+                              catch (e: Exception) { PositiveGreen }
+            androidx.compose.material3.Surface(
+                onClick = { onAccountSelected(account.id) },
+                shape   = RoundedCornerShape(20.dp),
+                color   = if (isSelected) accentColor else Color.Transparent,
+                border  = if (!isSelected) BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)) else null,
+            ) {
+                androidx.compose.material3.Text(
+                    text       = account.name,
+                    style      = androidx.compose.material3.MaterialTheme.typography.labelLarge,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color      = if (isSelected) Color.White else Color.Unspecified,
+                    modifier   = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

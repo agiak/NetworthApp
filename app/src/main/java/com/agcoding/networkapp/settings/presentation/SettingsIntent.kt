@@ -19,6 +19,7 @@ sealed interface SettingsIntent {
     data object NavigateToProfileEdit : SettingsIntent
     data object NavigateToSetupPin : SettingsIntent
     data class ExportToUri(val uri: Uri) : SettingsIntent
+    data class ExportCsvToUri(val uri: Uri) : SettingsIntent
     data class LoadImportFile(val uri: Uri) : SettingsIntent
     data class SetCurrency(val currency: AppCurrency) : SettingsIntent
     data class SetLanguage(val language: AppLanguage) : SettingsIntent

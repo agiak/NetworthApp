@@ -31,6 +31,7 @@ data class SettingsUiState(
     val trackingSince: String = "",
     val userProfile: UserProfile = UserProfile(),
     val isExporting: Boolean = false,
+    val isExportingCsv: Boolean = false,
     val isImporting: Boolean = false,
     val backupResult: BackupResult? = null,
     val showImportConfirmDialog: Boolean = false,

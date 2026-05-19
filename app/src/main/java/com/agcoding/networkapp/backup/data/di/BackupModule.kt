@@ -1,5 +1,7 @@
 package com.agcoding.networkapp.backup.data.di
 
+import com.agcoding.networkapp.backup.data.usecase.ExportCsvUseCaseImpl
+import com.agcoding.networkapp.backup.domain.usecase.ExportCsvUseCase
 import com.agcoding.networkapp.backup.domain.usecase.ExportDataUseCase
 import com.agcoding.networkapp.backup.domain.usecase.ExportDataUseCaseImpl
 import com.agcoding.networkapp.backup.domain.usecase.ImportDataUseCase
@@ -13,6 +15,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class BackupModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindExportCsvUseCase(impl: ExportCsvUseCaseImpl): ExportCsvUseCase
 
     @Binds
     @Singleton

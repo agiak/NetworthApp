@@ -105,6 +105,8 @@
     <!-- Backup & Restore -->
     <string name="backup_error">Backup failed: %1$s</string>
     <string name="backup_export_subtitle">Save a backup of all your data as a JSON file</string>
+    <string name="backup_export_csv_title">Export to CSV</string>
+    <string name="backup_export_csv_subtitle">Export entries as a spreadsheet-friendly CSV file</string>
     <string name="backup_export_success">Data exported successfully</string>
     <string name="backup_export_title">Export Data</string>
     <string name="backup_import_confirm_action">Restore</string>
@@ -371,6 +373,9 @@
     <string name="account_main_desc">Default account · created automatically</string>
     <string name="account_setup_add_btn">Add another account</string>
     <string name="title_edit_account">Edit Account</string>
+
+    <!-- History search -->
+    <string name="hint_search_history">Search by amount or note…</string>
 
     <!-- Entry notes & delete -->
     <string name="hint_note">Note (optional)</string>

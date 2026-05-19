@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.agcoding.networkapp.backup.domain.usecase.ExportCsvUseCase
 import com.agcoding.networkapp.backup.domain.usecase.ExportDataUseCase
 import com.agcoding.networkapp.backup.domain.usecase.ImportDataUseCase
 import com.agcoding.networkapp.biometric.domain.usecase.DisableSecurityUseCase
@@ -45,6 +46,7 @@ class SettingsViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val repository: NetWorthRepository,
     private val exportDataUseCase: ExportDataUseCase,
+    private val exportCsvUseCase: ExportCsvUseCase,
     private val importDataUseCase: ImportDataUseCase,
     private val isSecurityEnabledUseCase: IsSecurityEnabledUseCase,
     private val disableSecurityUseCase: DisableSecurityUseCase,
@@ -73,7 +75,8 @@ class SettingsViewModel @Inject constructor(
             SettingsIntent.NavigateToOnboarding -> { /* Handled in UI */ }
             SettingsIntent.NavigateToProfileEdit -> { /* Handled in UI */ }
             SettingsIntent.NavigateToSetupPin -> { /* Handled in UI */ }
-            is SettingsIntent.ExportToUri -> exportToUri(intent.uri)
+            is SettingsIntent.ExportToUri    -> exportToUri(intent.uri)
+            is SettingsIntent.ExportCsvToUri -> exportCsvToUri(intent.uri)
             is SettingsIntent.LoadImportFile -> loadImportFile(intent.uri)
             is SettingsIntent.SetCurrency -> setCurrency(intent.currency)
             is SettingsIntent.SetLanguage -> setLanguage(intent.language)
@@ -125,6 +128,22 @@ class SettingsViewModel @Inject constructor(
 
     private fun setCurrency(currency: com.agcoding.networkapp.settings.domain.model.AppCurrency) {
         viewModelScope.launch(ioDispatcher) { setAppCurrencyUseCase(currency) }
+    }
+
+    private fun exportCsvToUri(uri: Uri) {
+        viewModelScope.launch(ioDispatcher) {
+            _uiState.update { it.copy(isExportingCsv = true) }
+            try {
+                val csv = exportCsvUseCase()
+                context.contentResolver.openOutputStream(uri)?.use { stream ->
+                    stream.write(csv.toByteArray(Charsets.UTF_8))
+                }
+                _uiState.update { it.copy(isExportingCsv = false, backupResult = BackupResult.ExportSuccess) }
+            } catch (e: Exception) {
+                Timber.e(e)
+                _uiState.update { it.copy(isExportingCsv = false, backupResult = BackupResult.Failure(e.message)) }
+            }
+        }
     }
 
     private fun exportToUri(uri: Uri) {

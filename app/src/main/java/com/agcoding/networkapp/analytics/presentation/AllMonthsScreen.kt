@@ -86,37 +86,37 @@ private fun AllMonthsContent(
                 }
             }
             else -> {
-                Column(Modifier.fillMaxSize().padding(paddingValues)) {
-                if (uiState.accounts.size > 1) {
-                    AccountFilterRow(
-                        accounts = uiState.accounts,
-                        selectedAccountId = uiState.selectedAccountId,
-                        onSelect = { onIntent(AllMonthsIntent.SelectAccount(it)) },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                ) {
-                    item {
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = MaterialTheme.colorScheme.surface,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column {
-                                uiState.monthlyEntries.forEachIndexed { index, entry ->
-                                    MonthByMonthRow(
-                                        entry = entry,
-                                        showDivider = index < uiState.monthlyEntries.lastIndex
-                                    )
+                Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                    if (uiState.accounts.size > 1) {
+                        AccountFilterRow(
+                            accounts          = uiState.accounts,
+                            selectedAccountId = uiState.selectedAccountId,
+                            onSelect          = { onIntent(AllMonthsIntent.SelectAccount(it)) },
+                            modifier          = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
+                    LazyColumn(
+                        modifier      = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    ) {
+                        item {
+                            Surface(
+                                shape    = RoundedCornerShape(20.dp),
+                                color    = MaterialTheme.colorScheme.surface,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Column {
+                                    uiState.monthlyEntries.forEachIndexed { index, entry ->
+                                        MonthByMonthRow(
+                                            entry       = entry,
+                                            showDivider = index < uiState.monthlyEntries.lastIndex,
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                } // end Column
             }
         }
     }

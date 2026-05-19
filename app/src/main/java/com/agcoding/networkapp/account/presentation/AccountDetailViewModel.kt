@@ -65,21 +65,13 @@ class AccountDetailViewModel @Inject constructor(
                 getAccountsUseCase(),
                 getNetWorthEntriesUseCase(),
             ) { accounts, entriesResult ->
-                val account = accounts.find { it.id == accountId } ?: return@combine
-                val allEntries = entriesResult.getOrElse { emptyList() }
-                val entries = allEntries.filter { it.accountId == accountId }.sortedBy { it.date }
-                buildState(account.name, account.colorHex, entries)
-            }.collect {}
-        }
-        // Reactive on entries + accounts separately for live updates
-        viewModelScope.launch {
-            combine(getAccountsUseCase(), getNetWorthEntriesUseCase()) { accts, entriesResult ->
-                accts to entriesResult
-            }.collect { (accounts, entriesResult) ->
-                val account = accounts.find { it.id == accountId } ?: return@collect
+                val account = accounts.find { it.id == accountId }
                 val entries = entriesResult.getOrElse { emptyList() }
                     .filter { it.accountId == accountId }
                     .sortedBy { it.date }
+                account to entries
+            }.collect { (account, entries) ->
+                if (account == null) return@collect
                 buildState(account.name, account.colorHex, entries)
             }
         }
@@ -99,16 +91,14 @@ class AccountDetailViewModel @Inject constructor(
         val totalGrowthAbs = current - first
         val totalGrowthPct = if (first > 0) (totalGrowthAbs / first) * 100 else 0.0
 
-        val monthlyGroups = entries.groupBy { YearMonth.from(it.date) }
-        val monthlyValues = monthlyGroups.entries
-            .sortedBy { it.key }
+        val monthlyValues = entries
+            .groupBy { YearMonth.from(it.date) }
+            .entries.sortedBy { it.key }
             .map { (_, es) -> es.maxByOrNull { it.date }!!.value }
-        val avgPerMonth = if (monthlyValues.size > 1) {
-            val diffs = monthlyValues.zipWithNext { a, b -> b - a }
-            diffs.average()
-        } else 0.0
+        val avgPerMonth = if (monthlyValues.size > 1)
+            monthlyValues.zipWithNext { a, b -> b - a }.average()
+        else 0.0
 
-        // Chart points
         val minVal = entries.minOf { it.value }
         val maxVal = entries.maxOf { it.value }
         val range = (maxVal - minVal).takeIf { it > 0 } ?: 1.0
@@ -119,33 +109,32 @@ class AccountDetailViewModel @Inject constructor(
             )
         }
 
-        // Recent entries (last 5)
         val fmt = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
         val recent = entries.reversed().take(5).map { e ->
             EntryUiModel(
-                id             = e.id,
-                formattedDate  = e.date.format(fmt),
-                formattedValue = "$sym${String.format(Locale.US, "%,.0f", e.value)}",
+                id              = e.id,
+                formattedDate   = e.date.format(fmt),
+                formattedValue  = "$sym${String.format(Locale.US, "%,.0f", e.value)}",
                 accountColorHex = colorHex,
             )
         }
 
         _uiState.update {
             it.copy(
-                isLoading          = false,
-                accountName        = name,
-                accountColorHex    = colorHex,
-                currentBalance     = "$sym${String.format(Locale.US, "%,.0f", current)}",
-                change             = "${if (change >= 0) "+" else ""}$sym${String.format(Locale.US, "%,.0f", change)}",
-                isPositiveChange   = change >= 0,
-                totalGrowth        = "${if (totalGrowthAbs >= 0) "+" else ""}$sym${String.format(Locale.US, "%,.0f", totalGrowthAbs)}",
-                totalGrowthPercent = "${if (totalGrowthPct >= 0) "+" else ""}${String.format(Locale.US, "%.1f", totalGrowthPct)}%",
+                isLoading           = false,
+                accountName         = name,
+                accountColorHex     = colorHex,
+                currentBalance      = "$sym${String.format(Locale.US, "%,.0f", current)}",
+                change              = "${if (change >= 0) "+" else ""}$sym${String.format(Locale.US, "%,.0f", change)}",
+                isPositiveChange    = change >= 0,
+                totalGrowth         = "${if (totalGrowthAbs >= 0) "+" else ""}$sym${String.format(Locale.US, "%,.0f", totalGrowthAbs)}",
+                totalGrowthPercent  = "${if (totalGrowthPct >= 0) "+" else ""}${String.format(Locale.US, "%.1f", totalGrowthPct)}%",
                 totalGrowthPositive = totalGrowthAbs >= 0,
-                avgPerMonth        = "${if (avgPerMonth >= 0) "+" else ""}$sym${String.format(Locale.US, "%,.0f", avgPerMonth)}",
-                entryCount         = entries.size,
-                chartData          = chartData,
-                recentEntries      = recent,
-                hasData            = true,
+                avgPerMonth         = "${if (avgPerMonth >= 0) "+" else ""}$sym${String.format(Locale.US, "%,.0f", avgPerMonth)}",
+                entryCount          = entries.size,
+                chartData           = chartData,
+                recentEntries       = recent,
+                hasData             = true,
             )
         }
     }

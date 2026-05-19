@@ -7,6 +7,7 @@ data class HistoryUiState(
     val isLoading: Boolean = true,
     val accounts: List<Account> = emptyList(),
     val selectedAccountId: Long? = null,
+    val searchQuery: String = "",
     val groupedEntries: List<GroupedEntries> = emptyList(),
     val error: String? = null,
 )

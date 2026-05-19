@@ -99,10 +99,15 @@ private fun SettingsContent(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
-    // Export file picker
+    // Export JSON file picker
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri -> uri?.let { onIntent(SettingsIntent.ExportToUri(it)) } }
+
+    // Export CSV file picker
+    val exportCsvLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri -> uri?.let { onIntent(SettingsIntent.ExportCsvToUri(it)) } }
 
     // Import file picker
     val importLauncher = rememberLauncherForActivityResult(
@@ -348,15 +353,20 @@ private fun SettingsContent(
 
             item {
                 BackupRestoreSection(
-                    isExporting = uiState.isExporting,
-                    isImporting = uiState.isImporting,
+                    isExporting    = uiState.isExporting,
+                    isImporting    = uiState.isImporting,
+                    isExportingCsv = uiState.isExportingCsv,
                     onExportClick = {
                         val today = LocalDate.now().toString()
                         exportLauncher.launch("networth_backup_$today.json")
                     },
+                    onExportCsvClick = {
+                        val today = LocalDate.now().toString()
+                        exportCsvLauncher.launch("networth_$today.csv")
+                    },
                     onImportClick = {
                         importLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
-                    }
+                    },
                 )
             }
 

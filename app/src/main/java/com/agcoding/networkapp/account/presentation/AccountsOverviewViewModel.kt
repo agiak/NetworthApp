@@ -23,6 +23,13 @@ import java.time.LocalDate
 import java.util.Locale
 import javax.inject.Inject
 
+data class AccountsUiData(
+    val models: List<AccountUiModel>,
+    val total: String,
+    val best: AccountPerformance?,
+    val worst: AccountPerformance?,
+)
+
 data class AccountPerformance(
     val id: Long,
     val name: String,
@@ -85,8 +92,16 @@ class AccountsOverviewViewModel @Inject constructor(
             combine(getAccountsUseCase(), netWorthRepository.getEntries()) { accounts, entriesResult ->
                 val entries = entriesResult.getOrElse { emptyList() }
                 buildUiModels(accounts, entries)
-            }.collect { (models, total) ->
-                _uiState.update { it.copy(isLoading = false, accounts = models, totalNetWorth = total) }
+            }.collect { data ->
+                _uiState.update {
+                    it.copy(
+                        isLoading    = false,
+                        accounts     = data.models,
+                        totalNetWorth = data.total,
+                        bestAccount  = data.best,
+                        worstAccount = data.worst,
+                    )
+                }
             }
         }
     }
@@ -132,62 +147,62 @@ class AccountsOverviewViewModel @Inject constructor(
     private fun buildUiModels(
         accounts: List<Account>,
         allEntries: List<NetWorthEntry>,
-    ): Pair<List<AccountUiModel>, String> {
+    ): AccountsUiData {
         val sym = currentCurrency.symbol
         val entriesByAccount = allEntries.groupBy { it.accountId }
 
         val models = accounts.map { account ->
-            val accountEntries = (entriesByAccount[account.id] ?: emptyList())
-                .sortedBy { it.date }
-            val current = accountEntries.lastOrNull()?.value ?: account.startingBalance
+            val accountEntries = (entriesByAccount[account.id] ?: emptyList()).sortedBy { it.date }
+            val current  = accountEntries.lastOrNull()?.value ?: account.startingBalance
             val previous = accountEntries.dropLast(1).lastOrNull()?.value ?: account.startingBalance
             val diff = current - previous
             AccountUiModel(
-                id               = account.id,
-                name             = account.name,
-                colorHex         = account.colorHex,
-                currentBalance   = "$sym${String.format(Locale.US, "%,.0f", current)}",
+                id                = account.id,
+                name              = account.name,
+                colorHex          = account.colorHex,
+                currentBalance    = "$sym${String.format(Locale.US, "%,.0f", current)}",
                 currentBalanceRaw = current,
-                change           = "${if (diff >= 0) "+" else ""}$sym${String.format(Locale.US, "%,.0f", diff)}",
-                isPositiveChange = diff >= 0,
-                entryCount       = accountEntries.size,
-                startingBalance  = account.startingBalance,
+                change            = "${if (diff >= 0) "+" else ""}$sym${String.format(Locale.US, "%,.0f", diff)}",
+                isPositiveChange  = diff >= 0,
+                entryCount        = accountEntries.size,
+                startingBalance   = account.startingBalance,
             )
         }
 
         val totalRaw = models.sumOf { it.currentBalanceRaw }
-        val total = "$sym${String.format(Locale.US, "%,.0f", totalRaw)}"
+        val total    = "$sym${String.format(Locale.US, "%,.0f", totalRaw)}"
 
-        // Best / worst account this year (only meaningful with 2+ accounts)
+        // Best / worst account this year — pure computation, no side effects
+        var best: AccountPerformance? = null
+        var worst: AccountPerformance? = null
         if (accounts.size > 1) {
             val thisYear = LocalDate.now().year
             val performances = accounts.mapNotNull { account ->
-                val sorted = (entriesByAccount[account.id] ?: emptyList()).sortedBy { it.date }
+                val sorted     = (entriesByAccount[account.id] ?: emptyList()).sortedBy { it.date }
                 val yearEntries = sorted.filter { it.date.year == thisYear }
-                val startVal = yearEntries.firstOrNull()?.value ?: return@mapNotNull null
-                val endVal   = sorted.lastOrNull()?.value ?: return@mapNotNull null
-                val growthAbs = endVal - startVal
-                val growthPct = if (startVal > 0) (growthAbs / startVal) * 100 else 0.0
+                val startVal   = yearEntries.firstOrNull()?.value ?: return@mapNotNull null
+                val endVal     = sorted.lastOrNull()?.value ?: return@mapNotNull null
+                val growthAbs  = endVal - startVal
+                val growthPct  = if (startVal > 0) (growthAbs / startVal) * 100 else 0.0
                 Triple(account, growthPct, growthAbs)
             }
             if (performances.size > 1) {
-                val best  = performances.maxByOrNull { it.second }
-                val worst = performances.minByOrNull { it.second }
-                fun toPerf(t: Triple<Account, Double, Double>?) = t?.let { (acc, pct, abs) ->
+                fun toPerf(t: Triple<Account, Double, Double>?): AccountPerformance? = t?.let { (acc, pct, abs) ->
                     val sign = if (pct >= 0) "+" else ""
                     AccountPerformance(
-                        id = acc.id,
-                        name = acc.name,
-                        colorHex = acc.colorHex,
+                        id                 = acc.id,
+                        name               = acc.name,
+                        colorHex           = acc.colorHex,
                         growthPctFormatted = "$sign${String.format(Locale.US, "%.1f", pct)}%",
                         growthAbsFormatted = "$sign$sym${String.format(Locale.US, "%,.0f", abs)}",
-                        isPositive = pct >= 0,
+                        isPositive         = pct >= 0,
                     )
                 }
-                _uiState.update { it.copy(bestAccount = toPerf(best), worstAccount = toPerf(worst)) }
+                best  = toPerf(performances.maxByOrNull { it.second })
+                worst = toPerf(performances.minByOrNull { it.second })
             }
         }
 
-        return models to total
+        return AccountsUiData(models = models, total = total, best = best, worst = worst)
     }
 }

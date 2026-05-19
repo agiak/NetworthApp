@@ -47,12 +47,16 @@ class HistoryViewModel @Inject constructor(
 
     fun onIntent(intent: HistoryIntent) {
         when (intent) {
-            HistoryIntent.LoadEntries      -> Unit // handled reactively by observeEntries()
-            is HistoryIntent.SelectAccount -> {
+            HistoryIntent.LoadEntries       -> Unit
+            is HistoryIntent.SelectAccount  -> {
                 _uiState.update { it.copy(selectedAccountId = intent.accountId) }
-                applyEntries(cachedEntries, intent.accountId)
+                applyEntries(cachedEntries, intent.accountId, _uiState.value.searchQuery)
             }
-            is HistoryIntent.DeleteEntry   -> deleteEntry(intent.id)
+            is HistoryIntent.UpdateSearch   -> {
+                _uiState.update { it.copy(searchQuery = intent.query) }
+                applyEntries(cachedEntries, _uiState.value.selectedAccountId, intent.query)
+            }
+            is HistoryIntent.DeleteEntry    -> deleteEntry(intent.id)
         }
     }
 
@@ -72,7 +76,7 @@ class HistoryViewModel @Inject constructor(
         viewModelScope.launch {
             getAppCurrencyUseCase().collect { currency ->
                 currentCurrency = currency
-                applyEntries(cachedEntries, _uiState.value.selectedAccountId)
+                applyEntries(cachedEntries, _uiState.value.selectedAccountId, _uiState.value.searchQuery)
             }
         }
     }
@@ -83,8 +87,8 @@ class HistoryViewModel @Inject constructor(
                 result.fold(
                     onSuccess = { entries ->
                         cachedEntries = entries
-                        applyEntries(entries, _uiState.value.selectedAccountId)
                         _uiState.update { it.copy(isLoading = false) }
+                        applyEntries(entries, _uiState.value.selectedAccountId)
                     },
                     onFailure = { error ->
                         Timber.e(error)
@@ -95,9 +99,21 @@ class HistoryViewModel @Inject constructor(
         }
     }
 
-    private fun applyEntries(entries: List<NetWorthEntry>, accountId: Long?) {
-        val filtered = if (accountId != null) entries.filter { it.accountId == accountId } else entries
-        val grouped  = mapper.groupByMonth(filtered, currentCurrency)
+    private fun applyEntries(
+        entries: List<NetWorthEntry>,
+        accountId: Long?,
+        query: String = _uiState.value.searchQuery,
+    ) {
+        var filtered = if (accountId != null) entries.filter { it.accountId == accountId } else entries
+        if (query.isNotBlank()) {
+            val q = query.trim().lowercase()
+            filtered = filtered.filter { entry ->
+                entry.note.lowercase().contains(q) ||
+                entry.value.toLong().toString().contains(q) ||
+                entry.date.toString().contains(q)
+            }
+        }
+        val grouped      = mapper.groupByMonth(filtered, currentCurrency)
         val withAccounts = enrichWithAccounts(grouped, entries)
         _uiState.update { it.copy(groupedEntries = withAccounts) }
     }

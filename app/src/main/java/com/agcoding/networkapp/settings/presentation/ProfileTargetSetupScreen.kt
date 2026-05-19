@@ -53,7 +53,8 @@ fun ProfileTargetSetupScreen(
     ProfileTargetSetupContent(
         uiState = uiState,
         onTargetChange = viewModel::onTargetChange,
-        onSave = viewModel::onSave
+        onSave = viewModel::onSave,
+        onSkip = viewModel::onSkip,
     )
 }
 
@@ -61,7 +62,8 @@ fun ProfileTargetSetupScreen(
 private fun ProfileTargetSetupContent(
     uiState: ProfileTargetSetupUiState,
     onTargetChange: (String) -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    onSkip: () -> Unit = {},
 ) {
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { paddingValues ->
         Column(
@@ -127,7 +129,7 @@ private fun ProfileTargetSetupContent(
                     containerColor = MaterialTheme.colorScheme.onBackground,
                     contentColor = MaterialTheme.colorScheme.background
                 ),
-                enabled = uiState.target.isNotBlank() && !uiState.isSaving
+                enabled = !uiState.isSaving,
             ) {
                 if (uiState.isSaving) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
@@ -135,9 +137,23 @@ private fun ProfileTargetSetupContent(
                     Text(
                         text = stringResource(R.string.btn_continue),
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            androidx.compose.material3.TextButton(
+                onClick = onSkip,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isSaving,
+            ) {
+                Text(
+                    text = stringResource(R.string.btn_skip),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                )
             }
         }
     }
