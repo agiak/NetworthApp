@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,16 +48,33 @@ class HistoryViewModel @Inject constructor(
 
     fun onIntent(intent: HistoryIntent) {
         when (intent) {
-            HistoryIntent.LoadEntries       -> Unit
-            is HistoryIntent.SelectAccount  -> {
+            HistoryIntent.LoadEntries -> Unit
+            is HistoryIntent.SelectAccount -> {
                 _uiState.update { it.copy(selectedAccountId = intent.accountId) }
                 applyEntries(cachedEntries, intent.accountId, _uiState.value.searchQuery)
             }
-            is HistoryIntent.UpdateSearch   -> {
+            is HistoryIntent.UpdateSearch -> {
                 _uiState.update { it.copy(searchQuery = intent.query) }
                 applyEntries(cachedEntries, _uiState.value.selectedAccountId, intent.query)
             }
-            is HistoryIntent.DeleteEntry    -> deleteEntry(intent.id)
+            is HistoryIntent.SelectDateFilter -> {
+                _uiState.update { it.copy(dateFilter = intent.filter) }
+                applyEntries(cachedEntries, _uiState.value.selectedAccountId)
+            }
+            is HistoryIntent.SelectSort -> {
+                _uiState.update { it.copy(sortOrder = intent.sortOrder) }
+                applyEntries(cachedEntries, _uiState.value.selectedAccountId)
+            }
+            is HistoryIntent.RequestDeleteConfirmation -> {
+                _uiState.update { it.copy(pendingDeleteId = intent.id) }
+            }
+            HistoryIntent.DismissDeleteConfirmation -> {
+                _uiState.update { it.copy(pendingDeleteId = null) }
+            }
+            is HistoryIntent.DeleteEntry -> {
+                _uiState.update { it.copy(pendingDeleteId = null) }
+                deleteEntry(intent.id)
+            }
         }
     }
 
@@ -105,6 +123,16 @@ class HistoryViewModel @Inject constructor(
         query: String = _uiState.value.searchQuery,
     ) {
         var filtered = if (accountId != null) entries.filter { it.accountId == accountId } else entries
+
+        val cutoff: LocalDate? = when (_uiState.value.dateFilter) {
+            HistoryDateFilter.ALL -> null
+            HistoryDateFilter.ONE_MONTH -> LocalDate.now().minusMonths(1)
+            HistoryDateFilter.THREE_MONTHS -> LocalDate.now().minusMonths(3)
+            HistoryDateFilter.SIX_MONTHS -> LocalDate.now().minusMonths(6)
+            HistoryDateFilter.ONE_YEAR -> LocalDate.now().minusYears(1)
+        }
+        if (cutoff != null) filtered = filtered.filter { it.date >= cutoff }
+
         if (query.isNotBlank()) {
             val q = query.trim().lowercase()
             filtered = filtered.filter { entry ->
@@ -113,8 +141,13 @@ class HistoryViewModel @Inject constructor(
                 entry.date.toString().contains(q)
             }
         }
-        val grouped      = mapper.groupByMonth(filtered, currentCurrency)
-        val withAccounts = enrichWithAccounts(grouped, entries)
+
+        val grouped = mapper.groupByMonth(filtered, currentCurrency)
+        val sortedGroups = when (_uiState.value.sortOrder) {
+            HistorySortOrder.NEWEST_FIRST -> grouped
+            HistorySortOrder.OLDEST_FIRST -> grouped.reversed()
+        }
+        val withAccounts = enrichWithAccounts(sortedGroups, entries)
         _uiState.update { it.copy(groupedEntries = withAccounts) }
     }
 

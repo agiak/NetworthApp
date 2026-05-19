@@ -1,5 +1,7 @@
 package com.agcoding.networkapp.history.presentation
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,10 +15,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -47,6 +52,9 @@ import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.history.presentation.components.HistoryEntryItem
 import com.agcoding.networkapp.history.presentation.components.MonthGroupHeader
 import com.agcoding.networkapp.history.presentation.components.SwipeDeleteBackground
+import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
+
+private val ITEM_HORIZONTAL_PADDING = 16.dp
 
 @Composable
 fun HistoryScreen(
@@ -92,22 +100,24 @@ private fun HistoryContent(
                     onValueChange = { onIntent(HistoryIntent.UpdateSearch(it)) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = ITEM_HORIZONTAL_PADDING, vertical = 8.dp),
                     placeholder = { Text(stringResource(R.string.hint_search_history)) },
                     leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = null,
-                            modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                        )
                     },
                     trailingIcon = {
                         if (uiState.searchQuery.isNotEmpty()) {
                             IconButton(onClick = { onIntent(HistoryIntent.UpdateSearch("")) }) {
-                                Icon(Icons.Default.Close, contentDescription = null,
-                                    modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(18.dp))
                             }
                         }
                     },
                     singleLine = true,
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                     ),
@@ -117,7 +127,19 @@ private fun HistoryContent(
                         accounts = uiState.accounts,
                         selectedAccountId = uiState.selectedAccountId,
                         onSelect = { onIntent(HistoryIntent.SelectAccount(it)) },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(horizontal = ITEM_HORIZONTAL_PADDING, vertical = 4.dp),
+                    )
+                }
+                LabeledFilterRow(label = stringResource(R.string.label_filter_date)) {
+                    DateFilterRow(
+                        selected = uiState.dateFilter,
+                        onSelect = { onIntent(HistoryIntent.SelectDateFilter(it)) },
+                    )
+                }
+                LabeledFilterRow(label = stringResource(R.string.label_filter_sort)) {
+                    SortFilterRow(
+                        selected = uiState.sortOrder,
+                        onSelect = { onIntent(HistoryIntent.SelectSort(it)) },
                     )
                 }
             }
@@ -128,7 +150,9 @@ private fun HistoryContent(
                     }
                 }
                 uiState.groupedEntries.isEmpty() -> {
-                    val hasActiveFilter = uiState.searchQuery.isNotEmpty() || uiState.selectedAccountId != null
+                    val hasActiveFilter = uiState.searchQuery.isNotEmpty()
+                        || uiState.selectedAccountId != null
+                        || uiState.dateFilter != HistoryDateFilter.ALL
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
                             text = stringResource(
@@ -143,7 +167,7 @@ private fun HistoryContent(
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        contentPadding = PaddingValues(horizontal = ITEM_HORIZONTAL_PADDING, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         uiState.groupedEntries.forEach { group ->
@@ -154,15 +178,24 @@ private fun HistoryContent(
                                 val dismissState = rememberSwipeToDismissBoxState(
                                     confirmValueChange = { value ->
                                         if (value == SwipeToDismissBoxValue.EndToStart) {
-                                            onIntent(HistoryIntent.DeleteEntry(entry.id))
-                                            true
-                                        } else false
+                                            onIntent(HistoryIntent.RequestDeleteConfirmation(entry.id))
+                                        }
+                                        false
                                     },
+                                )
+                                val errorColor = LocalAppColorScheme.current.statusError
+                                val bgColor by animateColorAsState(
+                                    targetValue = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart)
+                                        errorColor else Color.Transparent,
+                                    label = "swipe_bg",
                                 )
                                 SwipeToDismissBox(
                                     state = dismissState,
+                                    modifier = Modifier.fillMaxWidth(),
                                     enableDismissFromStartToEnd = false,
-                                    backgroundContent = { SwipeDeleteBackground() },
+                                    backgroundContent = {
+                                        SwipeDeleteBackground(tintColor = bgColor)
+                                    },
                                 ) {
                                     HistoryEntryItem(
                                         entry = entry,
@@ -175,6 +208,107 @@ private fun HistoryContent(
                 }
             }
         }
+    }
+
+    if (uiState.pendingDeleteId != null) {
+        AlertDialog(
+            onDismissRequest = { onIntent(HistoryIntent.DismissDeleteConfirmation) },
+            title = { Text(stringResource(R.string.delete_entry_confirm_title)) },
+            text = { Text(stringResource(R.string.delete_entry_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = { onIntent(HistoryIntent.DeleteEntry(uiState.pendingDeleteId)) }) {
+                    Text(
+                        text = stringResource(R.string.btn_delete_entry),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onIntent(HistoryIntent.DismissDeleteConfirmation) }) {
+                    Text(stringResource(R.string.btn_cancel))
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun LabeledFilterRow(
+    label: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Column(modifier = modifier.padding(horizontal = ITEM_HORIZONTAL_PADDING, vertical = 4.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 6.dp),
+        )
+        content()
+    }
+}
+
+@Composable
+private fun DateFilterRow(
+    selected: HistoryDateFilter,
+    onSelect: (HistoryDateFilter) -> Unit,
+) {
+    Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        val options = listOf(
+            HistoryDateFilter.ALL to stringResource(R.string.filter_all),
+            HistoryDateFilter.ONE_MONTH to stringResource(R.string.history_date_filter_1m),
+            HistoryDateFilter.THREE_MONTHS to stringResource(R.string.history_date_filter_3m),
+            HistoryDateFilter.SIX_MONTHS to stringResource(R.string.history_date_filter_6m),
+            HistoryDateFilter.ONE_YEAR to stringResource(R.string.history_date_filter_1y),
+        )
+        options.forEach { (filter, label) ->
+            FilterChip(label = label, isSelected = filter == selected, onClick = { onSelect(filter) })
+        }
+    }
+}
+
+@Composable
+private fun SortFilterRow(
+    selected: HistorySortOrder,
+    onSelect: (HistorySortOrder) -> Unit,
+) {
+    Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        val options = listOf(
+            HistorySortOrder.NEWEST_FIRST to stringResource(R.string.sort_newest_first),
+            HistorySortOrder.OLDEST_FIRST to stringResource(R.string.sort_oldest_first),
+        )
+        options.forEach { (order, label) ->
+            FilterChip(label = label, isSelected = order == selected, onClick = { onSelect(order) })
+        }
+    }
+}
+
+@Composable
+private fun FilterChip(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+        border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) else null,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+        )
     }
 }
 
@@ -220,25 +354,23 @@ private fun AccountChip(
 
     val bgColor = when {
         isSelected && accentColor != null -> accentColor
-        isSelected                         -> MaterialTheme.colorScheme.onSurface
-        else                               -> Color.Transparent
+        isSelected -> MaterialTheme.colorScheme.onSurface
+        else -> Color.Transparent
     }
     val borderColor = accentColor?.copy(alpha = 0.5f)
         ?: MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-    val textColor = if (isSelected) MaterialTheme.colorScheme.surface
-                   else MaterialTheme.colorScheme.onSurface
 
     Surface(
         onClick = onClick,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(20.dp),
         color = bgColor,
-        border = if (!isSelected) androidx.compose.foundation.BorderStroke(1.dp, borderColor) else null,
+        border = if (!isSelected) BorderStroke(1.dp, borderColor) else null,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            color = textColor,
+            color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
     }

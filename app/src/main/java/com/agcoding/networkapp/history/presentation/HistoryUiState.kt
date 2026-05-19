@@ -8,6 +8,9 @@ data class HistoryUiState(
     val accounts: List<Account> = emptyList(),
     val selectedAccountId: Long? = null,
     val searchQuery: String = "",
+    val dateFilter: HistoryDateFilter = HistoryDateFilter.ALL,
+    val sortOrder: HistorySortOrder = HistorySortOrder.NEWEST_FIRST,
     val groupedEntries: List<GroupedEntries> = emptyList(),
+    val pendingDeleteId: Long? = null,
     val error: String? = null,
 )

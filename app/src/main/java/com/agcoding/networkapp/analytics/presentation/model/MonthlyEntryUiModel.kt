@@ -6,5 +6,6 @@ data class MonthlyEntryUiModel(
     val formattedDiff: String,
     val formattedPercent: String,
     val isPositive: Boolean,
-    val isFirst: Boolean
+    val isFirst: Boolean,
+    val rawValue: Double = 0.0,
 )

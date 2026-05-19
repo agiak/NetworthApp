@@ -119,7 +119,6 @@ class RecapUiMapper @Inject constructor() {
     private fun buildMonthlyBreakdown(
         dataForDiffs: List<MonthlyNetWorth>
     ): List<MonthlyBreakdownItem> {
-        val yearEntries = dataForDiffs.drop(if (dataForDiffs.first().yearMonth.year < dataForDiffs.last().yearMonth.year) 1 else 0)
         return dataForDiffs.zipWithNext().mapIndexed { _, (prev, curr) ->
             val diff = curr.value - prev.value
             val pct = if (prev.value != 0.0) (diff / prev.value) * 100.0 else 0.0

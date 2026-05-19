@@ -77,6 +77,13 @@ class AllMonthsViewModel @Inject constructor(
                 else _allMonthly.value
                 applyData(monthly, intent.accountId)
             }
+            is AllMonthsIntent.SelectSort -> {
+                _uiState.update { it.copy(sortOrder = intent.sortOrder) }
+                val monthly = _uiState.value.selectedAccountId?.let {
+                    computeMonthlyForAccount(_rawEntries.value, it)
+                } ?: _allMonthly.value
+                applyData(monthly, _uiState.value.selectedAccountId)
+            }
         }
     }
 
@@ -84,7 +91,13 @@ class AllMonthsViewModel @Inject constructor(
         val monthly = if (accountId != null) computeMonthlyForAccount(_rawEntries.value, accountId) else data
         if (monthly.isEmpty()) return
         val entries = mapper.map(monthly, TimeFilter.ALL, currentCurrency).monthlyEntries
-        _uiState.update { it.copy(isLoading = false, monthlyEntries = entries) }
+        val sorted = when (_uiState.value.sortOrder) {
+            AllMonthsSortOrder.NEWEST_FIRST -> entries
+            AllMonthsSortOrder.OLDEST_FIRST -> entries.reversed()
+            AllMonthsSortOrder.HIGHEST_VALUE -> entries.sortedByDescending { it.rawValue }
+            AllMonthsSortOrder.LOWEST_VALUE -> entries.sortedBy { it.rawValue }
+        }
+        _uiState.update { it.copy(isLoading = false, monthlyEntries = sorted) }
     }
 
 }

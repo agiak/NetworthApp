@@ -78,21 +78,25 @@ fun HistoryEntryItem(
 }
 
 @Composable
-fun SwipeDeleteBackground(modifier: Modifier = Modifier) {
-    val colors = LocalAppColorScheme.current
+fun SwipeDeleteBackground(
+    modifier: Modifier = Modifier,
+    tintColor: androidx.compose.ui.graphics.Color = LocalAppColorScheme.current.statusError,
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .clip(RoundedCornerShape(12.dp))
-            .background(colors.statusError),
+            .background(tintColor),
         contentAlignment = Alignment.CenterEnd,
     ) {
-        Icon(
-            imageVector = Icons.Outlined.Delete,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.padding(end = 20.dp).size(22.dp),
-        )
+        if (tintColor != androidx.compose.ui.graphics.Color.Transparent) {
+            Icon(
+                imageVector = Icons.Outlined.Delete,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.padding(end = 20.dp).size(22.dp),
+            )
+        }
     }
 }
 

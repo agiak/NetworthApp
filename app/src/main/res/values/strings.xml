@@ -76,6 +76,16 @@
 
     <!-- Analytics -->
     <string name="analytics_all_months_title">All Months</string>
+    <string name="history_date_filter_1m">1M</string>
+    <string name="history_date_filter_1y">1Y</string>
+    <string name="history_date_filter_3m">3M</string>
+    <string name="history_date_filter_6m">6M</string>
+    <string name="label_filter_date">Date</string>
+    <string name="label_filter_sort">Sort</string>
+    <string name="sort_highest_value">Highest</string>
+    <string name="sort_lowest_value">Lowest</string>
+    <string name="sort_newest_first">Newest</string>
+    <string name="sort_oldest_first">Oldest</string>
     <string name="analytics_avg_month">Avg / Month</string>
     <string name="analytics_future_prediction">Future Prediction</string>
     <string name="analytics_future_prediction_desc">See where your portfolio could be in 2–15 years</string>

@@ -8,4 +8,5 @@ data class AllMonthsUiState(
     val accounts: List<Account> = emptyList(),
     val selectedAccountId: Long? = null,
     val monthlyEntries: List<MonthlyEntryUiModel> = emptyList(),
+    val sortOrder: AllMonthsSortOrder = AllMonthsSortOrder.NEWEST_FIRST,
 )

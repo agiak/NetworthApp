@@ -42,6 +42,14 @@ import com.agcoding.networkapp.analytics.presentation.model.MonthlyEntryUiModel
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 
 @Composable
+private fun sortLabel(order: AllMonthsSortOrder): String = when (order) {
+    AllMonthsSortOrder.NEWEST_FIRST -> stringResource(R.string.sort_newest_first)
+    AllMonthsSortOrder.OLDEST_FIRST -> stringResource(R.string.sort_oldest_first)
+    AllMonthsSortOrder.HIGHEST_VALUE -> stringResource(R.string.sort_highest_value)
+    AllMonthsSortOrder.LOWEST_VALUE -> stringResource(R.string.sort_lowest_value)
+}
+
+@Composable
 fun AllMonthsScreen(
     onNavigateBack: () -> Unit,
     viewModel: AllMonthsViewModel = hiltViewModel(),
@@ -95,6 +103,11 @@ private fun AllMonthsContent(
                             modifier          = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         )
                     }
+                    SortFilterRow(
+                        selectedSort = uiState.sortOrder,
+                        onSelect     = { onIntent(AllMonthsIntent.SelectSort(it)) },
+                        modifier     = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
                     LazyColumn(
                         modifier      = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -117,6 +130,36 @@ private fun AllMonthsContent(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SortFilterRow(
+    selectedSort: AllMonthsSortOrder,
+    onSelect: (AllMonthsSortOrder) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        AllMonthsSortOrder.entries.forEach { order ->
+            val isSelected = order == selectedSort
+            Surface(
+                onClick = { onSelect(order) },
+                shape = RoundedCornerShape(20.dp),
+                color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) else null,
+            ) {
+                Text(
+                    text = sortLabel(order),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                )
             }
         }
     }

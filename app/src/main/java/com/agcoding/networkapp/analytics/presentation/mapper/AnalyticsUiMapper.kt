@@ -167,7 +167,7 @@ class AnalyticsUiMapper @Inject constructor() {
             TimeFilter.TWELVE_MONTHS -> 12L
             TimeFilter.ALL -> return data
         }
-        val cutoff = YearMonth.now().minusMonths(months)
+        val cutoff = YearMonth.now().minusMonths(months - 1)
         return data.filter { it.yearMonth >= cutoff }
     }
 
@@ -185,7 +185,8 @@ class AnalyticsUiMapper @Inject constructor() {
                     formattedDiff = "—",
                     formattedPercent = "",
                     isPositive = true,
-                    isFirst = true
+                    isFirst = true,
+                    rawValue = month.value,
                 )
             } else {
                 val diff = month.value - prev.value
@@ -196,14 +197,17 @@ class AnalyticsUiMapper @Inject constructor() {
                     formattedDiff = formatChange(diff),
                     formattedPercent = formatPercent(pct),
                     isPositive = diff >= 0,
-                    isFirst = false
+                    isFirst = false,
+                    rawValue = month.value,
                 )
             }
         }
     }
 
-    private fun formatCurrency(value: Double) =
-        "$symbol${String.format(Locale.US, "%,.0f", value)}"
+    private fun formatCurrency(value: Double): String {
+        val prefix = if (value < 0) "-$symbol" else symbol
+        return "$prefix${String.format(Locale.US, "%,.0f", abs(value))}"
+    }
 
     private fun formatChange(value: Double): String {
         val absStr = String.format(Locale.US, "%,.0f", abs(value))
