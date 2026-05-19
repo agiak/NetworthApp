@@ -1,6 +1,8 @@
 package com.agcoding.networkapp.snapshot
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.home.presentation.components.EntryDatePickerDialog
 import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
 import java.time.LocalDate
@@ -117,6 +122,15 @@ private fun AddSnapshotContent(
                     tint = colors.contentPrimary,
                 )
             }
+        }
+
+        if (uiState.accounts.size > 1) {
+            Spacer(Modifier.height(16.dp))
+            AccountSelector(
+                accounts = uiState.accounts,
+                selectedAccountId = uiState.selectedAccountId,
+                onAccountSelected = { onIntent(AddSnapshotIntent.SelectAccount(it)) },
+            )
         }
 
         Spacer(Modifier.height(32.dp))
@@ -255,6 +269,44 @@ private fun AddSnapshotContent(
             onDateSelected = { onIntent(AddSnapshotIntent.UpdateDate(it)); showDatePicker = false },
             onDismiss      = { showDatePicker = false },
         )
+    }
+}
+
+@Composable
+private fun AccountSelector(
+    accounts: List<Account>,
+    selectedAccountId: Long,
+    onAccountSelected: (Long) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        accounts.forEach { account ->
+            val isSelected = account.id == selectedAccountId
+            val accentColor = try { Color(android.graphics.Color.parseColor(account.colorHex)) }
+                              catch (e: Exception) { Color.Gray }
+            Surface(
+                onClick = { onAccountSelected(account.id) },
+                shape   = RoundedCornerShape(20.dp),
+                color   = if (isSelected) accentColor else Color.Transparent,
+                border  = if (!isSelected) BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)) else null,
+            ) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text       = account.name,
+                        style      = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color      = if (isSelected) MaterialTheme.colorScheme.surface
+                                     else MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+        }
     }
 }
 

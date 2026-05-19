@@ -11,4 +11,5 @@ sealed interface HomeIntent {
     data class UpdateEntryDate(val date: LocalDate) : HomeIntent
     data class UpdateEntryInput(val value: String) : HomeIntent
     data class UpdateEntryNote(val value: String) : HomeIntent
+    data class SelectAccount(val accountId: Long) : HomeIntent
 }

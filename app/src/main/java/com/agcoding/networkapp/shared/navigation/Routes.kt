@@ -2,8 +2,11 @@ package com.agcoding.networkapp.shared.navigation
 
 import kotlinx.serialization.Serializable
 
+@Serializable data object AccountSetupRoute
+@Serializable data class  AccountDetailRoute(val accountId: Long)
 @Serializable data object AccountsRoute
 @Serializable data object AddSnapshotRoute
+@Serializable data object CreateAccountRoute
 @Serializable data object AllMonthsRoute
 @Serializable data object AnalyticsRoute
 @Serializable data object CompareRoute

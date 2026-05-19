@@ -46,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import java.time.LocalDate
@@ -60,9 +61,12 @@ fun AddEntryBottomSheet(
     isSaving: Boolean,
     currencySymbol: String = "€",
     noteInput: String = "",
+    accounts: List<Account> = emptyList(),
+    selectedAccountId: Long = 1L,
     onValueChange: (String) -> Unit,
     onDateChange: (LocalDate) -> Unit,
     onNoteChange: (String) -> Unit = {},
+    onAccountSelected: (Long) -> Unit = {},
     onSave: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -123,6 +127,15 @@ fun AddEntryBottomSheet(
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
+            }
+
+            if (accounts.size > 1) {
+                Spacer(modifier = Modifier.height(16.dp))
+                AccountSelector(
+                    accounts = accounts,
+                    selectedAccountId = selectedAccountId,
+                    onAccountSelected = onAccountSelected,
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -260,6 +273,41 @@ fun AddEntryBottomSheet(
             onDateSelected = { onDateChange(it); showDatePicker = false },
             onDismiss = { showDatePicker = false }
         )
+    }
+}
+
+@Composable
+private fun AccountSelector(
+    accounts: List<Account>,
+    selectedAccountId: Long,
+    onAccountSelected: (Long) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        accounts.forEach { account ->
+            val isSelected = account.id == selectedAccountId
+            val accentColor = try { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(account.colorHex)) }
+                              catch (e: Exception) { MaterialTheme.colorScheme.primary }
+            Surface(
+                onClick    = { onAccountSelected(account.id) },
+                shape      = RoundedCornerShape(20.dp),
+                color      = if (isSelected) accentColor else Color.Transparent,
+                border     = if (!isSelected) androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)) else null,
+            ) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = account.name,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+        }
     }
 }
 

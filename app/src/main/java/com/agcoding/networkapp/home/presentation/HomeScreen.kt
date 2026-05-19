@@ -20,7 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -28,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,6 +68,8 @@ fun HomeScreen(
     onNavigateToProfileEdit: () -> Unit,
     onNavigateToEntryDetails: (Long) -> Unit,
     onNavigateToGoal: () -> Unit,
+    onNavigateToAccounts: () -> Unit,
+    onNavigateToCreateAccount: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -74,7 +79,9 @@ fun HomeScreen(
         onNavigateToHistory = onNavigateToHistory,
         onNavigateToProfileEdit = onNavigateToProfileEdit,
         onNavigateToEntryDetails = onNavigateToEntryDetails,
-        onNavigateToGoal = onNavigateToGoal
+        onNavigateToGoal = onNavigateToGoal,
+        onNavigateToAccounts = onNavigateToAccounts,
+        onNavigateToCreateAccount = onNavigateToCreateAccount,
     )
 }
 
@@ -85,7 +92,9 @@ private fun HomeContent(
     onNavigateToHistory: () -> Unit,
     onNavigateToProfileEdit: () -> Unit,
     onNavigateToEntryDetails: (Long) -> Unit,
-    onNavigateToGoal: () -> Unit
+    onNavigateToGoal: () -> Unit,
+    onNavigateToAccounts: () -> Unit,
+    onNavigateToCreateAccount: () -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -130,6 +139,14 @@ private fun HomeContent(
                         percentage = uiState.changePercentage,
                         isPositive = uiState.isPositiveChange,
                         chartData = uiState.chartData,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+                item {
+                    AccountsCard(
+                        breakdown = uiState.accountBreakdown,
+                        onClick = onNavigateToAccounts,
+                        onAddAccount = onNavigateToCreateAccount,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
@@ -209,17 +226,145 @@ private fun HomeContent(
 
         if (uiState.isAddEntrySheetVisible) {
             AddEntryBottomSheet(
-                entryInput    = uiState.entryInput,
-                selectedDate  = uiState.selectedDate,
-                isSaving      = uiState.isSaving,
-                currencySymbol = uiState.currencySymbol,
-                noteInput     = uiState.noteInput,
-                onValueChange = { onIntent(HomeIntent.UpdateEntryInput(it)) },
-                onDateChange  = { onIntent(HomeIntent.UpdateEntryDate(it)) },
-                onNoteChange  = { onIntent(HomeIntent.UpdateEntryNote(it)) },
-                onSave        = { onIntent(HomeIntent.SaveEntry) },
-                onDismiss     = { onIntent(HomeIntent.HideAddEntrySheet) }
+                entryInput       = uiState.entryInput,
+                selectedDate     = uiState.selectedDate,
+                isSaving         = uiState.isSaving,
+                currencySymbol   = uiState.currencySymbol,
+                noteInput        = uiState.noteInput,
+                accounts         = uiState.accounts,
+                selectedAccountId = uiState.selectedAccountId,
+                onValueChange    = { onIntent(HomeIntent.UpdateEntryInput(it)) },
+                onDateChange     = { onIntent(HomeIntent.UpdateEntryDate(it)) },
+                onNoteChange     = { onIntent(HomeIntent.UpdateEntryNote(it)) },
+                onAccountSelected = { onIntent(HomeIntent.SelectAccount(it)) },
+                onSave           = { onIntent(HomeIntent.SaveEntry) },
+                onDismiss        = { onIntent(HomeIntent.HideAddEntrySheet) }
             )
+        }
+    }
+}
+
+@Composable
+private fun AccountsCard(
+    breakdown: List<AccountBreakdownUiItem>,
+    onClick: () -> Unit,
+    onAddAccount: () -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.label_accounts),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                // Quick-add account button
+                Box(
+                    modifier = Modifier
+                        .size(26.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable(onClick = onAddAccount),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.btn_create_account),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+                Spacer(Modifier.width(6.dp))
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+
+            if (breakdown.size > 1) {
+                Spacer(Modifier.height(12.dp))
+
+                // Stacked allocation bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                ) {
+                    breakdown.forEach { item ->
+                        val color = try { Color(android.graphics.Color.parseColor(item.colorHex)) }
+                                    catch (e: Exception) { Color.Gray }
+                        Box(
+                            modifier = Modifier
+                                .weight(item.percentage.coerceAtLeast(0.01f))
+                                .fillMaxHeight()
+                                .background(color),
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                // Per-account rows
+                breakdown.forEach { item ->
+                    val color = try { Color(android.graphics.Color.parseColor(item.colorHex)) }
+                                catch (e: Exception) { Color.Gray }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier.size(8.dp).clip(CircleShape).background(color),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = item.name,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            text = item.formattedBalance,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = " · ${(item.percentage * 100).toInt()}%",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            } else if (breakdown.isNotEmpty()) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = breakdown.first().formattedBalance,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
@@ -287,7 +432,8 @@ private fun HomeContentPreview() {
             onNavigateToHistory = {},
             onNavigateToProfileEdit = {},
             onNavigateToEntryDetails = {},
-            onNavigateToGoal = {}
+            onNavigateToGoal = {},
+            onNavigateToAccounts = {},
         )
     }
 }

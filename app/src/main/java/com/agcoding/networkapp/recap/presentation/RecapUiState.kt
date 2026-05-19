@@ -1,5 +1,6 @@
 package com.agcoding.networkapp.recap.presentation
 
+import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 
 data class MonthlyBreakdownItem(
@@ -15,6 +16,8 @@ data class RecapUiState(
     val hasData: Boolean = false,
     val availableYears: List<Int> = emptyList(),
     val selectedYear: Int = java.time.LocalDate.now().year,
+    val accounts: List<Account> = emptyList(),
+    val selectedAccountId: Long? = null,
     // Header
     val totalGrowthFormatted: String = "",
     val totalGrowthPercent: String = "",

@@ -124,6 +124,16 @@ private fun RecapContent(
                             )
                         }
                     }
+                    // Account filter
+                    if (uiState.accounts.size > 1) {
+                        item {
+                            RecapAccountFilterRow(
+                                accounts = uiState.accounts,
+                                selectedAccountId = uiState.selectedAccountId,
+                                onSelect = { onIntent(RecapIntent.SelectAccount(it)) },
+                            )
+                        }
+                    }
 
                     // Main content animates on year change
                     item {
@@ -232,6 +242,55 @@ private fun YearSelector(
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecapAccountFilterRow(
+    accounts: List<com.agcoding.networkapp.account.domain.model.Account>,
+    selectedAccountId: Long?,
+    onSelect: (Long?) -> Unit,
+) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 2.dp),
+    ) {
+        item {
+            val allSelected = selectedAccountId == null
+            Surface(
+                onClick = { onSelect(null) },
+                shape = RoundedCornerShape(20.dp),
+                color = if (allSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                border = if (!allSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) else null,
+            ) {
+                Text(
+                    text = stringResource(R.string.filter_all),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (allSelected) FontWeight.Bold else FontWeight.Normal,
+                    color = if (allSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
+        }
+        items(accounts) { account ->
+            val isSelected = account.id == selectedAccountId
+            val accentColor = try { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(account.colorHex)) }
+                              catch (e: Exception) { MaterialTheme.colorScheme.primary }
+            Surface(
+                onClick = { onSelect(account.id) },
+                shape = RoundedCornerShape(20.dp),
+                color = if (isSelected) accentColor else Color.Transparent,
+                border = if (!isSelected) androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.5f)) else null,
+            ) {
+                Text(
+                    text = account.name,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
         }

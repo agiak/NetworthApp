@@ -7,4 +7,5 @@ data class NetWorthEntry(
     val value: Double,
     val date: LocalDate,
     val note: String = "",
+    val accountId: Long = 1,
 )

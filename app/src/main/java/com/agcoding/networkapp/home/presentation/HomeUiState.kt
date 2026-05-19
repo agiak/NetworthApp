@@ -1,9 +1,19 @@
 package com.agcoding.networkapp.home.presentation
 
+import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import com.agcoding.networkapp.home.presentation.model.InsightData
 import com.agcoding.networkapp.shared.ui.model.EntryUiModel
 import java.time.LocalDate
+
+data class AccountBreakdownUiItem(
+    val id: Long,
+    val name: String,
+    val colorHex: String,
+    val formattedBalance: String,
+    val balanceRaw: Double,
+    val percentage: Float,
+)
 
 data class HomeUiState(
     val isLoading: Boolean = true,
@@ -27,6 +37,9 @@ data class HomeUiState(
     val targetAmountRaw: Double = 0.0,
     val hasGoal: Boolean = false,
     val recentEntries: List<EntryUiModel> = emptyList(),
+    val accounts: List<Account> = emptyList(),
+    val accountBreakdown: List<AccountBreakdownUiItem> = emptyList(),
+    val selectedAccountId: Long = 1L,
     val isAddEntrySheetVisible: Boolean = false,
     val entryInput: String = "",
     val noteInput: String = "",

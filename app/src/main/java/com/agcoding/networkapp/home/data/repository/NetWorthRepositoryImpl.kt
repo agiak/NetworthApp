@@ -9,6 +9,7 @@ import com.agcoding.networkapp.home.domain.model.NetWorthEntry
 import com.agcoding.networkapp.home.domain.repository.NetWorthRepository
 import com.agcoding.networkapp.shared.di.IoDispatcher
 import com.agcoding.networkapp.shared.domain.error.AppError
+import com.agcoding.networkapp.widget.NetWorthDetailWidget
 import com.agcoding.networkapp.widget.NetWorthWidget
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -32,6 +33,12 @@ class NetWorthRepositoryImpl @Inject constructor(
         .catch { e -> emit(Result.failure(AppError.DatabaseError(e.message ?: "Database error"))) }
         .flowOn(ioDispatcher)
 
+    override fun getEntriesForAccount(accountId: Long): Flow<Result<List<NetWorthEntry>>> =
+        dao.getEntriesForAccount(accountId)
+            .map { entities -> Result.success(entities.map { mapper.map(it) }) }
+            .catch { e -> emit(Result.failure(AppError.DatabaseError(e.message ?: "Database error"))) }
+            .flowOn(ioDispatcher)
+
     override fun getEntryById(id: Long): Flow<Result<NetWorthEntry?>> = dao.getEntryById(id)
         .map { entity -> Result.success(entity?.let { mapper.map(it) }) }
         .catch { e -> emit(Result.failure(AppError.DatabaseError(e.message ?: "Database error"))) }
@@ -39,7 +46,7 @@ class NetWorthRepositoryImpl @Inject constructor(
 
     override suspend fun addEntry(entry: NetWorthEntry): Result<Unit> = withContext(ioDispatcher) {
         try {
-            dao.insertEntry(NetWorthEntity(value = entry.value, dateEpochDay = entry.date.toEpochDay(), note = entry.note))
+            dao.insertEntry(NetWorthEntity(value = entry.value, dateEpochDay = entry.date.toEpochDay(), note = entry.note, accountId = entry.accountId))
             refreshWidget()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -49,7 +56,7 @@ class NetWorthRepositoryImpl @Inject constructor(
 
     override suspend fun updateEntry(entry: NetWorthEntry): Result<Unit> = withContext(ioDispatcher) {
         try {
-            dao.updateEntry(NetWorthEntity(id = entry.id, value = entry.value, dateEpochDay = entry.date.toEpochDay(), note = entry.note))
+            dao.updateEntry(NetWorthEntity(id = entry.id, value = entry.value, dateEpochDay = entry.date.toEpochDay(), note = entry.note, accountId = entry.accountId))
             refreshWidget()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -67,6 +74,16 @@ class NetWorthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteEntriesForAccount(accountId: Long): Result<Unit> = withContext(ioDispatcher) {
+        try {
+            dao.deleteEntriesForAccount(accountId)
+            refreshWidget()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(AppError.DatabaseError(e.message ?: "Failed to delete entries"))
+        }
+    }
+
     override suspend fun deleteAllEntries(): Result<Unit> = withContext(ioDispatcher) {
         try {
             dao.deleteAllEntries()
@@ -80,8 +97,10 @@ class NetWorthRepositoryImpl @Inject constructor(
     private suspend fun refreshWidget() {
         try {
             val manager = GlanceAppWidgetManager(context)
-            val ids = manager.getGlanceIds(NetWorthWidget::class.java)
-            ids.forEach { id -> NetWorthWidget().update(context, id) }
+            manager.getGlanceIds(NetWorthWidget::class.java)
+                .forEach { id -> NetWorthWidget().update(context, id) }
+            manager.getGlanceIds(NetWorthDetailWidget::class.java)
+                .forEach { id -> NetWorthDetailWidget().update(context, id) }
         } catch (e: Exception) {
             Timber.e(e, "Widget refresh failed")
         }

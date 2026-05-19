@@ -10,6 +10,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.agcoding.networkapp.account.presentation.AccountDetailScreen
+import com.agcoding.networkapp.account.presentation.AccountSetupScreen
+import com.agcoding.networkapp.account.presentation.AccountsOverviewScreen
+import com.agcoding.networkapp.account.presentation.CreateAccountScreen
 import com.agcoding.networkapp.analytics.presentation.AllMonthsScreen
 import com.agcoding.networkapp.analytics.presentation.AnalyticsScreen
 import com.agcoding.networkapp.analytics.presentation.prediction.PredictionScreen
@@ -27,11 +31,14 @@ import com.agcoding.networkapp.recap.presentation.RecapScreen
 import com.agcoding.networkapp.settings.presentation.ProfileScreen
 import com.agcoding.networkapp.settings.presentation.ProfileTargetSetupScreen
 import com.agcoding.networkapp.settings.presentation.SettingsScreen
+import com.agcoding.networkapp.shared.navigation.AccountDetailRoute
+import com.agcoding.networkapp.shared.navigation.AccountSetupRoute
 import com.agcoding.networkapp.shared.navigation.AccountsRoute
 import com.agcoding.networkapp.shared.navigation.AddSnapshotRoute
 import com.agcoding.networkapp.shared.navigation.AllMonthsRoute
 import com.agcoding.networkapp.shared.navigation.AnalyticsRoute
 import com.agcoding.networkapp.shared.navigation.CompareRoute
+import com.agcoding.networkapp.shared.navigation.CreateAccountRoute
 import com.agcoding.networkapp.shared.navigation.EditEntryRoute
 import com.agcoding.networkapp.shared.navigation.EntryDetailsRoute
 import com.agcoding.networkapp.shared.navigation.GoalRoute
@@ -80,8 +87,18 @@ fun NavGraph(
         composable<ProfileTargetSetupRoute> {
             ProfileTargetSetupScreen(
                 onComplete = {
-                    navController.navigate(SecuritySetupRoute()) {
+                    navController.navigate(AccountSetupRoute) {
                         popUpTo<ProfileTargetSetupRoute> { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable<AccountSetupRoute> {
+            AccountSetupScreen(
+                onAddAccount = { navController.navigate(CreateAccountRoute) },
+                onContinue   = {
+                    navController.navigate(SecuritySetupRoute()) {
+                        popUpTo<AccountSetupRoute> { inclusive = true }
                     }
                 }
             )
@@ -135,10 +152,19 @@ fun NavGraph(
         // ── Main Screens ───────────────────────────────────────────────────────
         composable<HomeRoute> {
             HomeScreen(
-                onNavigateToHistory       = { navController.navigate(HistoryRoute) },
-                onNavigateToProfileEdit   = { navController.navigate(ProfileEditRoute) },
-                onNavigateToEntryDetails  = { navController.navigate(EntryDetailsRoute(it)) },
+                onNavigateToHistory      = { navController.navigate(HistoryRoute) },
+                onNavigateToProfileEdit  = { navController.navigate(ProfileEditRoute) },
+                onNavigateToEntryDetails = { navController.navigate(EntryDetailsRoute(it)) },
                 onNavigateToGoal         = { navController.navigate(GoalRoute) },
+                onNavigateToAccounts     = {
+                    // Treat as a tab switch so Home tab stays properly accessible afterward
+                    navController.navigate(AccountsRoute) {
+                        popUpTo<HomeRoute> { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onNavigateToCreateAccount = { navController.navigate(CreateAccountRoute) },
             )
         }
         composable<AnalyticsRoute> {
@@ -155,7 +181,18 @@ fun NavGraph(
         composable<GoalRoute>       { GoalScreen(onNavigateBack = { navController.navigateUp() }) }
         composable<PredictionRoute> { PredictionScreen(onNavigateBack = { navController.navigateUp() }) }
         composable<RecapRoute>      { RecapScreen(onNavigateBack = { navController.navigateUp() }) }
-        composable<AccountsRoute>   { /* TODO: Accounts feature */ }
+        composable<AccountsRoute> {
+            AccountsOverviewScreen(
+                onNavigateToCreateAccount = { navController.navigate(CreateAccountRoute) },
+                onNavigateToAccountDetail = { navController.navigate(AccountDetailRoute(it)) },
+            )
+        }
+        composable<AccountDetailRoute> {
+            AccountDetailScreen(onNavigateBack = { navController.navigateUp() })
+        }
+        composable<CreateAccountRoute> {
+            CreateAccountScreen(onNavigateBack = { navController.navigateUp() })
+        }
 
         composable<HistoryRoute> {
             HistoryScreen(

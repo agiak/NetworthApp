@@ -7,9 +7,10 @@ import javax.inject.Inject
 
 class NetWorthEntityToDomainMapper @Inject constructor() {
     fun map(entity: NetWorthEntity): NetWorthEntry = NetWorthEntry(
-        id = entity.id,
-        value = entity.value,
-        date = LocalDate.ofEpochDay(entity.dateEpochDay),
-        note = entity.note,
+        id        = entity.id,
+        value     = entity.value,
+        date      = LocalDate.ofEpochDay(entity.dateEpochDay),
+        note      = entity.note,
+        accountId = entity.accountId,
     )
 }

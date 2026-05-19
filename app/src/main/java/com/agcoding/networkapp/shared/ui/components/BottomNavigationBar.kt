@@ -1,6 +1,7 @@
 package com.agcoding.networkapp.shared.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -19,6 +20,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.shared.navigation.AccountsRoute
 import com.agcoding.networkapp.shared.navigation.AnalyticsRoute
 import com.agcoding.networkapp.shared.navigation.HomeRoute
 import com.agcoding.networkapp.shared.navigation.SettingsRoute
@@ -32,6 +34,7 @@ fun BottomNavigationBar(navController: NavController) {
     val navigationItems = listOf(
         NavigationItem(HomeRoute, Icons.Default.Home, stringResource(R.string.nav_home)),
         NavigationItem(AnalyticsRoute, Icons.Default.DateRange, stringResource(R.string.nav_analytics)),
+        NavigationItem(AccountsRoute, Icons.Default.AccountCircle, stringResource(R.string.nav_accounts)),
         NavigationItem(SettingsRoute, Icons.Default.Settings, stringResource(R.string.nav_settings)),
     )
 

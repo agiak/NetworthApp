@@ -20,10 +20,12 @@ import com.agcoding.networkapp.biometric.presentation.lock.LockViewModel
 import com.agcoding.networkapp.navigation.NavGraph
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
-import com.agcoding.networkapp.shared.navigation.AccountsRoute
+import com.agcoding.networkapp.shared.navigation.AccountDetailRoute
+import com.agcoding.networkapp.shared.navigation.AccountSetupRoute
 import com.agcoding.networkapp.shared.navigation.AddSnapshotRoute
 import com.agcoding.networkapp.shared.navigation.AllMonthsRoute
 import com.agcoding.networkapp.shared.navigation.CompareRoute
+import com.agcoding.networkapp.shared.navigation.CreateAccountRoute
 import com.agcoding.networkapp.shared.navigation.EditEntryRoute
 import com.agcoding.networkapp.shared.navigation.EntryDetailsRoute
 import com.agcoding.networkapp.shared.navigation.GoalRoute
@@ -92,9 +94,11 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
             }
 
             val showBottomBar = currentDest?.let { d ->
+                !d.hasRoute<AccountDetailRoute>() &&
+                !d.hasRoute<AccountSetupRoute>() &&
                 !d.hasRoute<AddSnapshotRoute>() &&
                 !d.hasRoute<AllMonthsRoute>() &&
-                !d.hasRoute<AccountsRoute>() &&
+                !d.hasRoute<CreateAccountRoute>() &&
                 !d.hasRoute<CompareRoute>() &&
                 !d.hasRoute<EditEntryRoute>() &&
                 !d.hasRoute<EntryDetailsRoute>() &&

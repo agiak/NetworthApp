@@ -65,11 +65,11 @@
     <!-- Developer Tools -->
     <string name="btn_delete_data">Delete All Data</string>
     <string name="btn_deleting">Deleting…</string>
-    <string name="btn_generate_data">Generate 24 Months of Data</string>
+    <string name="btn_generate_data">Generate 36 Months of Data (3 Accounts)</string>
     <string name="btn_generate_specific_data">Load My Data</string>
     <string name="btn_generating">Generating…</string>
     <string name="delete_data_success">All data deleted.</string>
-    <string name="developer_generate_description">Inserts 24 months of realistic net worth history. Clears existing data first.</string>
+    <string name="developer_generate_description">Inserts 36 months of data across 3 accounts (Main, Savings, Investments). Clears existing data first.</string>
     <string name="developer_generate_title">Generate Sample Data</string>
     <string name="dummy_data_failure">Failed: %1$s</string>
     <string name="dummy_data_success">24 months of data generated!</string>
@@ -318,7 +318,8 @@
     <!-- Widget -->
     <string name="widget_label_change">Change</string>
     <string name="widget_label_no_data">No data yet</string>
-    <string name="widget_description">Shows your current net worth</string>
+    <string name="widget_description">Shows your current net worth and accounts</string>
+    <string name="widget_detail_description">Shows net worth with full account breakdown</string>
 
     <!-- Onboarding -->
     <string name="onboarding_1_title">Welcome to Net Worth Tracker</string>
@@ -339,6 +340,37 @@
     <!-- App Shortcuts -->
     <string name="shortcut_add_short">Add snapshot</string>
     <string name="shortcut_add_long">Add net worth snapshot</string>
+
+    <!-- Accounts -->
+    <string name="label_accounts">Accounts</string>
+    <string name="label_accounts_count">%1$d accounts</string>
+    <string name="title_accounts">Accounts</string>
+    <string name="title_create_account">Create Account</string>
+    <string name="label_account_name">Account name</string>
+    <string name="hint_account_name">e.g. Savings, Investment…</string>
+    <string name="label_starting_balance">Starting balance</string>
+    <string name="btn_create_account">Create account</string>
+    <string name="label_no_accounts">No accounts yet. Tap + to add one.</string>
+    <string name="label_entries_count">%1$d entries</string>
+    <string name="label_total_net_worth">TOTAL NET WORTH</string>
+    <string name="label_account_color">Account color</string>
+    <string name="delete_account_confirm_title">Delete account?</string>
+    <string name="delete_account_confirm_message">All entries for \"%1$s\" will be permanently deleted.</string>
+
+    <!-- Account performance -->
+    <string name="label_best_account">BEST THIS YEAR</string>
+    <string name="label_worst_account">LOWEST THIS YEAR</string>
+    <string name="label_current_balance">Current Balance</string>
+    <string name="analytics_comparison_title">Account Comparison</string>
+    <string name="analytics_comparison_subtitle">Normalized growth · all time</string>
+
+    <!-- Account Setup (onboarding step) -->
+    <string name="account_setup_title">Your accounts are ready</string>
+    <string name="account_setup_body">Your Main account is already set up. You can add more accounts to track different pots of money separately — savings, investments, or anything else.</string>
+    <string name="account_main_name">Main</string>
+    <string name="account_main_desc">Default account · created automatically</string>
+    <string name="account_setup_add_btn">Add another account</string>
+    <string name="title_edit_account">Edit Account</string>
 
     <!-- Entry notes & delete -->
     <string name="hint_note">Note (optional)</string>

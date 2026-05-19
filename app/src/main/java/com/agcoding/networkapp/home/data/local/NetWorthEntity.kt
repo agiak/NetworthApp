@@ -9,4 +9,5 @@ data class NetWorthEntity(
     val value: Double,
     val dateEpochDay: Long,
     @androidx.room.ColumnInfo(defaultValue = "") val note: String = "",
+    @androidx.room.ColumnInfo(defaultValue = "1") val accountId: Long = 1,
 )

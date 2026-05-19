@@ -2,12 +2,18 @@ package com.agcoding.networkapp.history.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.agcoding.networkapp.account.domain.model.Account
+import com.agcoding.networkapp.account.domain.usecase.GetAccountsUseCase
 import com.agcoding.networkapp.home.domain.model.NetWorthEntry
+import com.agcoding.networkapp.home.domain.usecase.DeleteNetWorthEntryUseCase
 import com.agcoding.networkapp.home.domain.usecase.GetNetWorthEntriesUseCase
 import com.agcoding.networkapp.home.presentation.mapper.NetWorthEntryToUiMapper
 import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
+import com.agcoding.networkapp.shared.di.IoDispatcher
+import com.agcoding.networkapp.shared.ui.model.GroupedEntries
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,45 +25,106 @@ import javax.inject.Inject
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val getNetWorthEntriesUseCase: GetNetWorthEntriesUseCase,
+    private val deleteNetWorthEntryUseCase: DeleteNetWorthEntryUseCase,
+    private val getAccountsUseCase: GetAccountsUseCase,
     private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
-    private val mapper: NetWorthEntryToUiMapper
+    private val mapper: NetWorthEntryToUiMapper,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HistoryUiState())
     val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
 
     private var cachedEntries: List<NetWorthEntry> = emptyList()
+    private var cachedAccounts: List<Account> = emptyList()
     private var currentCurrency: AppCurrency = AppCurrency.EUR
 
     init {
-        loadEntries()
+        observeAccounts()
+        observeEntries()
         observeCurrency()
+    }
+
+    fun onIntent(intent: HistoryIntent) {
+        when (intent) {
+            HistoryIntent.LoadEntries      -> Unit // handled reactively by observeEntries()
+            is HistoryIntent.SelectAccount -> {
+                _uiState.update { it.copy(selectedAccountId = intent.accountId) }
+                applyEntries(cachedEntries, intent.accountId)
+            }
+            is HistoryIntent.DeleteEntry   -> deleteEntry(intent.id)
+        }
+    }
+
+    private fun observeAccounts() {
+        viewModelScope.launch {
+            getAccountsUseCase().collect { accounts ->
+                cachedAccounts = accounts
+                val currentSel = _uiState.value.selectedAccountId
+                val validSel = if (accounts.any { it.id == currentSel }) currentSel else null
+                _uiState.update { it.copy(accounts = accounts, selectedAccountId = validSel) }
+                applyEntries(cachedEntries, validSel)
+            }
+        }
     }
 
     private fun observeCurrency() {
         viewModelScope.launch {
             getAppCurrencyUseCase().collect { currency ->
                 currentCurrency = currency
-                if (cachedEntries.isNotEmpty()) {
-                    _uiState.update { it.copy(groupedEntries = mapper.groupByMonth(cachedEntries, currency)) }
-                }
+                applyEntries(cachedEntries, _uiState.value.selectedAccountId)
             }
         }
     }
 
-    private fun loadEntries() {
+    private fun observeEntries() {
         viewModelScope.launch {
             getNetWorthEntriesUseCase().collect { result ->
                 result.fold(
                     onSuccess = { entries ->
                         cachedEntries = entries
-                        _uiState.update { it.copy(isLoading = false, groupedEntries = mapper.groupByMonth(entries, currentCurrency)) }
+                        applyEntries(entries, _uiState.value.selectedAccountId)
+                        _uiState.update { it.copy(isLoading = false) }
                     },
                     onFailure = { error ->
                         Timber.e(error)
                         _uiState.update { it.copy(isLoading = false, error = error.message) }
                     }
                 )
+            }
+        }
+    }
+
+    private fun applyEntries(entries: List<NetWorthEntry>, accountId: Long?) {
+        val filtered = if (accountId != null) entries.filter { it.accountId == accountId } else entries
+        val grouped  = mapper.groupByMonth(filtered, currentCurrency)
+        val withAccounts = enrichWithAccounts(grouped, entries)
+        _uiState.update { it.copy(groupedEntries = withAccounts) }
+    }
+
+    // Map accountId on each raw entry back to color/name for the UI model
+    private fun enrichWithAccounts(
+        grouped: List<GroupedEntries>,
+        rawEntries: List<NetWorthEntry>,
+    ): List<GroupedEntries> {
+        val accountsById  = cachedAccounts.associateBy { it.id }
+        val entryById     = rawEntries.associateBy { it.id }
+        return grouped.map { group ->
+            group.copy(entries = group.entries.map { ui ->
+                val account = entryById[ui.id]?.let { accountsById[it.accountId] }
+                ui.copy(
+                    accountColorHex = account?.colorHex ?: "",
+                    accountName     = account?.name ?: "",
+                )
+            })
+        }
+    }
+
+    private fun deleteEntry(id: Long) {
+        viewModelScope.launch(ioDispatcher) {
+            deleteNetWorthEntryUseCase(id).onFailure { error ->
+                Timber.e(error)
+                _uiState.update { it.copy(error = error.message) }
             }
         }
     }

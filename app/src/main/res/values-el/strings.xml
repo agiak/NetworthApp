@@ -65,11 +65,11 @@
     <!-- Developer Tools -->
     <string name="btn_delete_data">Διαγραφή όλων των δεδομένων</string>
     <string name="btn_deleting">Διαγραφή…</string>
-    <string name="btn_generate_data">Δημιουργία 24 Μηνών</string>
+    <string name="btn_generate_data">Δημιουργία 36 Μηνών (3 Λογ/μοί)</string>
     <string name="btn_generate_specific_data">Φόρτωση των δεδομένων μου</string>
     <string name="btn_generating">Δημιουργία…</string>
     <string name="delete_data_success">Όλα τα δεδομένα διαγράφηκαν.</string>
-    <string name="developer_generate_description">Εισάγει 24 μήνες ιστορίας. Διαγράφει τα υπάρχοντα δεδομένα πρώτα.</string>
+    <string name="developer_generate_description">Εισάγει 36 μήνες δεδομένων σε 3 λογαριασμούς (Κύριος, Αποταμιεύσεις, Επενδύσεις). Διαγράφει τα υπάρχοντα δεδομένα πρώτα.</string>
     <string name="developer_generate_title">Δημιουργία Δεδομένων</string>
     <string name="dummy_data_failure">Αποτυχία: %1$s</string>
     <string name="dummy_data_success">24 μήνες δεδομένων δημιουργήθηκαν!</string>
@@ -332,7 +332,39 @@
     <!-- Widget -->
     <string name="widget_label_change">Μεταβολή</string>
     <string name="widget_label_no_data">Δεν υπάρχουν δεδομένα</string>
-    <string name="widget_description">Εμφανίζει την τρέχουσα καθαρή αξία</string>
+    <string name="widget_description">Εμφανίζει την καθαρή αξία και τους λογαριασμούς</string>
+    <string name="widget_detail_description">Εμφανίζει ανάλυση καθαρής αξίας ανά λογαριασμό</string>
+
+    <!-- Accounts -->
+    <string name="label_accounts">Λογαριασμοί</string>
+    <string name="label_accounts_count">%1$d λογαριασμοί</string>
+    <string name="title_accounts">Λογαριασμοί</string>
+    <string name="title_create_account">Νέος Λογαριασμός</string>
+    <string name="label_account_name">Όνομα λογαριασμού</string>
+    <string name="hint_account_name">π.χ. Αποταμιεύσεις, Επενδύσεις…</string>
+    <string name="label_starting_balance">Αρχικό υπόλοιπο</string>
+    <string name="btn_create_account">Δημιουργία λογαριασμού</string>
+    <string name="label_no_accounts">Δεν υπάρχουν λογαριασμοί. Πατήστε + για να προσθέσετε.</string>
+    <string name="label_entries_count">%1$d εγγραφές</string>
+    <string name="label_total_net_worth">ΣΥΝΟΛΙΚΗ ΚΑΘΑΡΗ ΑΞΙΑ</string>
+    <string name="label_account_color">Χρώμα λογαριασμού</string>
+    <string name="delete_account_confirm_title">Διαγραφή λογαριασμού;</string>
+    <string name="delete_account_confirm_message">Όλες οι εγγραφές για \"%1$s\" θα διαγραφούν μόνιμα.</string>
+
+    <!-- Account performance -->
+    <string name="label_best_account">ΚΑΛΥΤΕΡΟ ΦΕΤΟΣ</string>
+    <string name="label_worst_account">ΧΑΜΗΛΟΤΕΡΟ ΦΕΤΟΣ</string>
+    <string name="label_current_balance">Τρέχον Υπόλοιπο</string>
+    <string name="analytics_comparison_title">Σύγκριση Λογαριασμών</string>
+    <string name="analytics_comparison_subtitle">Κανονικοποιημένη ανάπτυξη · όλο το ιστορικό</string>
+
+    <!-- Account Setup (onboarding step) -->
+    <string name="account_setup_title">Οι λογαριασμοί σου είναι έτοιμοι</string>
+    <string name="account_setup_body">Ο κύριος λογαριασμός σου έχει ήδη δημιουργηθεί. Μπορείς να προσθέσεις περισσότερους για να παρακολουθείς ξεχωριστές κατηγορίες — αποταμιεύσεις, επενδύσεις, ό,τι θέλεις.</string>
+    <string name="account_main_name">Κύριος</string>
+    <string name="account_main_desc">Προεπιλεγμένος λογαριασμός · δημιουργήθηκε αυτόματα</string>
+    <string name="account_setup_add_btn">Προσθήκη άλλου λογαριασμού</string>
+    <string name="title_edit_account">Επεξεργασία Λογαριασμού</string>
 
     <!-- Entry notes & delete -->
     <string name="hint_note">Σημείωση (προαιρετικό)</string>

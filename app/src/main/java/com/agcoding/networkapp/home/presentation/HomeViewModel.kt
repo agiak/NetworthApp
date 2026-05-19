@@ -2,6 +2,9 @@ package com.agcoding.networkapp.home.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.agcoding.networkapp.account.domain.model.Account
+import com.agcoding.networkapp.account.domain.usecase.GetAccountsUseCase
+import com.agcoding.networkapp.account.domain.usecase.SeedDefaultAccountUseCase
 import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.domain.model.NetWorthEntry
 import com.agcoding.networkapp.home.domain.usecase.AddNetWorthEntryUseCase
@@ -23,6 +26,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDate
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,6 +36,8 @@ class HomeViewModel @Inject constructor(
     private val addNetWorthEntryUseCase: AddNetWorthEntryUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
+    private val getAccountsUseCase: GetAccountsUseCase,
+    private val seedDefaultAccountUseCase: SeedDefaultAccountUseCase,
     private val mapper: NetWorthDomainToUiMapper,
     private val entryMapper: NetWorthEntryToUiMapper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
@@ -45,13 +51,16 @@ class HomeViewModel @Inject constructor(
 
     private var cachedMonthlyData: List<MonthlyNetWorth> = emptyList()
     private var cachedRawEntries: List<NetWorthEntry> = emptyList()
+    private var cachedAccounts: List<Account> = emptyList()
     private var currentCurrency: AppCurrency = AppCurrency.EUR
 
     init {
+        viewModelScope.launch(ioDispatcher) { seedDefaultAccountUseCase() }
         loadData()
         loadRecentEntries()
         loadUserProfile()
         observeCurrency()
+        observeAccounts()
     }
 
     fun onIntent(intent: HomeIntent) {
@@ -66,8 +75,47 @@ class HomeViewModel @Inject constructor(
             is HomeIntent.UpdateEntryInput -> _uiState.update { it.copy(entryInput = intent.value) }
             is HomeIntent.UpdateEntryDate -> _uiState.update { it.copy(selectedDate = intent.date) }
             is HomeIntent.UpdateEntryNote -> _uiState.update { it.copy(noteInput = intent.value) }
+            is HomeIntent.SelectAccount   -> _uiState.update { it.copy(selectedAccountId = intent.accountId) }
             HomeIntent.SaveEntry -> saveEntry()
         }
+    }
+
+    private fun observeAccounts() {
+        viewModelScope.launch {
+            getAccountsUseCase().collect { accounts ->
+                cachedAccounts = accounts
+                val currentId = _uiState.value.selectedAccountId
+                val newId = if (accounts.any { it.id == currentId }) currentId else accounts.firstOrNull()?.id ?: 1L
+                _uiState.update { it.copy(accounts = accounts, selectedAccountId = newId) }
+                computeAccountBreakdown()
+                applyRecentEntries(cachedRawEntries)
+            }
+        }
+    }
+
+    private fun computeAccountBreakdown() {
+        if (cachedAccounts.isEmpty()) return
+        val entriesByAccount = cachedRawEntries.groupBy { it.accountId }
+        val balances = cachedAccounts.map { account ->
+            val balance = entriesByAccount[account.id]
+                ?.maxByOrNull { it.date }?.value ?: account.startingBalance
+            account to balance
+        }
+        val total = balances.sumOf { it.second }.takeIf { it > 0 } ?: 1.0
+        val sym = currentCurrency.symbol
+        val breakdown = balances
+            .map { (account, balance) ->
+                AccountBreakdownUiItem(
+                    id               = account.id,
+                    name             = account.name,
+                    colorHex         = account.colorHex,
+                    formattedBalance = "$sym${String.format(Locale.US, "%,.0f", balance)}",
+                    balanceRaw       = balance,
+                    percentage       = (balance / total).toFloat().coerceIn(0f, 1f),
+                )
+            }
+            .sortedByDescending { it.balanceRaw }
+        _uiState.update { it.copy(accountBreakdown = breakdown) }
     }
 
     private fun observeCurrency() {
@@ -77,6 +125,7 @@ class HomeViewModel @Inject constructor(
                 _uiState.update { it.copy(currencySymbol = currency.symbol) }
                 applyMonthlyData(cachedMonthlyData)
                 applyRecentEntries(cachedRawEntries)
+                computeAccountBreakdown()
                 // Re-format target with new symbol
                 val raw = _uiState.value.targetAmountRaw
                 if (raw > 0.0) {
@@ -113,10 +162,17 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun applyRecentEntries(entries: List<NetWorthEntry>) {
+        val accountsById = cachedAccounts.associateBy { it.id }
         val recent = entries
             .sortedByDescending { it.date }
             .take(5)
-            .map { entryMapper.mapToUiModel(it, currentCurrency) }
+            .map { entry ->
+                val account = accountsById[entry.accountId]
+                entryMapper.mapToUiModel(entry, currentCurrency).copy(
+                    accountColorHex = account?.colorHex ?: "",
+                    accountName     = account?.name ?: "",
+                )
+            }
         _uiState.update { it.copy(recentEntries = recent) }
     }
 
@@ -146,6 +202,7 @@ class HomeViewModel @Inject constructor(
                     onSuccess = { entries ->
                         cachedRawEntries = entries
                         applyRecentEntries(entries)
+                        computeAccountBreakdown()
                     },
                     onFailure = { /* secondary data — silently ignored */ }
                 )
@@ -177,7 +234,7 @@ class HomeViewModel @Inject constructor(
         val input = _uiState.value.entryInput.toDoubleOrNull() ?: return
         viewModelScope.launch(ioDispatcher) {
             _uiState.update { it.copy(isSaving = true) }
-            val entry = NetWorthEntry(value = input, date = _uiState.value.selectedDate, note = _uiState.value.noteInput)
+            val entry = NetWorthEntry(value = input, date = _uiState.value.selectedDate, note = _uiState.value.noteInput, accountId = _uiState.value.selectedAccountId)
             addNetWorthEntryUseCase(entry).fold(
                 onSuccess = {
                     _uiState.update { it.copy(isSaving = false, isAddEntrySheetVisible = false, entryInput = "", noteInput = "", selectedDate = LocalDate.now()) }

@@ -1,5 +1,7 @@
 package com.agcoding.networkapp.analytics.presentation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +13,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -43,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.analytics.presentation.components.AccountComparisonCard
 import com.agcoding.networkapp.analytics.presentation.components.AnalyticsChartCard
 import com.agcoding.networkapp.analytics.presentation.components.AnalyticsSummaryCard
 import com.agcoding.networkapp.analytics.presentation.components.ComparePeriodsEntryCard
@@ -172,6 +179,16 @@ private fun AnalyticsContent(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    if (uiState.accounts.size > 1) {
+                        item {
+                            AccountFilterRow(
+                                accounts = uiState.accounts,
+                                selectedAccountId = uiState.selectedAccountId,
+                                onSelect = { onIntent(AnalyticsIntent.SelectAccount(it)) },
+                            )
+                        }
+                    }
+
                     item {
                         AnalyticsChartCard(
                             chartData  = uiState.chartData,
@@ -181,6 +198,12 @@ private fun AnalyticsContent(
                             topLabel   = uiState.highestNetWorth,
                             bottomLabel = uiState.lowestNetWorth,
                         )
+                    }
+
+                    if (uiState.accountComparison.size >= 2) {
+                        item {
+                            AccountComparisonCard(lines = uiState.accountComparison)
+                        }
                     }
 
                     item {
@@ -439,6 +462,76 @@ private fun FilterBottomSheet(
                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountFilterRow(
+    accounts: List<com.agcoding.networkapp.account.domain.model.Account>,
+    selectedAccountId: Long?,
+    onSelect: (Long?) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        // "All" chip
+        val allSelected = selectedAccountId == null
+        Surface(
+            onClick = { onSelect(null) },
+            shape = RoundedCornerShape(20.dp),
+            color = if (allSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+            border = if (!allSelected) androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+            ) else null,
+        ) {
+            Text(
+                text = stringResource(R.string.filter_all),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = if (allSelected) FontWeight.Bold else FontWeight.Normal,
+                color = if (allSelected) MaterialTheme.colorScheme.surface
+                        else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
+
+        // Per-account chips
+        accounts.forEach { account ->
+            val isSelected = account.id == selectedAccountId
+            val accentColor = try { Color(android.graphics.Color.parseColor(account.colorHex)) }
+                              catch (e: Exception) { MaterialTheme.colorScheme.primary }
+            Surface(
+                onClick = { onSelect(account.id) },
+                shape = RoundedCornerShape(20.dp),
+                color = if (isSelected) accentColor else Color.Transparent,
+                border = if (!isSelected) androidx.compose.foundation.BorderStroke(
+                    1.dp, accentColor.copy(alpha = 0.5f)
+                ) else null,
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(if (isSelected) MaterialTheme.colorScheme.surface else accentColor),
+                    )
+                    Spacer(Modifier.size(6.dp))
+                    Text(
+                        text = account.name,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) MaterialTheme.colorScheme.surface
+                                else MaterialTheme.colorScheme.onSurface,
+                    )
                 }
             }
         }

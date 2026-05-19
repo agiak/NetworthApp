@@ -16,93 +16,114 @@ import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.agcoding.networkapp.MainActivity
 import com.agcoding.networkapp.R
-import com.agcoding.networkapp.home.data.local.NetWorthEntity
-import com.agcoding.networkapp.settings.domain.model.AppCurrency
-import dagger.hilt.android.EntryPointAccessors
-import kotlinx.coroutines.flow.first
-import kotlin.math.abs
+
+private val BgColor      = Color(0xFF0E1621)
+private val GreenColor   = Color(0xFF76C893)
+private val WhiteColor   = Color.White
+private val RedColor     = Color(0xFFF09595)
+private val SubtleColor  = Color(0xFF6B7280)
 
 class NetWorthWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            NetWorthWidgetEntryPoint::class.java,
-        )
-        val entries = entryPoint.netWorthDao().getLatestTwoEntries()
-        val currency = entryPoint.settingsRepository().getAppCurrency().first()
-        provideContent { WidgetContent(context, entries, currency) }
+        val data = loadWidgetData(context)
+        provideContent { SmallWidgetContent(context, data) }
     }
 
     @Composable
-    private fun WidgetContent(context: Context, entries: List<NetWorthEntity>, currency: AppCurrency) {
-        val latest   = entries.getOrNull(0)
-        val previous = entries.getOrNull(1)
-        val change   = if (latest != null && previous != null) latest.value - previous.value else null
+    private fun SmallWidgetContent(context: Context, data: WidgetData) {
+        val changeColor = when {
+            data.change == null       -> SubtleColor
+            data.change >= 0          -> GreenColor
+            else                      -> RedColor
+        }
 
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(Color(0xFF0E1621))
+                .background(BgColor)
                 .clickable(actionStartActivity<MainActivity>())
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            contentAlignment = Alignment.Center,
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            contentAlignment = Alignment.TopStart,
         ) {
-            Column(
-                modifier = GlanceModifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
+            Column(modifier = GlanceModifier.fillMaxSize()) {
+
+                // App label
                 Text(
-                    text = context.getString(R.string.app_name),
+                    text  = context.getString(R.string.app_name).uppercase(),
                     style = TextStyle(
-                        color = ColorProvider(day = Color(0xFF76C893), night = Color(0xFF76C893)),
-                        fontSize = 10.sp,
+                        color      = ColorProvider(day = GreenColor, night = GreenColor),
+                        fontSize   = 9.sp,
                         fontWeight = FontWeight.Medium,
                     ),
                 )
-                Spacer(GlanceModifier.height(2.dp))
-                if (latest != null) {
+
+                Spacer(GlanceModifier.height(4.dp))
+
+                // Total net worth
+                Text(
+                    text  = data.totalFormatted,
+                    style = TextStyle(
+                        color      = ColorProvider(day = WhiteColor, night = WhiteColor),
+                        fontSize   = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                )
+
+                // Change
+                if (data.changeFormatted.isNotEmpty()) {
+                    Spacer(GlanceModifier.height(1.dp))
                     Text(
-                        text = formatCurrency(latest.value, currency.symbol),
+                        text  = data.changeFormatted,
                         style = TextStyle(
-                            color = ColorProvider(day = Color.White, night = Color.White),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
+                            color    = ColorProvider(day = changeColor, night = changeColor),
+                            fontSize = 11.sp,
                         ),
                     )
-                    if (change != null) {
-                        val prefix = if (change >= 0) "+" else "-"
-                        val changeColor = if (change >= 0) Color(0xFF5DCAA5) else Color(0xFFF09595)
-                        Text(
-                            text = "$prefix${formatCurrency(abs(change), currency.symbol)}",
-                            style = TextStyle(
-                                color = ColorProvider(day = changeColor, night = changeColor),
-                                fontSize = 11.sp,
-                            ),
-                        )
+                }
+
+                // Account dots row (only when 2+ accounts)
+                if (data.accounts.size > 1) {
+                    Spacer(GlanceModifier.height(8.dp))
+                    Row(modifier = GlanceModifier.fillMaxWidth()) {
+                        data.accounts.take(4).forEachIndexed { index, account ->
+                            val dotColor = try {
+                                Color(android.graphics.Color.parseColor(account.colorHex))
+                            } catch (e: Exception) { GreenColor }
+
+                            if (index > 0) Spacer(GlanceModifier.width(6.dp))
+
+                            Text(
+                                text  = "●",
+                                style = TextStyle(
+                                    color    = ColorProvider(day = dotColor, night = dotColor),
+                                    fontSize = 8.sp,
+                                ),
+                            )
+                            Spacer(GlanceModifier.width(2.dp))
+                            Text(
+                                text  = account.name.take(6),
+                                style = TextStyle(
+                                    color    = ColorProvider(day = SubtleColor, night = SubtleColor),
+                                    fontSize = 9.sp,
+                                ),
+                            )
+                        }
                     }
-                } else {
-                    Text(
-                        text = context.getString(R.string.widget_label_no_data),
-                        style = TextStyle(
-                            color = ColorProvider(day = Color(0xFF6B7280), night = Color(0xFF6B7280)),
-                            fontSize = 12.sp,
-                        ),
-                    )
                 }
             }
         }
     }
-
-    private fun formatCurrency(value: Double, symbol: String) = "$symbol%,.0f".format(value)
 }

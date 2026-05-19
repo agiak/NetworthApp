@@ -2,6 +2,8 @@ package com.agcoding.networkapp.snapshot
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.agcoding.networkapp.account.domain.model.Account
+import com.agcoding.networkapp.account.domain.usecase.GetAccountsUseCase
 import com.agcoding.networkapp.home.domain.model.NetWorthEntry
 import com.agcoding.networkapp.home.domain.usecase.AddNetWorthEntryUseCase
 import com.agcoding.networkapp.settings.domain.model.AppCurrency
@@ -23,6 +25,8 @@ data class AddSnapshotUiState(
     val noteInput: String = "",
     val selectedDate: LocalDate = LocalDate.now(),
     val currencySymbol: String = "€",
+    val accounts: List<Account> = emptyList(),
+    val selectedAccountId: Long = 1L,
     val isSaving: Boolean = false,
     val isDone: Boolean = false,
     val error: String? = null,
@@ -32,6 +36,7 @@ sealed interface AddSnapshotIntent {
     data class UpdateInput(val value: String) : AddSnapshotIntent
     data class UpdateDate(val date: LocalDate) : AddSnapshotIntent
     data class UpdateNote(val value: String) : AddSnapshotIntent
+    data class SelectAccount(val accountId: Long) : AddSnapshotIntent
     data object Save : AddSnapshotIntent
     data object ClearError : AddSnapshotIntent
 }
@@ -40,6 +45,7 @@ sealed interface AddSnapshotIntent {
 class AddSnapshotViewModel @Inject constructor(
     private val addNetWorthEntryUseCase: AddNetWorthEntryUseCase,
     private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
+    private val getAccountsUseCase: GetAccountsUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -52,15 +58,24 @@ class AddSnapshotViewModel @Inject constructor(
                 _uiState.update { it.copy(currencySymbol = currency.symbol) }
             }
         }
+        viewModelScope.launch {
+            getAccountsUseCase().collect { accounts ->
+                val currentId = _uiState.value.selectedAccountId
+                val validId = if (accounts.any { it.id == currentId }) currentId
+                              else accounts.firstOrNull()?.id ?: 1L
+                _uiState.update { it.copy(accounts = accounts, selectedAccountId = validId) }
+            }
+        }
     }
 
     fun onIntent(intent: AddSnapshotIntent) {
         when (intent) {
-            is AddSnapshotIntent.UpdateInput -> _uiState.update { it.copy(entryInput = intent.value) }
-            is AddSnapshotIntent.UpdateDate  -> _uiState.update { it.copy(selectedDate = intent.date) }
-            is AddSnapshotIntent.UpdateNote  -> _uiState.update { it.copy(noteInput = intent.value) }
-            AddSnapshotIntent.Save           -> save()
-            AddSnapshotIntent.ClearError     -> _uiState.update { it.copy(error = null) }
+            is AddSnapshotIntent.UpdateInput   -> _uiState.update { it.copy(entryInput = intent.value) }
+            is AddSnapshotIntent.UpdateDate    -> _uiState.update { it.copy(selectedDate = intent.date) }
+            is AddSnapshotIntent.UpdateNote    -> _uiState.update { it.copy(noteInput = intent.value) }
+            is AddSnapshotIntent.SelectAccount -> _uiState.update { it.copy(selectedAccountId = intent.accountId) }
+            AddSnapshotIntent.Save             -> save()
+            AddSnapshotIntent.ClearError       -> _uiState.update { it.copy(error = null) }
         }
     }
 
@@ -68,7 +83,12 @@ class AddSnapshotViewModel @Inject constructor(
         val input = _uiState.value.entryInput.toDoubleOrNull() ?: return
         viewModelScope.launch(ioDispatcher) {
             _uiState.update { it.copy(isSaving = true) }
-            val entry = NetWorthEntry(value = input, date = _uiState.value.selectedDate, note = _uiState.value.noteInput)
+            val entry = NetWorthEntry(
+                value     = input,
+                date      = _uiState.value.selectedDate,
+                note      = _uiState.value.noteInput,
+                accountId = _uiState.value.selectedAccountId,
+            )
             addNetWorthEntryUseCase(entry).fold(
                 onSuccess = { _uiState.update { it.copy(isSaving = false, isDone = true) } },
                 onFailure = { error ->

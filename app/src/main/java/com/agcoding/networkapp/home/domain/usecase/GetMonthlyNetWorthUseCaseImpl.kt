@@ -18,30 +18,41 @@ class GetMonthlyNetWorthUseCaseImpl @Inject constructor(
     private fun aggregateToMonthly(entries: List<NetWorthEntry>): List<MonthlyNetWorth> {
         if (entries.isEmpty()) return emptyList()
 
-        val byMonth = entries
-            .groupBy { YearMonth.from(it.date) }
-            .mapValues { (_, monthEntries) -> 
-                monthEntries.sortedWith(compareBy({ it.date }, { it.id })).last() 
+        val accountIds = entries.map { it.accountId }.distinct()
+        val entriesByAccount = entries.groupBy { it.accountId }
+
+        val firstMonth = entries.map { YearMonth.from(it.date) }.min()
+        val lastMonth  = entries.map { YearMonth.from(it.date) }.max()
+
+        val result = mutableListOf<MonthlyNetWorth>()
+        // Running balance per account — carries forward until updated
+        val accountCurrentValue = mutableMapOf<Long, Double>()
+        var current = firstMonth
+
+        while (!current.isAfter(lastMonth)) {
+            var hasNewEntry = false
+            var latestDate = current.atDay(1)
+
+            for (accountId in accountIds) {
+                val monthEntry = entriesByAccount[accountId]
+                    ?.filter { YearMonth.from(it.date) == current }
+                    ?.maxByOrNull { it.date.toEpochDay() * 100_000 + it.id }
+
+                if (monthEntry != null) {
+                    accountCurrentValue[accountId] = monthEntry.value
+                    hasNewEntry = true
+                    if (monthEntry.date > latestDate) latestDate = monthEntry.date
+                }
+                // If no entry this month, the running value carries forward automatically
             }
 
-        val sortedMonths = byMonth.keys.sorted()
-        val result = mutableListOf<MonthlyNetWorth>()
-        var prevValue: Double? = null
-        var current = sortedMonths.first()
-        val last = sortedMonths.last()
-
-        while (!current.isAfter(last)) {
-            val entry = byMonth[current]
-            if (entry != null) {
-                result.add(MonthlyNetWorth(yearMonth = current, value = entry.value, lastUpdatedDate = entry.date))
-                prevValue = entry.value
-            } else if (prevValue != null) {
+            if (accountCurrentValue.isNotEmpty()) {
                 result.add(
                     MonthlyNetWorth(
-                        yearMonth = current,
-                        value = prevValue!!,
-                        lastUpdatedDate = current.atEndOfMonth(),
-                        isCarriedForward = true
+                        yearMonth       = current,
+                        value           = accountCurrentValue.values.sum(),
+                        lastUpdatedDate = latestDate,
+                        isCarriedForward = !hasNewEntry,
                     )
                 )
             }

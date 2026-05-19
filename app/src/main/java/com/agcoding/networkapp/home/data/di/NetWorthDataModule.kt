@@ -23,6 +23,21 @@ private val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+private val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS `accounts` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `name` TEXT NOT NULL,
+                `startingBalance` REAL NOT NULL DEFAULT 0,
+                `colorHex` TEXT NOT NULL DEFAULT '#76C893'
+            )"""
+        )
+        db.execSQL("INSERT INTO `accounts` (`id`, `name`, `startingBalance`, `colorHex`) VALUES (1, 'Main', 0, '#76C893')")
+        db.execSQL("ALTER TABLE `net_worth_entries` ADD COLUMN `accountId` INTEGER NOT NULL DEFAULT 1")
+    }
+}
+
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class NetWorthDataModule {
@@ -37,7 +52,7 @@ abstract class NetWorthDataModule {
         @Singleton
         fun provideNetWorthDatabase(@ApplicationContext context: Context): NetWorthDatabase =
             Room.databaseBuilder(context, NetWorthDatabase::class.java, "net_worth_db")
-                .addMigrations(MIGRATION_2_3)
+                .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
                 .fallbackToDestructiveMigration()
                 .build()
 
