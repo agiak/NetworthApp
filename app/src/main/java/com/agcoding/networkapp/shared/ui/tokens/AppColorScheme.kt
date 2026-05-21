@@ -9,15 +9,15 @@ import androidx.compose.ui.graphics.luminance
 import com.agcoding.networkapp.shared.ui.tokens.brand.BrandTokens
 
 data class AppColorScheme(
-    val backgroundPrimary: Color,   val backgroundSecondary: Color,
-    val backgroundCard: Color,      val backgroundOverlay: Color,
-    val contentPrimary: Color,      val contentSecondary: Color,    val contentDisabled: Color,
-    val actionPrimary: Color,       val actionPrimaryHover: Color,
-    val actionContent: Color,       val actionSecondary: Color,     val actionSecondaryContent: Color,
-    val borderDefault: Color,       val borderFocused: Color,       val borderStrong: Color,
-    val statusSuccess: Color,       val statusSuccessSubtle: Color,
-    val statusError: Color,         val statusErrorSubtle: Color,
-    val statusWarning: Color,       val statusWarningSubtle: Color,
+    val backgroundPrimary: Color, val backgroundSecondary: Color,
+    val backgroundCard: Color, val backgroundOverlay: Color,
+    val contentPrimary: Color, val contentSecondary: Color, val contentDisabled: Color,
+    val actionPrimary: Color, val actionPrimaryHover: Color,
+    val actionContent: Color, val actionSecondary: Color, val actionSecondaryContent: Color,
+    val borderDefault: Color, val borderFocused: Color, val borderStrong: Color,
+    val statusSuccess: Color, val statusSuccessSubtle: Color,
+    val statusError: Color, val statusErrorSubtle: Color,
+    val statusWarning: Color, val statusWarningSubtle: Color,
 )
 
 fun buildColorScheme(brand: BrandTokens, isDark: Boolean): AppColorScheme =

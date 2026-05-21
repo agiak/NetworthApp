@@ -1,58 +1,62 @@
 package com.agcoding.networkapp.biometric.data.repository
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.agcoding.networkapp.biometric.domain.repository.BiometricRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.agcoding.networkapp.shared.di.BiometricDataStore
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class BiometricRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @BiometricDataStore private val dataStore: DataStore<Preferences>,
 ) : BiometricRepository {
 
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    override fun isSecurityEnabled(): Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { prefs -> prefs[KEY_PIN_HASH] != null }
 
-    private val _isSecurityEnabled  = MutableStateFlow(prefs.getString(KEY_PIN_HASH, null) != null)
-    private val _isBiometricEnabled = MutableStateFlow(prefs.getBoolean(KEY_BIOMETRIC_ENABLED, false))
-    private val _hasSeenSetup       = MutableStateFlow(prefs.getBoolean(KEY_SETUP_SEEN, false))
+    override fun isBiometricEnabled(): Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { prefs -> prefs[KEY_BIOMETRIC_ENABLED] ?: false }
 
-    override fun isSecurityEnabled(): Flow<Boolean>  = _isSecurityEnabled
-    override fun isBiometricEnabled(): Flow<Boolean> = _isBiometricEnabled
-    override fun hasSeenSecuritySetup(): Flow<Boolean> = _hasSeenSetup
+    override fun hasSeenSecuritySetup(): Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { prefs -> prefs[KEY_SETUP_SEEN] ?: false }
 
     override suspend fun setPin(pin: String) {
-        prefs.edit().putString(KEY_PIN_HASH, hashPin(pin)).apply()
-        _isSecurityEnabled.value = true
+        dataStore.edit { prefs -> prefs[KEY_PIN_HASH] = hashPin(pin) }
     }
 
     override suspend fun setBiometricEnabled(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply()
-        _isBiometricEnabled.value = enabled
+        dataStore.edit { prefs -> prefs[KEY_BIOMETRIC_ENABLED] = enabled }
     }
 
     override suspend fun verifyPin(pin: String): Boolean {
-        val stored = prefs.getString(KEY_PIN_HASH, null) ?: return false
+        val prefs = dataStore.data.catch { emit(emptyPreferences()) }.first()
+        val stored = prefs[KEY_PIN_HASH] ?: return false
         return stored == hashPin(pin)
     }
 
     override suspend fun disableSecurity() {
-        prefs.edit()
-            .remove(KEY_PIN_HASH)
-            .putBoolean(KEY_BIOMETRIC_ENABLED, false)
-            .putBoolean(KEY_SETUP_SEEN, false)
-            .apply()
-        _isSecurityEnabled.value  = false
-        _isBiometricEnabled.value = false
-        _hasSeenSetup.value       = false
+        dataStore.edit { prefs ->
+            prefs.remove(KEY_PIN_HASH)
+            prefs[KEY_BIOMETRIC_ENABLED] = false
+            prefs[KEY_SETUP_SEEN] = false
+        }
     }
 
     override suspend fun markSecuritySetupSeen() {
-        prefs.edit().putBoolean(KEY_SETUP_SEEN, true).apply()
-        _hasSeenSetup.value = true
+        dataStore.edit { prefs -> prefs[KEY_SETUP_SEEN] = true }
     }
 
     private fun hashPin(pin: String): String {
@@ -60,11 +64,10 @@ class BiometricRepositoryImpl @Inject constructor(
         return digest.digest((pin + SALT).toByteArray()).joinToString("") { "%02x".format(it) }
     }
 
-    companion object {
-        private const val PREFS_NAME            = "biometric_prefs"
-        private const val KEY_PIN_HASH          = "pin_hash"
-        private const val KEY_BIOMETRIC_ENABLED = "biometric_enabled"
-        private const val KEY_SETUP_SEEN        = "setup_seen"
-        private const val SALT                  = "com.agcoding.networkapp.pin.v1"
+    private companion object {
+        val KEY_PIN_HASH = stringPreferencesKey("pin_hash")
+        val KEY_BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
+        val KEY_SETUP_SEEN = booleanPreferencesKey("setup_seen")
+        const val SALT = "com.agcoding.networkapp.pin.v1"
     }
 }

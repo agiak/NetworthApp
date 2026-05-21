@@ -12,5 +12,8 @@ data class NetWorthDisplayData(
     val ytdPercentage: String = "0%",
     val avgPerMonth: String = "€0",
     val streakMonths: Int = 0,
-    val isStreakPositive: Boolean = true
+    val isStreakPositive: Boolean = true,
+    val projectedNetWorth: String = "",
+    val projectedNetWorthDate: String = "",
+    val showProjection: Boolean = false,
 )

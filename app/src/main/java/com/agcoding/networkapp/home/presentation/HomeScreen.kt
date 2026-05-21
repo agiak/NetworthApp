@@ -58,6 +58,7 @@ import com.agcoding.networkapp.home.presentation.components.RecentEntriesSection
 import com.agcoding.networkapp.home.presentation.components.StatCard
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import com.agcoding.networkapp.home.presentation.model.InsightData
+import com.agcoding.networkapp.shared.ui.components.ProjectionCard
 import com.agcoding.networkapp.shared.ui.model.EntryUiModel
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import java.time.LocalDate
@@ -207,6 +208,15 @@ private fun HomeContent(
                                     subValue = stringResource(R.string.stat_months_up),
                                     icon = "🔥",
                                     modifier = Modifier.weight(1f).fillMaxHeight()
+                                )
+                            }
+                        }
+                        if (uiState.showProjection) {
+                            item {
+                                ProjectionCard(
+                                    projectedNetWorth = uiState.projectedNetWorth,
+                                    projectedNetWorthDate = uiState.projectedNetWorthDate,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
                                 )
                             }
                         }

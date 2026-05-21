@@ -7,6 +7,7 @@ import com.agcoding.networkapp.home.presentation.model.NetWorthDisplayData
 import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.shared.utils.formatForDisplay
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.ceil
@@ -57,10 +58,14 @@ class NetWorthDomainToUiMapper @Inject constructor() {
         val ytdGrowth = ytdDiff.formatAsChange(currency)
         val ytdPercentage = "${if (ytdPct >= 0) "+" else ""}${String.format(Locale.US, "%.0f", Math.abs(ytdPct))}%"
 
-        val avgPerMonth: String = if (sortedDesc.size >= 2) {
-            val avg = (sortedDesc.first().value - sortedDesc.last().value) / (sortedDesc.size - 1)
-            avg.formatAsCurrency(currency)
-        } else "${currency.symbol}0"
+        val avgGrowthRaw: Double = if (sortedDesc.size >= 2) {
+            (sortedDesc.first().value - sortedDesc.last().value) / (sortedDesc.size - 1)
+        } else 0.0
+        val avgPerMonth: String = if (sortedDesc.size >= 2) avgGrowthRaw.formatAsCurrency(currency) else "${currency.symbol}0"
+
+        val showProjection = avgGrowthRaw > 0 && sortedDesc.size >= 2
+        val projectedNetWorth = if (showProjection) (sortedDesc.first().value + avgGrowthRaw * 12).formatAsCurrency(currency) else ""
+        val projectedNetWorthDate = if (showProjection) "by ${YearMonth.now().plusMonths(12).format(DateTimeFormatter.ofPattern("MMM yyyy", Locale.getDefault()))}" else ""
 
         val streak = buildStreakCount(sortedDesc)
 
@@ -76,7 +81,10 @@ class NetWorthDomainToUiMapper @Inject constructor() {
             ytdPercentage = ytdPercentage,
             avgPerMonth = avgPerMonth,
             streakMonths = streak,
-            isStreakPositive = streak > 0
+            isStreakPositive = streak > 0,
+            projectedNetWorth = projectedNetWorth,
+            projectedNetWorthDate = projectedNetWorthDate,
+            showProjection = showProjection,
         )
     }
 

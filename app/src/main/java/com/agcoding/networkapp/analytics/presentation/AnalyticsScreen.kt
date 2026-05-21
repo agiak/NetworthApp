@@ -64,11 +64,11 @@ import com.agcoding.networkapp.analytics.presentation.components.ComparePeriodsE
 import com.agcoding.networkapp.analytics.presentation.components.FuturePredictionEntryCard
 import com.agcoding.networkapp.analytics.presentation.components.GoalCalculatorEntryCard
 import com.agcoding.networkapp.analytics.presentation.components.MonthByMonthRow
-import com.agcoding.networkapp.analytics.presentation.components.ProjectionCard
 import com.agcoding.networkapp.analytics.presentation.components.TrendCard
 import com.agcoding.networkapp.analytics.presentation.components.YearlyRecapEntryCard
 import com.agcoding.networkapp.analytics.presentation.model.MonthlyEntryUiModel
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
+import com.agcoding.networkapp.shared.ui.components.ProjectionCard
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 import kotlinx.coroutines.launch

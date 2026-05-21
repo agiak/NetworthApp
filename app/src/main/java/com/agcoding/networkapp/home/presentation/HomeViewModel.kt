@@ -154,6 +154,9 @@ class HomeViewModel @Inject constructor(
                     avgPerMonth      = "${currentCurrency.symbol}0",
                     streakMonths     = 0,
                     isStreakPositive = true,
+                    projectedNetWorth = "",
+                    projectedNetWorthDate = "",
+                    showProjection   = false,
                     error            = null,
                 )
             }
@@ -177,6 +180,9 @@ class HomeViewModel @Inject constructor(
                 avgPerMonth = displayData.avgPerMonth,
                 streakMonths = displayData.streakMonths,
                 isStreakPositive = displayData.isStreakPositive,
+                projectedNetWorth = displayData.projectedNetWorth,
+                projectedNetWorthDate = displayData.projectedNetWorthDate,
+                showProjection = displayData.showProjection,
                 error = null
             )
         }
