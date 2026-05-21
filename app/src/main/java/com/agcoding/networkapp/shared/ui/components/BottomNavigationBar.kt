@@ -4,7 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -35,7 +35,7 @@ fun BottomNavigationBar(navController: NavController) {
         NavigationItem(HomeRoute, Icons.Default.Home, stringResource(R.string.nav_home)),
         NavigationItem(AnalyticsRoute, Icons.Default.DateRange, stringResource(R.string.nav_analytics)),
         NavigationItem(AccountsRoute, Icons.Default.AccountCircle, stringResource(R.string.nav_accounts)),
-        NavigationItem(SettingsRoute, Icons.Default.Settings, stringResource(R.string.nav_settings)),
+        NavigationItem(SettingsRoute, Icons.Default.MoreVert, stringResource(R.string.nav_settings)),
     )
 
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {

@@ -41,7 +41,7 @@ private val DivColor    = Color(0xFF1E2D42)
 class NetWorthDetailWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val data = loadWidgetData(context)
+        val data = runCatching { loadWidgetData(context) }.getOrElse { widgetFallbackData() }
         provideContent { DetailWidgetContent(context, data) }
     }
 

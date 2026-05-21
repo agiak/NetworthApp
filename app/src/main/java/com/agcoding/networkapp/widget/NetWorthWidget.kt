@@ -38,7 +38,7 @@ private val SubtleColor  = Color(0xFF6B7280)
 class NetWorthWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val data = loadWidgetData(context)
+        val data = runCatching { loadWidgetData(context) }.getOrElse { widgetFallbackData() }
         provideContent { SmallWidgetContent(context, data) }
     }
 

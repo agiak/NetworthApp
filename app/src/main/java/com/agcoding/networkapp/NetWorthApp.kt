@@ -28,6 +28,7 @@ import com.agcoding.networkapp.shared.navigation.CompareRoute
 import com.agcoding.networkapp.shared.navigation.CreateAccountRoute
 import com.agcoding.networkapp.shared.navigation.EditEntryRoute
 import com.agcoding.networkapp.shared.navigation.EntryDetailsRoute
+import com.agcoding.networkapp.shared.navigation.FixedExpensesRoute
 import com.agcoding.networkapp.shared.navigation.GoalRoute
 import com.agcoding.networkapp.shared.navigation.HistoryRoute
 import com.agcoding.networkapp.shared.navigation.OnboardingRoute
@@ -102,6 +103,7 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
                 !d.hasRoute<CompareRoute>() &&
                 !d.hasRoute<EditEntryRoute>() &&
                 !d.hasRoute<EntryDetailsRoute>() &&
+                !d.hasRoute<FixedExpensesRoute>() &&
                 !d.hasRoute<GoalRoute>() &&
                 !d.hasRoute<HistoryRoute>() &&
                 !d.hasRoute<OnboardingRoute>() &&

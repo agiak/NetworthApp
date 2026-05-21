@@ -5,7 +5,7 @@
     <string name="nav_accounts">Accounts</string>
     <string name="nav_analytics">Analytics</string>
     <string name="nav_home">Home</string>
-    <string name="nav_settings">Settings</string>
+    <string name="nav_settings">More</string>
 
     <!-- Home - Header -->
     <string name="greeting_hi">Hi, %1$s</string>
@@ -411,4 +411,30 @@
     <string name="title_edit_profile">Edit Profile</string>
     <string name="title_setup_profile">Create Profile</string>
     <string name="title_setup_target">Set your target</string>
+
+    <!-- Fixed Expenses -->
+    <string name="fixed_expenses_title">Fixed Expenses</string>
+    <string name="fixed_expenses_add">Add Expense</string>
+    <string name="fixed_expenses_total_label">Total per month</string>
+    <string name="fixed_expenses_count">%1$d expense(s)</string>
+    <string name="fixed_expenses_empty_title">No fixed expenses yet</string>
+    <string name="fixed_expenses_empty_subtitle">Track recurring costs like rent, subscriptions, and loan payments</string>
+    <string name="fixed_expense_sheet_add_title">Add Expense</string>
+    <string name="fixed_expense_sheet_edit_title">Edit Expense</string>
+    <string name="fixed_expense_hint_title">Title</string>
+    <string name="fixed_expense_hint_cost">Cost</string>
+    <string name="fixed_expense_hint_note">Note (optional)</string>
+    <string name="fixed_expense_hint_date">Date (optional)</string>
+    <string name="fixed_expense_set_date">Set date</string>
+    <string name="fixed_expense_clear_date">Clear</string>
+    <string name="fixed_expense_btn_save">Save</string>
+    <string name="fixed_expense_btn_delete">Delete Expense</string>
+    <string name="fixed_expense_settings_title">Fixed Expenses</string>
+    <string name="fixed_expense_settings_subtitle">Track recurring monthly costs</string>
+    <string name="fixed_expense_recurrence_monthly">Monthly</string>
+    <string name="fixed_expense_recurrence_annual">Annual</string>
+    <string name="fixed_expenses_monthly_equivalent">monthly equivalent</string>
+    <string name="fixed_expenses_total_monthly">Monthly</string>
+    <string name="fixed_expenses_total_yearly">Yearly</string>
+    <string name="header_finance">Finance</string>
 </resources>

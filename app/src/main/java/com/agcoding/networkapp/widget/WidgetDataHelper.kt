@@ -5,7 +5,10 @@ import com.agcoding.networkapp.account.data.local.AccountEntity
 import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
+
+private const val WIDGET_DATA_TIMEOUT_MS = 5_000L
 
 data class AccountWidgetData(
     val name: String,
@@ -28,7 +31,9 @@ suspend fun loadWidgetData(context: Context): WidgetData {
         context.applicationContext,
         NetWorthWidgetEntryPoint::class.java,
     )
-    val currency = entryPoint.settingsRepository().getAppCurrency().first()
+    val currency = withTimeoutOrNull(WIDGET_DATA_TIMEOUT_MS) {
+        entryPoint.settingsRepository().getAppCurrency().first()
+    } ?: AppCurrency.EUR
     val entries  = entryPoint.netWorthDao().getAllEntriesOnce()
     val accounts = entryPoint.accountDao().getAllAccountsOnce()
 
@@ -74,3 +79,11 @@ private data class AccountWidgetEntry(
 )
 
 internal fun formatCurrency(value: Double, symbol: String) = "$symbol%,.0f".format(value)
+
+internal fun widgetFallbackData() = WidgetData(
+    totalFormatted = "—",
+    change = null,
+    changeFormatted = "",
+    currency = AppCurrency.EUR,
+    accounts = emptyList(),
+)

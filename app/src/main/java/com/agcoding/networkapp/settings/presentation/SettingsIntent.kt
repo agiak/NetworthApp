@@ -15,6 +15,7 @@ sealed interface SettingsIntent {
     data object GenerateDummyData : SettingsIntent
     data object GenerateSpecificData : SettingsIntent
     data object DisableSecurity : SettingsIntent
+    data object NavigateToFixedExpenses : SettingsIntent
     data object NavigateToOnboarding : SettingsIntent
     data object NavigateToProfileEdit : SettingsIntent
     data object NavigateToSetupPin : SettingsIntent

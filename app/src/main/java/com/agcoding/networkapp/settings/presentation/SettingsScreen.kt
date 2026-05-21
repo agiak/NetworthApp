@@ -75,6 +75,7 @@ fun SettingsScreen(
     onNavigateToProfileEdit: () -> Unit,
     onNavigateToSetupPin: () -> Unit,
     onNavigateToOnboarding: () -> Unit,
+    onNavigateToFixedExpenses: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -82,9 +83,10 @@ fun SettingsScreen(
         uiState = uiState,
         onIntent = { intent ->
             when (intent) {
-                SettingsIntent.NavigateToOnboarding  -> onNavigateToOnboarding()
-                SettingsIntent.NavigateToProfileEdit -> onNavigateToProfileEdit()
-                SettingsIntent.NavigateToSetupPin    -> onNavigateToSetupPin()
+                SettingsIntent.NavigateToFixedExpenses -> onNavigateToFixedExpenses()
+                SettingsIntent.NavigateToOnboarding    -> onNavigateToOnboarding()
+                SettingsIntent.NavigateToProfileEdit   -> onNavigateToProfileEdit()
+                SettingsIntent.NavigateToSetupPin      -> onNavigateToSetupPin()
                 else -> viewModel.onIntent(intent)
             }
         }
@@ -286,6 +288,24 @@ private fun SettingsContent(
                             }
                         )
                     }
+                }
+            }
+
+            item { SettingsSectionHeader(title = stringResource(R.string.header_finance)) }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                ) {
+                    NavigationRow(
+                        icon = "💸",
+                        title = stringResource(R.string.fixed_expense_settings_title),
+                        description = stringResource(R.string.fixed_expense_settings_subtitle),
+                        trailingText = uiState.fixedExpensesYearlySummary.ifBlank { null },
+                        onClick = { onIntent(SettingsIntent.NavigateToFixedExpenses) },
+                    )
                 }
             }
 
@@ -535,6 +555,47 @@ private fun SmartFeatureRow(
                 uncheckedBorderColor = Color.Transparent,
             )
         )
+    }
+}
+
+@Composable
+private fun NavigationRow(
+    icon: String,
+    title: String,
+    description: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    trailingText: String? = null,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = RoundedCornerShape(10.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(text = icon, fontSize = 20.sp)
+            }
+        }
+        Spacer(Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(text = description, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        }
+        if (trailingText != null) {
+            Text(
+                text = trailingText,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = PositiveGreen,
+            )
+        }
     }
 }
 

@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object CompareRoute
 @Serializable data class  EditEntryRoute(val entryId: Long)
 @Serializable data class  EntryDetailsRoute(val entryId: Long)
+@Serializable data object FixedExpensesRoute
 @Serializable data object GoalRoute
 @Serializable data object HistoryRoute
 @Serializable data object HomeRoute

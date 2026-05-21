@@ -9,6 +9,7 @@ import com.agcoding.networkapp.backup.domain.usecase.ExportDataUseCase
 import com.agcoding.networkapp.backup.domain.usecase.ImportDataUseCase
 import com.agcoding.networkapp.biometric.domain.usecase.DisableSecurityUseCase
 import com.agcoding.networkapp.biometric.domain.usecase.IsSecurityEnabledUseCase
+import com.agcoding.networkapp.fixedexpenses.domain.usecase.GetFixedExpensesYearlySummaryUseCase
 import com.agcoding.networkapp.home.domain.repository.NetWorthRepository
 import com.agcoding.networkapp.settings.domain.usecase.GenerateDummyDataUseCase
 import com.agcoding.networkapp.settings.domain.usecase.GenerateSpecificDataUseCase
@@ -26,6 +27,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -50,6 +52,7 @@ class SettingsViewModel @Inject constructor(
     private val importDataUseCase: ImportDataUseCase,
     private val isSecurityEnabledUseCase: IsSecurityEnabledUseCase,
     private val disableSecurityUseCase: DisableSecurityUseCase,
+    private val getFixedExpensesYearlySummaryUseCase: GetFixedExpensesYearlySummaryUseCase,
     @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
@@ -72,6 +75,7 @@ class SettingsViewModel @Inject constructor(
             SettingsIntent.GenerateDummyData -> generateDummyData()
             SettingsIntent.GenerateSpecificData -> generateSpecificData()
             SettingsIntent.DisableSecurity -> disableSecurity()
+            SettingsIntent.NavigateToFixedExpenses -> { /* Handled in UI */ }
             SettingsIntent.NavigateToOnboarding -> { /* Handled in UI */ }
             SettingsIntent.NavigateToProfileEdit -> { /* Handled in UI */ }
             SettingsIntent.NavigateToSetupPin -> { /* Handled in UI */ }
@@ -99,7 +103,19 @@ class SettingsViewModel @Inject constructor(
             getAppLanguageUseCase().collect { language -> _uiState.update { it.copy(appLanguage = language) } }
         }
         viewModelScope.launch {
-            getAppCurrencyUseCase().collect { currency -> _uiState.update { it.copy(appCurrency = currency) } }
+            getAppCurrencyUseCase().collect { currency ->
+                _uiState.update { it.copy(appCurrency = currency) }
+            }
+        }
+        viewModelScope.launch {
+            combine(
+                getFixedExpensesYearlySummaryUseCase(),
+                getAppCurrencyUseCase(),
+            ) { yearly, currency ->
+                if (yearly > 0) "${currency.symbol}${String.format(Locale.US, "%,.0f", yearly)} / yr" else ""
+            }.collect { formatted ->
+                _uiState.update { it.copy(fixedExpensesYearlySummary = formatted) }
+            }
         }
         viewModelScope.launch {
             getUserProfileUseCase().collect { profile -> _uiState.update { it.copy(userProfile = profile) } }

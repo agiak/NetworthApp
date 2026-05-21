@@ -5,7 +5,7 @@
     <string name="nav_accounts">Λογαριασμοί</string>
     <string name="nav_analytics">Αναλύσεις</string>
     <string name="nav_home">Αρχική</string>
-    <string name="nav_settings">Ρυθμίσεις</string>
+    <string name="nav_settings">Περισσότερα</string>
 
     <!-- Home - Header -->
     <string name="greeting_hi">Γεια, %1$s</string>
@@ -401,4 +401,30 @@
     <!-- App Shortcuts -->
     <string name="shortcut_add_short">Νέα εγγραφή</string>
     <string name="shortcut_add_long">Προσθήκη εγγραφής καθαρής αξίας</string>
+
+    <!-- Fixed Expenses -->
+    <string name="fixed_expenses_title">Πάγια Έξοδα</string>
+    <string name="fixed_expenses_add">Προσθήκη Εξόδου</string>
+    <string name="fixed_expenses_total_label">Σύνολο ανά μήνα</string>
+    <string name="fixed_expenses_total_monthly">Μηνιαίο</string>
+    <string name="fixed_expenses_total_yearly">Ετήσιο</string>
+    <string name="fixed_expenses_count">%1$d έξοδο(α)</string>
+    <string name="fixed_expenses_monthly_equivalent">μηνιαίο ισοδύναμο</string>
+    <string name="fixed_expenses_empty_title">Δεν υπάρχουν πάγια έξοδα</string>
+    <string name="fixed_expenses_empty_subtitle">Καταγράψτε πάγιες χρεώσεις όπως ενοίκιο, συνδρομές και δάνεια</string>
+    <string name="fixed_expense_sheet_add_title">Νέο Έξοδο</string>
+    <string name="fixed_expense_sheet_edit_title">Επεξεργασία Εξόδου</string>
+    <string name="fixed_expense_hint_title">Τίτλος</string>
+    <string name="fixed_expense_hint_cost">Κόστος</string>
+    <string name="fixed_expense_hint_note">Σημείωση (προαιρετικό)</string>
+    <string name="fixed_expense_hint_date">Ημερομηνία (προαιρετικό)</string>
+    <string name="fixed_expense_set_date">Επιλογή ημ/νίας</string>
+    <string name="fixed_expense_clear_date">Καθαρισμός</string>
+    <string name="fixed_expense_btn_save">Αποθήκευση</string>
+    <string name="fixed_expense_btn_delete">Διαγραφή Εξόδου</string>
+    <string name="fixed_expense_settings_title">Πάγια Έξοδα</string>
+    <string name="fixed_expense_settings_subtitle">Παρακολούθηση μηνιαίων εξόδων</string>
+    <string name="fixed_expense_recurrence_monthly">Μηνιαίο</string>
+    <string name="fixed_expense_recurrence_annual">Ετήσιο</string>
+    <string name="header_finance">Οικονομικά</string>
 </resources>

@@ -20,6 +20,7 @@ import com.agcoding.networkapp.analytics.presentation.prediction.PredictionScree
 import com.agcoding.networkapp.biometric.presentation.setup.SecuritySetupScreen
 import com.agcoding.networkapp.biometric.presentation.setup.SecuritySetupViewModel
 import com.agcoding.networkapp.compare.presentation.CompareScreen
+import com.agcoding.networkapp.fixedexpenses.presentation.FixedExpensesScreen
 import com.agcoding.networkapp.goal.presentation.GoalScreen
 import com.agcoding.networkapp.history.presentation.EditEntryScreen
 import com.agcoding.networkapp.history.presentation.EntryDetailsScreen
@@ -41,6 +42,7 @@ import com.agcoding.networkapp.shared.navigation.CompareRoute
 import com.agcoding.networkapp.shared.navigation.CreateAccountRoute
 import com.agcoding.networkapp.shared.navigation.EditEntryRoute
 import com.agcoding.networkapp.shared.navigation.EntryDetailsRoute
+import com.agcoding.networkapp.shared.navigation.FixedExpensesRoute
 import com.agcoding.networkapp.shared.navigation.GoalRoute
 import com.agcoding.networkapp.shared.navigation.HistoryRoute
 import com.agcoding.networkapp.shared.navigation.HomeRoute
@@ -219,10 +221,15 @@ fun NavGraph(
 
         composable<SettingsRoute> {
             SettingsScreen(
-                onNavigateToProfileEdit  = { navController.navigate(ProfileEditRoute) },
-                onNavigateToSetupPin     = { navController.navigate(SecuritySetupRoute(skipPrompt = true)) },
-                onNavigateToOnboarding   = { navController.navigate(OnboardingRoute(fromSettings = true)) },
+                onNavigateToProfileEdit    = { navController.navigate(ProfileEditRoute) },
+                onNavigateToSetupPin       = { navController.navigate(SecuritySetupRoute(skipPrompt = true)) },
+                onNavigateToOnboarding     = { navController.navigate(OnboardingRoute(fromSettings = true)) },
+                onNavigateToFixedExpenses  = { navController.navigate(FixedExpensesRoute) },
             )
+        }
+
+        composable<FixedExpensesRoute> {
+            FixedExpensesScreen(onNavigateBack = { navController.navigateUp() })
         }
 
         // ── Add Snapshot (via app shortcut) ────────────────────────────────────

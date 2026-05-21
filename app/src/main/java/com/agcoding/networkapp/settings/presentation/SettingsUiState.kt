@@ -35,5 +35,6 @@ data class SettingsUiState(
     val isImporting: Boolean = false,
     val backupResult: BackupResult? = null,
     val showImportConfirmDialog: Boolean = false,
-    val pendingImportJson: String? = null
+    val pendingImportJson: String? = null,
+    val fixedExpensesYearlySummary: String = "",
 )
