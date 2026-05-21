@@ -9,7 +9,7 @@ import com.agcoding.networkapp.fixedexpenses.data.local.FixedExpenseEntity
 
 @Database(
     entities = [NetWorthEntity::class, AccountEntity::class, FixedExpenseEntity::class],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class NetWorthDatabase : RoomDatabase() {

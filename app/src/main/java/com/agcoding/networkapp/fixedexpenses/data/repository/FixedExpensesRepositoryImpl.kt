@@ -30,4 +30,8 @@ class FixedExpensesRepositoryImpl @Inject constructor(
     override suspend fun delete(id: Long): Result<Unit> = runCatching {
         dao.deleteById(id)
     }
+
+    override suspend fun deleteAll(): Result<Unit> = runCatching {
+        dao.deleteAll()
+    }
 }

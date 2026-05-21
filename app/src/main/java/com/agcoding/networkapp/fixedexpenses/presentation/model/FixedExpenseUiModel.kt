@@ -11,4 +11,6 @@ data class FixedExpenseUiModel(
     val formattedDate: String?,
     val recurrence: RecurrenceType,
     val monthlyEquivalent: String?,
+    val accountIds: List<Long> = emptyList(),
+    val accountColors: List<String> = emptyList(),
 )

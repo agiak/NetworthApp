@@ -1,5 +1,6 @@
 package com.agcoding.networkapp.fixedexpenses.presentation
 
+import com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpenseSortOption
 import com.agcoding.networkapp.fixedexpenses.domain.model.RecurrenceType
 import com.agcoding.networkapp.fixedexpenses.presentation.model.FixedExpenseUiModel
 import java.time.LocalDate
@@ -13,6 +14,11 @@ sealed interface FixedExpensesIntent {
     data class UpdateCost(val value: String) : FixedExpensesIntent
     data class UpdateDate(val date: LocalDate?) : FixedExpensesIntent
     data class UpdateRecurrence(val recurrence: RecurrenceType) : FixedExpensesIntent
+    data class ToggleAccount(val accountId: Long) : FixedExpensesIntent
+    data object SelectAllAccounts : FixedExpensesIntent
+    data class SetSortOption(val option: FixedExpenseSortOption) : FixedExpensesIntent
+    data class ToggleFilterAccount(val accountId: Long) : FixedExpensesIntent
+    data object ClearFilterAccounts : FixedExpensesIntent
     data object Save : FixedExpensesIntent
     data class Delete(val id: Long) : FixedExpensesIntent
     data object ClearError : FixedExpensesIntent

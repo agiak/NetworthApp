@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,14 +13,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,9 +43,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.fixedexpenses.domain.model.RecurrenceType
 import com.agcoding.networkapp.fixedexpenses.presentation.FixedExpensesUiState
 import com.agcoding.networkapp.home.presentation.components.EntryDatePickerDialog
@@ -48,7 +56,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FixedExpenseBottomSheet(
     uiState: FixedExpensesUiState,
@@ -57,6 +65,8 @@ fun FixedExpenseBottomSheet(
     onCostChange: (String) -> Unit,
     onDateChange: (LocalDate?) -> Unit,
     onRecurrenceChange: (RecurrenceType) -> Unit,
+    onToggleAccount: (Long) -> Unit,
+    onSelectAllAccounts: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
@@ -75,6 +85,7 @@ fun FixedExpenseBottomSheet(
     ) {
         Column(
             modifier = Modifier
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 32.dp)
                 .imePadding(),
@@ -89,6 +100,44 @@ fun FixedExpenseBottomSheet(
 
             Spacer(Modifier.height(4.dp))
 
+            // Account picker — first field (only shown when accounts exist)
+            if (uiState.availableAccounts.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.fixed_expense_accounts_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        val allSelected = uiState.selectedAccountIds.isEmpty()
+                        FilterChip(
+                            selected = allSelected,
+                            onClick = onSelectAllAccounts,
+                            label = { Text(stringResource(R.string.fixed_expense_account_all)) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.onSurface,
+                                selectedLabelColor = MaterialTheme.colorScheme.surface,
+                            ),
+                        )
+                        uiState.availableAccounts.forEach { account ->
+                            val isSelected = account.id in uiState.selectedAccountIds
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { onToggleAccount(account.id) },
+                                label = { Text(account.name) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.onSurface,
+                                    selectedLabelColor = MaterialTheme.colorScheme.surface,
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+
             // Title
             OutlinedTextField(
                 value = uiState.titleInput,
@@ -99,52 +148,22 @@ fun FixedExpenseBottomSheet(
                 shape = RoundedCornerShape(12.dp),
             )
 
-            // Cost
-            OutlinedTextField(
-                value = uiState.costInput,
-                onValueChange = onCostChange,
-                label = { Text(stringResource(R.string.fixed_expense_hint_cost)) },
-                singleLine = true,
-                prefix = { Text(uiState.currencySymbol) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-            )
-
-            // Recurrence chips
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                RecurrenceChip(
-                    label = stringResource(R.string.fixed_expense_recurrence_monthly),
-                    isSelected = uiState.recurrenceInput == RecurrenceType.MONTHLY,
-                    onClick = { onRecurrenceChange(RecurrenceType.MONTHLY) },
-                    modifier = Modifier.weight(1f),
-                )
-                RecurrenceChip(
-                    label = stringResource(R.string.fixed_expense_recurrence_annual),
-                    isSelected = uiState.recurrenceInput == RecurrenceType.ANNUAL,
-                    onClick = { onRecurrenceChange(RecurrenceType.ANNUAL) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-
-            // Note + Date side-by-side (both optional)
+            // Cost + Date side by side
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 OutlinedTextField(
-                    value = uiState.noteInput,
-                    onValueChange = onNoteChange,
-                    label = { Text(stringResource(R.string.fixed_expense_hint_note)) },
+                    value = uiState.costInput,
+                    onValueChange = onCostChange,
+                    label = { Text(stringResource(R.string.fixed_expense_hint_cost)) },
                     singleLine = true,
+                    prefix = { Text(uiState.currencySymbol) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                 )
 
-                // Date — clickable field that opens picker
                 Box(modifier = Modifier.weight(1f)) {
                     OutlinedTextField(
                         value = uiState.dateInput?.format(dateFormatter) ?: "",
@@ -170,10 +189,38 @@ fun FixedExpenseBottomSheet(
                             disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
                     )
-                    // Transparent overlay — captures tap and opens date picker
                     Box(modifier = Modifier.matchParentSize().clickable { showDatePicker = true })
                 }
             }
+
+            // Recurrence chips
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                RecurrenceChip(
+                    label = stringResource(R.string.fixed_expense_recurrence_monthly),
+                    isSelected = uiState.recurrenceInput == RecurrenceType.MONTHLY,
+                    onClick = { onRecurrenceChange(RecurrenceType.MONTHLY) },
+                    modifier = Modifier.weight(1f),
+                )
+                RecurrenceChip(
+                    label = stringResource(R.string.fixed_expense_recurrence_annual),
+                    isSelected = uiState.recurrenceInput == RecurrenceType.ANNUAL,
+                    onClick = { onRecurrenceChange(RecurrenceType.ANNUAL) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            // Note
+            OutlinedTextField(
+                value = uiState.noteInput,
+                onValueChange = onNoteChange,
+                label = { Text(stringResource(R.string.fixed_expense_hint_note)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+            )
 
             Spacer(Modifier.height(8.dp))
 
@@ -237,7 +284,8 @@ private fun RecurrenceChip(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        color = if (isSelected) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         border = if (!isSelected) androidx.compose.foundation.BorderStroke(
             1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
         ) else null,
@@ -250,7 +298,7 @@ private fun RecurrenceChip(
                 color = if (isSelected) MaterialTheme.colorScheme.surface
                         else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
             )
         }
     }
@@ -261,12 +309,21 @@ private fun RecurrenceChip(
 private fun FixedExpenseBottomSheetPreview() {
     NetWorthTheme {
         FixedExpenseBottomSheet(
-            uiState = FixedExpensesUiState(isSheetVisible = true, currencySymbol = "€"),
+            uiState = FixedExpensesUiState(
+                isSheetVisible = true,
+                currencySymbol = "€",
+                availableAccounts = listOf(
+                    Account(1, "Main"),
+                    Account(2, "Savings"),
+                ),
+            ),
             onTitleChange = {},
             onNoteChange = {},
             onCostChange = {},
             onDateChange = {},
             onRecurrenceChange = {},
+            onToggleAccount = {},
+            onSelectAllAccounts = {},
             onSave = {},
             onDelete = {},
             onDismiss = {},

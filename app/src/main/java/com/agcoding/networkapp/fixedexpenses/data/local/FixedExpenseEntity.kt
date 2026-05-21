@@ -12,4 +12,5 @@ data class FixedExpenseEntity(
     val cost: Double,
     val dateEpochDay: Long? = null,
     @ColumnInfo(defaultValue = "MONTHLY") val recurrence: String = "MONTHLY",
+    @ColumnInfo(defaultValue = "") val accountIds: String = "",
 )

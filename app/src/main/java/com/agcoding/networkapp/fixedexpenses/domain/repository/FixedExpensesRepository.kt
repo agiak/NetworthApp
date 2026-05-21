@@ -8,4 +8,5 @@ interface FixedExpensesRepository {
     suspend fun add(expense: FixedExpense): Result<Unit>
     suspend fun update(expense: FixedExpense): Result<Unit>
     suspend fun delete(id: Long): Result<Unit>
+    suspend fun deleteAll(): Result<Unit>
 }

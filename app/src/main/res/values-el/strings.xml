@@ -426,5 +426,24 @@
     <string name="fixed_expense_settings_subtitle">Παρακολούθηση μηνιαίων εξόδων</string>
     <string name="fixed_expense_recurrence_monthly">Μηνιαίο</string>
     <string name="fixed_expense_recurrence_annual">Ετήσιο</string>
+    <string name="fixed_expense_filter_title">Ταξινόμηση &amp; Φίλτρα</string>
+    <string name="fixed_expense_sort_section_label">ΤΑΞΙΝΟΜΗΣΗ</string>
+    <string name="fixed_expense_sort_cost_high">Κόστος: Υψηλό → Χαμηλό</string>
+    <string name="fixed_expense_sort_cost_low">Κόστος: Χαμηλό → Υψηλό</string>
+    <string name="fixed_expense_filter_account_section_label">ΦΙΛΤΡΟ ΛΟΓΑΡΙΑΣΜΟΥ</string>
+    <string name="fixed_expense_filter_clear">Καθαρισμός</string>
+    <string name="fixed_expense_filter_no_results">Δεν βρέθηκαν έξοδα για τους επιλεγμένους λογαριασμούς</string>
+    <string name="fixed_expense_accounts_label">Ανάθεση σε λογαριασμούς</string>
+    <string name="fixed_expense_account_all">Όλοι</string>
     <string name="header_finance">Οικονομικά</string>
+    <string name="history_date_filter_1m">1Μ</string>
+    <string name="history_date_filter_3m">3Μ</string>
+    <string name="history_date_filter_6m">6Μ</string>
+    <string name="history_date_filter_1y">1Χ</string>
+    <string name="label_filter_date">Ημερομηνία</string>
+    <string name="label_filter_sort">Ταξινόμηση</string>
+    <string name="sort_highest_value">Υψηλότερο</string>
+    <string name="sort_lowest_value">Χαμηλότερο</string>
+    <string name="sort_newest_first">Νεότερο</string>
+    <string name="sort_oldest_first">Παλαιότερο</string>
 </resources>

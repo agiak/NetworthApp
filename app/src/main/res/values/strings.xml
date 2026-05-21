@@ -436,5 +436,14 @@
     <string name="fixed_expenses_monthly_equivalent">monthly equivalent</string>
     <string name="fixed_expenses_total_monthly">Monthly</string>
     <string name="fixed_expenses_total_yearly">Yearly</string>
+    <string name="fixed_expense_filter_title">Sort &amp; Filter</string>
+    <string name="fixed_expense_sort_section_label">SORT BY</string>
+    <string name="fixed_expense_sort_cost_high">Cost: High → Low</string>
+    <string name="fixed_expense_sort_cost_low">Cost: Low → High</string>
+    <string name="fixed_expense_filter_account_section_label">FILTER BY ACCOUNT</string>
+    <string name="fixed_expense_filter_clear">Clear</string>
+    <string name="fixed_expense_filter_no_results">No expenses found for the selected accounts</string>
+    <string name="fixed_expense_accounts_label">Assign to accounts</string>
+    <string name="fixed_expense_account_all">All</string>
     <string name="header_finance">Finance</string>
 </resources>

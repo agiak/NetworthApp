@@ -2,7 +2,10 @@ package com.agcoding.networkapp.fixedexpenses.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.agcoding.networkapp.account.domain.model.Account
+import com.agcoding.networkapp.account.domain.usecase.GetAccountsUseCase
 import com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpense
+import com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpenseSortOption
 import com.agcoding.networkapp.fixedexpenses.domain.model.RecurrenceType
 import com.agcoding.networkapp.fixedexpenses.domain.usecase.AddFixedExpenseUseCase
 import com.agcoding.networkapp.fixedexpenses.domain.usecase.DeleteFixedExpenseUseCase
@@ -30,6 +33,7 @@ class FixedExpensesViewModel @Inject constructor(
     private val updateFixedExpenseUseCase: UpdateFixedExpenseUseCase,
     private val deleteFixedExpenseUseCase: DeleteFixedExpenseUseCase,
     private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
+    private val getAccountsUseCase: GetAccountsUseCase,
     private val mapper: FixedExpenseDomainToUiMapper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -38,10 +42,12 @@ class FixedExpensesViewModel @Inject constructor(
     val uiState: StateFlow<FixedExpensesUiState> = _uiState.asStateFlow()
 
     private var currentCurrency: AppCurrency = AppCurrency.EUR
-    private var cachedExpenses: List<com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpense> = emptyList()
+    private var cachedExpenses: List<FixedExpense> = emptyList()
+    private var cachedAccounts: List<Account> = emptyList()
 
     init {
         loadExpenses()
+        loadAccounts()
         observeCurrency()
     }
 
@@ -56,6 +62,7 @@ class FixedExpensesViewModel @Inject constructor(
                     costInput = "",
                     dateInput = null,
                     recurrenceInput = RecurrenceType.MONTHLY,
+                    selectedAccountIds = emptyList(),
                 )
             }
             is FixedExpensesIntent.ShowEditSheet -> _uiState.update {
@@ -69,20 +76,50 @@ class FixedExpensesViewModel @Inject constructor(
                     },
                     dateInput = null,
                     recurrenceInput = intent.expense.recurrence,
+                    selectedAccountIds = intent.expense.accountIds,
                 )
             }
             FixedExpensesIntent.HideSheet -> _uiState.update {
                 it.copy(isSheetVisible = false, editingExpense = null)
             }
-            is FixedExpensesIntent.UpdateTitle -> _uiState.update { it.copy(titleInput = intent.value) }
-            is FixedExpensesIntent.UpdateNote -> _uiState.update { it.copy(noteInput = intent.value) }
-            is FixedExpensesIntent.UpdateCost -> _uiState.update { it.copy(costInput = intent.value) }
-            is FixedExpensesIntent.UpdateDate -> _uiState.update { it.copy(dateInput = intent.date) }
+            is FixedExpensesIntent.UpdateTitle     -> _uiState.update { it.copy(titleInput = intent.value) }
+            is FixedExpensesIntent.UpdateNote      -> _uiState.update { it.copy(noteInput = intent.value) }
+            is FixedExpensesIntent.UpdateCost      -> _uiState.update { it.copy(costInput = intent.value) }
+            is FixedExpensesIntent.UpdateDate      -> _uiState.update { it.copy(dateInput = intent.date) }
             is FixedExpensesIntent.UpdateRecurrence -> _uiState.update { it.copy(recurrenceInput = intent.recurrence) }
-            FixedExpensesIntent.Save -> save()
-            is FixedExpensesIntent.Delete -> delete(intent.id)
-            FixedExpensesIntent.ClearError -> _uiState.update { it.copy(error = null) }
+            is FixedExpensesIntent.ToggleAccount   -> toggleAccount(intent.accountId)
+            FixedExpensesIntent.SelectAllAccounts  -> _uiState.update { it.copy(selectedAccountIds = emptyList()) }
+            is FixedExpensesIntent.SetSortOption   -> {
+                _uiState.update { it.copy(sortOption = intent.option) }
+                rebuildUi(cachedExpenses, cachedAccounts, sortOption = intent.option)
+            }
+            is FixedExpensesIntent.ToggleFilterAccount -> toggleFilterAccount(intent.accountId)
+            FixedExpensesIntent.ClearFilterAccounts    -> {
+                _uiState.update { it.copy(filterAccountIds = emptySet()) }
+                rebuildUi(cachedExpenses, cachedAccounts)
+            }
+            FixedExpensesIntent.Save         -> save()
+            is FixedExpensesIntent.Delete    -> delete(intent.id)
+            FixedExpensesIntent.ClearError   -> _uiState.update { it.copy(error = null) }
         }
+    }
+
+    private fun toggleAccount(accountId: Long) {
+        _uiState.update { state ->
+            val updated = if (accountId in state.selectedAccountIds)
+                state.selectedAccountIds - accountId
+            else
+                state.selectedAccountIds + accountId
+            state.copy(selectedAccountIds = updated)
+        }
+    }
+
+    private fun toggleFilterAccount(accountId: Long) {
+        val newFilter = _uiState.value.filterAccountIds.let { current ->
+            if (accountId in current) current - accountId else current + accountId
+        }
+        _uiState.update { it.copy(filterAccountIds = newFilter) }
+        rebuildUi(cachedExpenses, cachedAccounts, filterAccountIds = newFilter)
     }
 
     private fun loadExpenses() {
@@ -91,7 +128,7 @@ class FixedExpensesViewModel @Inject constructor(
                 result.fold(
                     onSuccess = { expenses ->
                         cachedExpenses = expenses
-                        rebuildUi(expenses)
+                        rebuildUi(expenses, cachedAccounts)
                     },
                     onFailure = { error ->
                         Timber.e(error)
@@ -102,25 +139,55 @@ class FixedExpensesViewModel @Inject constructor(
         }
     }
 
+    private fun loadAccounts() {
+        viewModelScope.launch {
+            getAccountsUseCase().collect { accounts ->
+                cachedAccounts = accounts
+                _uiState.update { it.copy(availableAccounts = accounts) }
+                rebuildUi(cachedExpenses, accounts)
+            }
+        }
+    }
+
     private fun observeCurrency() {
         viewModelScope.launch {
             getAppCurrencyUseCase().collect { currency ->
                 currentCurrency = currency
                 _uiState.update { it.copy(currencySymbol = currency.symbol) }
-                rebuildUi(cachedExpenses)
+                rebuildUi(cachedExpenses, cachedAccounts)
             }
         }
     }
 
-    private fun rebuildUi(expenses: List<FixedExpense>) {
-        val uiModels = expenses.map { mapper.map(it, currentCurrency) }
+    private fun rebuildUi(
+        expenses: List<FixedExpense>,
+        accounts: List<Account>,
+        sortOption: FixedExpenseSortOption = _uiState.value.sortOption,
+        filterAccountIds: Set<Long> = _uiState.value.filterAccountIds,
+    ) {
+        val filtered = applyAccountFilter(expenses, filterAccountIds)
+        val uiModels = filtered.sorted(sortOption).map { mapper.map(it, currentCurrency, accounts) }
+        val accountStats = mapper.computeAccountStats(expenses, accounts, currentCurrency)
         _uiState.update { state ->
             state.copy(
                 isLoading = false,
                 expenses = uiModels,
-                totalFormatted = mapper.formatMonthlyTotal(expenses, currentCurrency),
-                yearlyFormatted = mapper.formatYearlyTotal(expenses, currentCurrency),
+                totalFormatted = mapper.formatMonthlyTotal(filtered, currentCurrency),
+                yearlyFormatted = mapper.formatYearlyTotal(filtered, currentCurrency),
+                accountStats = accountStats,
             )
+        }
+    }
+
+    private fun applyAccountFilter(
+        expenses: List<FixedExpense>,
+        filterAccountIds: Set<Long>,
+    ): List<FixedExpense> {
+        if (filterAccountIds.isEmpty()) return expenses
+        return expenses.filter { expense ->
+            // Expenses with no specific account (= all) always appear.
+            // Expenses with specific accounts appear only if they share one with the filter.
+            expense.accountIds.isEmpty() || expense.accountIds.any { it in filterAccountIds }
         }
     }
 
@@ -133,7 +200,6 @@ class FixedExpensesViewModel @Inject constructor(
             _uiState.update { it.copy(isSaving = true) }
             val editing = state.editingExpense
 
-            // Preserve the existing date when editing if the user didn't pick a new one
             val existingDate: LocalDate? = if (editing != null) {
                 cachedExpenses.firstOrNull { it.id == editing.id }?.date
             } else null
@@ -145,6 +211,7 @@ class FixedExpensesViewModel @Inject constructor(
                 cost = cost,
                 date = state.dateInput ?: existingDate,
                 recurrence = state.recurrenceInput,
+                accountIds = state.selectedAccountIds,
             )
             val result = if (editing == null) addFixedExpenseUseCase(expense)
                          else updateFixedExpenseUseCase(expense)
@@ -173,4 +240,10 @@ class FixedExpensesViewModel @Inject constructor(
             )
         }
     }
+
+    private fun List<FixedExpense>.sorted(option: FixedExpenseSortOption): List<FixedExpense> =
+        when (option) {
+            FixedExpenseSortOption.COST_HIGH -> sortedByDescending { it.cost }
+            FixedExpenseSortOption.COST_LOW  -> sortedBy { it.cost }
+        }
 }

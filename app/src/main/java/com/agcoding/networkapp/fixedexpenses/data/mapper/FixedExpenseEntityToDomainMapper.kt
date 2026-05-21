@@ -16,6 +16,7 @@ class FixedExpenseEntityToDomainMapper @Inject constructor() {
         date = entity.dateEpochDay?.let { LocalDate.ofEpochDay(it) },
         recurrence = RecurrenceType.entries.firstOrNull { it.name == entity.recurrence }
             ?: RecurrenceType.MONTHLY,
+        accountIds = entity.accountIds.toAccountIdList(),
     )
 
     fun toEntity(domain: FixedExpense) = FixedExpenseEntity(
@@ -25,5 +26,10 @@ class FixedExpenseEntityToDomainMapper @Inject constructor() {
         cost = domain.cost,
         dateEpochDay = domain.date?.toEpochDay(),
         recurrence = domain.recurrence.name,
+        accountIds = domain.accountIds.joinToString(","),
     )
+
+    private fun String.toAccountIdList(): List<Long> =
+        if (isBlank()) emptyList()
+        else split(",").mapNotNull { it.trim().toLongOrNull() }
 }

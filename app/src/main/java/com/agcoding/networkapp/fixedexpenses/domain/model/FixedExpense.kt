@@ -9,4 +9,5 @@ data class FixedExpense(
     val cost: Double,
     val date: LocalDate? = null,
     val recurrence: RecurrenceType = RecurrenceType.MONTHLY,
+    val accountIds: List<Long> = emptyList(),
 )

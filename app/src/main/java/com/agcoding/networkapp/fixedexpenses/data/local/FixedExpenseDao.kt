@@ -21,4 +21,7 @@ interface FixedExpenseDao {
 
     @Query("DELETE FROM fixed_expenses WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("DELETE FROM fixed_expenses")
+    suspend fun deleteAll()
 }
