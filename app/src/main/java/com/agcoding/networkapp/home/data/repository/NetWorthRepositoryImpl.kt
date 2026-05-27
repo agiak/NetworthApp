@@ -2,6 +2,7 @@ package com.agcoding.networkapp.home.data.repository
 
 import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import com.agcoding.networkapp.backup.data.AutoBackupDataSource
 import com.agcoding.networkapp.home.data.local.NetWorthDao
 import com.agcoding.networkapp.home.data.local.NetWorthEntity
 import com.agcoding.networkapp.home.data.mapper.NetWorthEntityToDomainMapper
@@ -24,6 +25,7 @@ import javax.inject.Inject
 class NetWorthRepositoryImpl @Inject constructor(
     private val dao: NetWorthDao,
     private val mapper: NetWorthEntityToDomainMapper,
+    private val autoBackup: AutoBackupDataSource,
     @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NetWorthRepository {
@@ -48,6 +50,7 @@ class NetWorthRepositoryImpl @Inject constructor(
         try {
             dao.insertEntry(NetWorthEntity(value = entry.value, dateEpochDay = entry.date.toEpochDay(), note = entry.note, accountId = entry.accountId))
             refreshWidget()
+            autoBackup.trigger()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(AppError.DatabaseError(e.message ?: "Failed to save entry"))
@@ -58,6 +61,7 @@ class NetWorthRepositoryImpl @Inject constructor(
         try {
             dao.updateEntry(NetWorthEntity(id = entry.id, value = entry.value, dateEpochDay = entry.date.toEpochDay(), note = entry.note, accountId = entry.accountId))
             refreshWidget()
+            autoBackup.trigger()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(AppError.DatabaseError(e.message ?: "Failed to update entry"))
@@ -68,6 +72,7 @@ class NetWorthRepositoryImpl @Inject constructor(
         try {
             dao.deleteEntry(id)
             refreshWidget()
+            autoBackup.trigger()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(AppError.DatabaseError(e.message ?: "Failed to delete entry"))
@@ -78,6 +83,7 @@ class NetWorthRepositoryImpl @Inject constructor(
         try {
             dao.deleteEntriesForAccount(accountId)
             refreshWidget()
+            autoBackup.trigger()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(AppError.DatabaseError(e.message ?: "Failed to delete entries"))
@@ -88,6 +94,7 @@ class NetWorthRepositoryImpl @Inject constructor(
         try {
             dao.deleteAllEntries()
             refreshWidget()
+            autoBackup.trigger()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(AppError.DatabaseError(e.message ?: "Failed to delete entries"))

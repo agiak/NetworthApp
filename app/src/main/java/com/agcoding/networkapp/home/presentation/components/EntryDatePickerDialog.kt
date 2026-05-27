@@ -3,7 +3,6 @@ package com.agcoding.networkapp.home.presentation.components
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -19,14 +18,8 @@ fun EntryDatePickerDialog(
     onDateSelected: (LocalDate) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val todayMillis = LocalDate.now().toEpochDay() * 86_400_000L
-
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedDate.toEpochDay() * 86_400_000L,
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean =
-                utcTimeMillis <= todayMillis
-        },
     )
 
     DatePickerDialog(
