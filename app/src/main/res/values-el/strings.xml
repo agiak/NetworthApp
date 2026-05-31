@@ -38,6 +38,7 @@
 
     <!-- Add Entry Sheet -->
     <string name="btn_save_snapshot">Αποθήκευση</string>
+    <string name="label_entry_saved">Αποθηκεύτηκε</string>
     <string name="chip_pick_date">Επιλογή</string>
     <string name="chip_today">Σήμερα</string>
     <string name="chip_yesterday">Χθες</string>

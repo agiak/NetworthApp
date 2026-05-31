@@ -1,5 +1,7 @@
 package com.agcoding.networkapp.home.presentation.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +24,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -137,13 +141,24 @@ private fun HeroChart(
     points: List<ChartPoint>,
     modifier: Modifier = Modifier
 ) {
+    val animationProgress = remember { Animatable(0f) }
+    LaunchedEffect(points) {
+        animationProgress.snapTo(0f)
+        animationProgress.animateTo(1f, animationSpec = tween(durationMillis = 800))
+    }
+
+    val progress = animationProgress.value
     Canvas(modifier = modifier) {
         if (points.size < 2) return@Canvas
         val width = size.width
         val height = size.height
+
+        val visibleCount = (points.size * progress).toInt().coerceAtLeast(2)
+        val visible = points.take(visibleCount)
+
         val path = Path()
         val fillPath = Path()
-        points.forEachIndexed { i, pt ->
+        visible.forEachIndexed { i, pt ->
             val x = pt.x * width
             val y = height - (pt.y * height)
             if (i == 0) {
@@ -154,15 +169,22 @@ private fun HeroChart(
                 path.lineTo(x, y)
                 fillPath.lineTo(x, y)
             }
-            if (i == points.size - 1) {
+            if (i == visible.size - 1) {
                 fillPath.lineTo(x, height)
                 fillPath.close()
             }
         }
-        drawPath(path = fillPath, brush = Brush.verticalGradient(colors = listOf(PositiveGreen.copy(alpha = 0.3f), Color.Transparent)))
+        drawPath(
+            path = fillPath,
+            brush = Brush.verticalGradient(colors = listOf(PositiveGreen.copy(alpha = 0.3f), Color.Transparent))
+        )
         drawPath(path = path, color = PositiveGreen, style = Stroke(width = 3.dp.toPx()))
-        val lastPt = points.last()
-        drawCircle(color = PositiveGreen, radius = 4.dp.toPx(), center = Offset(lastPt.x * width, height - (lastPt.y * height)))
+        val lastPt = visible.last()
+        drawCircle(
+            color = PositiveGreen,
+            radius = 4.dp.toPx(),
+            center = Offset(lastPt.x * width, height - (lastPt.y * height))
+        )
     }
 }
 
