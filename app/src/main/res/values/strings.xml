@@ -38,6 +38,7 @@
 
     <!-- Add Entry Sheet -->
     <string name="btn_save_snapshot">Save snapshot</string>
+    <string name="label_entry_saved">Snapshot saved</string>
     <string name="chip_pick_date">Pick date</string>
     <string name="chip_today">Today</string>
     <string name="chip_yesterday">Yesterday</string>

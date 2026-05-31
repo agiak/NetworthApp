@@ -19,6 +19,7 @@ import com.agcoding.networkapp.shared.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -71,7 +72,7 @@ class HomeViewModel @Inject constructor(
                 if (recentEntriesJob?.isActive != true) loadRecentEntries()
             }
             HomeIntent.ShowAddEntrySheet -> _uiState.update { it.copy(isAddEntrySheetVisible = true) }
-            HomeIntent.HideAddEntrySheet -> _uiState.update { it.copy(isAddEntrySheetVisible = false, entryInput = "", noteInput = "", selectedDate = LocalDate.now()) }
+            HomeIntent.HideAddEntrySheet -> _uiState.update { it.copy(isAddEntrySheetVisible = false, entryInput = "", noteInput = "", selectedDate = LocalDate.now(), entrySaved = false) }
             is HomeIntent.UpdateEntryInput -> _uiState.update { it.copy(entryInput = intent.value) }
             is HomeIntent.UpdateEntryDate -> _uiState.update { it.copy(selectedDate = intent.date) }
             is HomeIntent.UpdateEntryNote -> _uiState.update { it.copy(noteInput = intent.value) }
@@ -264,7 +265,9 @@ class HomeViewModel @Inject constructor(
             val entry = NetWorthEntry(value = input, date = _uiState.value.selectedDate, note = _uiState.value.noteInput, accountId = _uiState.value.selectedAccountId)
             addNetWorthEntryUseCase(entry).fold(
                 onSuccess = {
-                    _uiState.update { it.copy(isSaving = false, isAddEntrySheetVisible = false, entryInput = "", noteInput = "", selectedDate = LocalDate.now()) }
+                    _uiState.update { it.copy(isSaving = false, entrySaved = true) }
+                    delay(900)
+                    _uiState.update { it.copy(isAddEntrySheetVisible = false, entryInput = "", noteInput = "", selectedDate = LocalDate.now(), entrySaved = false) }
                 },
                 onFailure = { error ->
                     Timber.e(error)

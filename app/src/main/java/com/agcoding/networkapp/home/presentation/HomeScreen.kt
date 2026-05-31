@@ -260,6 +260,7 @@ private fun HomeContent(
                 entryInput       = uiState.entryInput,
                 selectedDate     = uiState.selectedDate,
                 isSaving         = uiState.isSaving,
+                entrySaved       = uiState.entrySaved,
                 currencySymbol   = uiState.currencySymbol,
                 noteInput        = uiState.noteInput,
                 accounts         = uiState.accounts,

@@ -48,5 +48,6 @@ data class HomeUiState(
     val noteInput: String = "",
     val selectedDate: LocalDate = LocalDate.now(),
     val isSaving: Boolean = false,
+    val entrySaved: Boolean = false,
     val error: String? = null
 )

@@ -2,9 +2,9 @@ package com.agcoding.networkapp.biometric.presentation.setup
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -58,12 +58,15 @@ fun PinSuccessScreen(onComplete: () -> Unit) {
 
     LaunchedEffect(Unit) {
         launch {
+            // nwPop: 0 → overshoot 1.12 at 60% → settle 1.0
             circleScale.animateTo(
                 targetValue   = 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness    = Spring.StiffnessMedium,
-                ),
+                animationSpec = keyframes {
+                    durationMillis = 450
+                    0f    at 0   with LinearEasing
+                    1.12f at 270 with LinearEasing
+                    1f    at 450
+                },
             )
         }
         delay(180)

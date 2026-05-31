@@ -1,5 +1,10 @@
 package com.agcoding.networkapp.home.presentation.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -60,6 +66,7 @@ fun AddEntryBottomSheet(
     entryInput: String,
     selectedDate: LocalDate,
     isSaving: Boolean,
+    entrySaved: Boolean = false,
     currencySymbol: String = "€",
     noteInput: String = "",
     accounts: List<Account> = emptyList(),
@@ -89,12 +96,45 @@ fun AddEntryBottomSheet(
             )
         }
     ) {
+        val appColors = LocalAppColorScheme.current
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 24.dp)
         ) {
+            // nwSlideInChip: slides down from top when entry is saved
+            AnimatedVisibility(
+                visible = entrySaved,
+                enter = slideInVertically(animationSpec = tween(220)) { -it } + fadeIn(tween(220)),
+                exit  = fadeOut(tween(150)),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(appColors.statusSuccessSubtle)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = appColors.statusSuccess,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.label_entry_saved),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = appColors.statusSuccess,
+                    )
+                }
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -246,7 +286,6 @@ fun AddEntryBottomSheet(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            val appColors = LocalAppColorScheme.current
             Button(
                 onClick = onSave,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
