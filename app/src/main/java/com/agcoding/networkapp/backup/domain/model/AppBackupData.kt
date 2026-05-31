@@ -1,5 +1,7 @@
 package com.agcoding.networkapp.backup.domain.model
 
+import com.agcoding.networkapp.account.domain.model.Account
+import com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpense
 import com.agcoding.networkapp.home.domain.model.NetWorthEntry
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
@@ -11,5 +13,7 @@ data class AppBackupData(
     val profile: UserProfile?,
     val theme: AppTheme?,
     val language: AppLanguage?,
-    val entries: List<NetWorthEntry>
+    val entries: List<NetWorthEntry>,
+    val accounts: List<Account> = emptyList(),
+    val fixedExpenses: List<FixedExpense> = emptyList(),
 )

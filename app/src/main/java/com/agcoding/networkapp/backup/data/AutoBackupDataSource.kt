@@ -6,6 +6,10 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
+import com.agcoding.networkapp.account.data.local.AccountDao
+import com.agcoding.networkapp.account.data.mapper.AccountEntityToDomainMapper
+import com.agcoding.networkapp.fixedexpenses.data.local.FixedExpenseDao
+import com.agcoding.networkapp.fixedexpenses.data.mapper.FixedExpenseEntityToDomainMapper
 import com.agcoding.networkapp.home.data.local.NetWorthDao
 import com.agcoding.networkapp.home.data.mapper.NetWorthEntityToDomainMapper
 import com.agcoding.networkapp.settings.domain.repository.SettingsRepository
@@ -24,6 +28,10 @@ class AutoBackupDataSource @Inject constructor(
     @ApplicationContext private val context: Context,
     private val dao: NetWorthDao,
     private val mapper: NetWorthEntityToDomainMapper,
+    private val accountDao: AccountDao,
+    private val accountMapper: AccountEntityToDomainMapper,
+    private val fixedExpenseDao: FixedExpenseDao,
+    private val fixedExpenseMapper: FixedExpenseEntityToDomainMapper,
     private val serializer: BackupSerializer,
     private val settingsRepository: SettingsRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -31,10 +39,12 @@ class AutoBackupDataSource @Inject constructor(
     suspend fun trigger() = withContext(ioDispatcher) {
         try {
             val entries = dao.getAllEntriesOnce().map { mapper.map(it) }
+            val accounts = accountDao.getAllAccountsOnce().map { accountMapper.map(it) }
+            val fixedExpenses = fixedExpenseDao.getAllOnce().map { fixedExpenseMapper.toDomain(it) }
             val profile = settingsRepository.getUserProfile().first()
             val theme = settingsRepository.getAppTheme().first()
             val language = settingsRepository.getAppLanguage().first()
-            val json = serializer.serialize(entries, profile, theme, language)
+            val json = serializer.serialize(entries, profile, theme, language, accounts, fixedExpenses)
             writeToDownloads(json)
         } catch (e: Exception) {
             Timber.e(e, "Auto-backup failed")

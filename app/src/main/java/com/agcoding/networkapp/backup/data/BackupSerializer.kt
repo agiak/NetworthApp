@@ -1,6 +1,9 @@
 package com.agcoding.networkapp.backup.data
 
+import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.backup.domain.model.AppBackupData
+import com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpense
+import com.agcoding.networkapp.fixedexpenses.domain.model.RecurrenceType
 import com.agcoding.networkapp.home.domain.model.NetWorthEntry
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
@@ -20,7 +23,9 @@ class BackupSerializer @Inject constructor() {
         entries: List<NetWorthEntry>,
         profile: UserProfile,
         theme: AppTheme,
-        language: AppLanguage
+        language: AppLanguage,
+        accounts: List<Account> = emptyList(),
+        fixedExpenses: List<FixedExpense> = emptyList(),
     ): String {
         val root = JSONObject()
         root.put("version", BACKUP_VERSION)
@@ -49,6 +54,33 @@ class BackupSerializer @Inject constructor() {
             })
         }
         root.put("entries", entriesArray)
+
+        val accountsArray = JSONArray()
+        accounts.forEach { account ->
+            accountsArray.put(JSONObject().apply {
+                put("id", account.id)
+                put("name", account.name)
+                put("startingBalance", account.startingBalance)
+                put("colorHex", account.colorHex)
+            })
+        }
+        root.put("accounts", accountsArray)
+
+        val expensesArray = JSONArray()
+        fixedExpenses.forEach { expense ->
+            expensesArray.put(JSONObject().apply {
+                put("id", expense.id)
+                put("title", expense.title)
+                put("note", expense.note)
+                put("cost", expense.cost)
+                put("date", expense.date?.toString() ?: JSONObject.NULL)
+                put("recurrence", expense.recurrence.name)
+                val ids = JSONArray()
+                expense.accountIds.forEach { ids.put(it) }
+                put("accountIds", ids)
+            })
+        }
+        root.put("fixedExpenses", expensesArray)
 
         return root.toString(2)
     }
@@ -112,17 +144,58 @@ class BackupSerializer @Inject constructor() {
             }.getOrNull()
         }
 
+        val accounts = if (root.has("accounts")) {
+            val arr = root.getJSONArray("accounts")
+            (0 until arr.length()).mapNotNull { i ->
+                runCatching {
+                    val a = arr.getJSONObject(i)
+                    Account(
+                        id = a.optLong("id", 0L),
+                        name = a.getString("name"),
+                        startingBalance = a.optDouble("startingBalance", 0.0),
+                        colorHex = a.optString("colorHex", "#76C893"),
+                    )
+                }.getOrNull()
+            }
+        } else emptyList()
+
+        val fixedExpenses = if (root.has("fixedExpenses")) {
+            val arr = root.getJSONArray("fixedExpenses")
+            (0 until arr.length()).mapNotNull { i ->
+                runCatching {
+                    val e = arr.getJSONObject(i)
+                    val accountIds = e.getJSONArray("accountIds").let { ids ->
+                        (0 until ids.length()).map { ids.getLong(it) }
+                    }
+                    FixedExpense(
+                        id = e.optLong("id", 0L),
+                        title = e.getString("title"),
+                        note = e.optString("note", ""),
+                        cost = e.getDouble("cost"),
+                        date = e.optString("date", null)
+                            ?.takeIf { it.isNotBlank() && it != "null" }
+                            ?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
+                        recurrence = runCatching { RecurrenceType.valueOf(e.getString("recurrence")) }
+                            .getOrDefault(RecurrenceType.MONTHLY),
+                        accountIds = accountIds,
+                    )
+                }.getOrNull()
+            }
+        } else emptyList()
+
         return AppBackupData(
             version = version,
             exportedAt = exportedAt,
             profile = profile,
             theme = theme,
             language = language,
-            entries = entries
+            entries = entries,
+            accounts = accounts,
+            fixedExpenses = fixedExpenses,
         )
     }
 
     companion object {
-        const val BACKUP_VERSION = 1
+        const val BACKUP_VERSION = 2
     }
 }

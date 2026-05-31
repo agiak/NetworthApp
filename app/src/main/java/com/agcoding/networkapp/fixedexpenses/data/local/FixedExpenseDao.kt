@@ -13,6 +13,9 @@ interface FixedExpenseDao {
     @Query("SELECT * FROM fixed_expenses ORDER BY id DESC")
     fun getAll(): Flow<List<FixedExpenseEntity>>
 
+    @Query("SELECT * FROM fixed_expenses ORDER BY id DESC")
+    suspend fun getAllOnce(): List<FixedExpenseEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: FixedExpenseEntity)
 
