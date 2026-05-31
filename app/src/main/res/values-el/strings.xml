@@ -39,6 +39,10 @@
     <!-- Add Entry Sheet -->
     <string name="btn_save_snapshot">Αποθήκευση</string>
     <string name="label_entry_saved">Αποθηκεύτηκε</string>
+    <string name="label_snapshot_saved_upper">ΕΓΓΡΑΦΗ\nΑΠΟΘΗΚΕΥΤΗΚΕ</string>
+    <string name="label_updating_dashboard">Ενημέρωση dashboard…</string>
+    <string name="label_account_created_upper">ΛΟΓΑΡΙΑΣΜΟΣ\nΔΗΜΙΟΥΡΓΗΘΗΚΕ</string>
+    <string name="label_starting_at">Αρχικό υπόλοιπο %1$s</string>
     <string name="chip_pick_date">Επιλογή</string>
     <string name="chip_today">Σήμερα</string>
     <string name="chip_yesterday">Χθες</string>

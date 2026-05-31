@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1200, initial-scale=1" />
+  <title>Net Worth Tracker — Full Flow</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(1200px 600px at 80% -10%, #EFE9DD, transparent 60%),
+        radial-gradient(900px 500px at -10% 110%, #E7EFE8, transparent 55%),
+        #ECE7DD;
+      color: #0A1628;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+    }
+    button { font-family: inherit; }
+    *::-webkit-scrollbar { display: none; }
+
+    @keyframes nwBlink { from, 50% { opacity: 1; } 50.01%, to { opacity: 0; } }
+    @keyframes nwFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes nwPop {
+      0% { transform: scale(0); }
+      60% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+    @keyframes nwShake {
+      10%, 90% { transform: translateX(-2px); }
+      20%, 80% { transform: translateX(4px); }
+      30%, 50%, 70% { transform: translateX(-9px); }
+      40%, 60% { transform: translateX(9px); }
+    }
+    @keyframes nwSlideInChip { from { opacity: 0; transform: translateY(-10px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="app.jsx"></script>
+  <script type="text/babel" src="home-v1.jsx"></script>
+  <script type="text/babel" src="home-v2.jsx"></script>
+  <script type="text/babel" src="analytics.jsx"></script>
+  <script type="text/babel" src="settings.jsx"></script>
+  <script type="text/babel" src="flow-setup.jsx"></script>
+  <script type="text/babel" src="flow-accounts.jsx"></script>
+  <script type="text/babel" src="flow-security.jsx"></script>
+  <script type="text/babel" src="flow-add-entry.jsx"></script>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useRef } = React;
+
+    const MAIN = { name: 'Main', color: '#7DD3A0', main: true };
+    const OVERVIEW = [
+      { name: 'Main',        color: '#7DD3A0', balance: 11400, entries: 13, growth: 52 },
+      { name: 'Savings',     color: '#5B8DEF', balance: 4300,  entries: 13, growth: 38 },
+      { name: 'Investments', color: '#F4A28A', balance: 2500,  entries: 9,  growth: 71 },
+    ];
+
+    function FullFlow() {
+      const [scene, setScene] = useState('onboarding');
+      const [appTab, setAppTab] = useState('home');
+      const [sheetOpen, setSheetOpen] = useState(false);
+
+      // setup state
+      const [name, setName] = useState('Andreas');
+      const [email, setEmail] = useState('andreas@example.com');
+      const [goal, setGoal] = useState(100000);
+      const [setupAccounts, setSetupAccounts] = useState([MAIN]);
+      const [overview, setOverview] = useState(OVERVIEW);
+
+      // security
+      const [secStage, setSecStage] = useState('ask');
+      const [secErr, setSecErr] = useState(false);
+      const [secKey, setSecKey] = useState(0);
+
+      // live data (home + add-entry)
+      const [data, setData] = useState(SAMPLE_DATA);
+      const current = data[data.length - 1].amount;
+
+      const goSecurity = (stage, err = false) => {
+        setSecStage(stage); setSecErr(err); setSecKey(k => k + 1); setScene('security');
+      };
+
+      const saveSnapshot = ({ amount }) => {
+        setData(d => [...d, { date: '2026-06-01', label: 'Jun', amount }]);
+        setSheetOpen(false);
+      };
+
+      const dark = scene === 'security';
+
+      // ── the phone screen content ──────────────────────────
+      let content = null;
+      if (scene === 'onboarding') {
+        content = <OnboardingScene onFinish={() => setScene('profile')} />;
+      } else if (scene === 'profile') {
+        content = <ProfileSetupScene name={name} setName={setName} email={email} setEmail={setEmail} onContinue={() => setScene('target')} />;
+      } else if (scene === 'target') {
+        content = <TargetSetupScene goal={goal} setGoal={setGoal} current={0} onContinue={() => setScene('accountSetup')} onSkip={() => setScene('accountSetup')} />;
+      } else if (scene === 'accountSetup') {
+        content = <AccountSetupScene accounts={setupAccounts} onAddAccount={() => setScene('createAccountSetup')} onContinue={() => goSecurity('ask')} />;
+      } else if (scene === 'createAccountSetup') {
+        content = <CreateAccountScene onBack={() => setScene('accountSetup')} onCreate={(a) => { setSetupAccounts(p => [...p, a]); setScene('accountSetup'); }} />;
+      } else if (scene === 'security') {
+        content = <SecurityScene key={secKey} stage={secStage} setStage={setSecStage} forceError={secErr} onComplete={() => { setScene('app'); setAppTab('home'); }} />;
+      } else if (scene === 'createAccountApp') {
+        content = <CreateAccountScene onBack={() => setScene('app')} onCreate={(a) => { setOverview(p => [...p, { ...a, entries: 0, growth: 0 }]); setScene('app'); setAppTab('accounts'); }} />;
+      } else if (scene === 'goal') {
+        content = <GoalScene current={current} onBack={() => { setScene('app'); setAppTab('analytics'); }} />;
+      } else if (scene === 'app') {
+        if (appTab === 'home') {
+          content = <HomeV1 activeTab={appTab} setActiveTab={setAppTab} data={data} sheetOpen={sheetOpen} onAddEntry={() => setSheetOpen(true)} />;
+        } else if (appTab === 'analytics') {
+          content = <AnalyticsScreen activeTab={appTab} setActiveTab={setAppTab} />;
+        } else if (appTab === 'accounts') {
+          content = <AccountsOverviewScene accounts={overview} total={overview.reduce((s, a) => s + a.balance, 0)} activeTab={appTab} setActiveTab={setAppTab} onCreate={() => setScene('createAccountApp')} />;
+        } else if (appTab === 'settings') {
+          content = <SettingsScreen activeTab={appTab} setActiveTab={setAppTab} />;
+        }
+      }
+
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 38, padding: '40px 32px 64px', boxSizing: 'border-box' }}>
+          <NavRail
+            scene={scene} appTab={appTab} secStage={secStage} secErr={secErr}
+            go={setScene} setAppTab={setAppTab} setSheetOpen={setSheetOpen} goSecurity={goSecurity}
+          />
+
+          {/* Phone */}
+          <div style={{ position: 'sticky', top: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+            <div data-screen-label={'NW · ' + scene} style={{
+              width: 412, height: 892, borderRadius: 44, overflow: 'hidden',
+              background: dark ? NWT.navy : NWT.bg,
+              border: '9px solid #14110E', boxSizing: 'border-box',
+              boxShadow: '0 40px 90px -20px rgba(10,22,40,0.4), 0 8px 24px rgba(10,22,40,0.16)',
+              display: 'flex', flexDirection: 'column', position: 'relative',
+            }}>
+              <NWStatusBar dark={dark} />
+              <div key={scene} style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {content}
+              </div>
+              <NavPill dark={dark} />
+              {scene === 'app' && appTab === 'home' && (
+                <AddEntrySheetPro open={sheetOpen} prevAmount={current} onClose={() => setSheetOpen(false)} onSave={saveSnapshot} />
+              )}
+            </div>
+            <div style={{ fontSize: 12, color: '#8A8578', fontWeight: 600, letterSpacing: 0.3 }}>412 × 892 · Android</div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Side navigation rail ────────────────────────────────
+    function NavRail({ scene, appTab, secStage, secErr, go, setAppTab, setSheetOpen, goSecurity }) {
+      const isApp = (tab) => scene === 'app' && appTab === tab;
+      const sec = (stage, err) => scene === 'security' && secStage === stage && !!secErr === !!err;
+
+      const Item = ({ label, active, onClick, mark }) => (
+        <button onClick={onClick} style={{
+          display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
+          padding: '9px 12px', borderRadius: 12, cursor: 'pointer', border: 'none',
+          background: active ? '#0A1628' : 'transparent',
+          color: active ? '#fff' : '#43484F',
+          fontFamily: 'inherit', fontSize: 13.5, fontWeight: active ? 700 : 600,
+          transition: 'background 140ms',
+        }}>
+          <span style={{
+            width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+            background: mark === 'pos' ? '#4FB37A' : mark === 'neg' ? '#D86E5C' : (active ? '#7DD3A0' : 'rgba(10,22,40,0.18)'),
+          }} />
+          {label}
+        </button>
+      );
+
+      const Section = ({ children }) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 8 }}>{children}</div>
+      );
+      const Head = ({ children }) => (
+        <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.4, color: '#9A958A', padding: '14px 12px 6px' }}>{children}</div>
+      );
+
+      return (
+        <div style={{ width: 256, position: 'sticky', top: 40, flexShrink: 0 }}>
+          <div style={{ padding: '2px 12px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, color: '#4FB37A' }}>NETWORTH · ANDROID</div>
+            <h1 style={{ fontSize: 25, fontWeight: 800, letterSpacing: -0.6, margin: '6px 0 8px', color: '#0A1628' }}>Full product flow</h1>
+            <p style={{ fontSize: 13, lineHeight: 1.5, color: '#5C6675', margin: 0 }}>
+              Walk it end-to-end with the in-screen buttons, or jump to any screen below. Three moments use motion as feedback — marked <b style={{ color: '#4FB37A' }}>●</b> success and <b style={{ color: '#D86E5C' }}>●</b> error.
+            </p>
+          </div>
+
+          <div style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(10,22,40,0.07)', borderRadius: 18, padding: '6px 8px 12px' }}>
+            <Head>Onboarding &amp; setup</Head>
+            <Section>
+              <Item label="Intro carousel" active={scene === 'onboarding'} onClick={() => go('onboarding')} />
+              <Item label="Create profile" active={scene === 'profile'} onClick={() => go('profile')} />
+              <Item label="Set target" active={scene === 'target'} onClick={() => go('target')} />
+              <Item label="Accounts ready" active={scene === 'accountSetup'} onClick={() => go('accountSetup')} />
+              <Item label="Create account" active={scene === 'createAccountSetup'} onClick={() => go('createAccountSetup')} />
+            </Section>
+
+            <Head>Security</Head>
+            <Section>
+              <Item label="Secure your app" active={sec('ask')} onClick={() => goSecurity('ask')} />
+              <Item label="Create PIN" active={sec('pin')} onClick={() => goSecurity('pin')} />
+              <Item label="Confirm PIN" active={sec('confirm', false)} onClick={() => goSecurity('confirm')} />
+              <Item label="Wrong PIN — shake" mark="neg" active={sec('confirm', true)} onClick={() => goSecurity('confirm', true)} />
+              <Item label="Biometrics" active={sec('bio')} onClick={() => goSecurity('bio')} />
+              <Item label="Setup complete — check" mark="pos" active={sec('success')} onClick={() => goSecurity('success')} />
+            </Section>
+
+            <Head>The app</Head>
+            <Section>
+              <Item label="Home dashboard" active={isApp('home')} onClick={() => { go('app'); setAppTab('home'); setSheetOpen(false); }} />
+              <Item label="Add snapshot — saved" mark="pos" active={isApp('home')} onClick={() => { go('app'); setAppTab('home'); setSheetOpen(true); }} />
+              <Item label="Analytics" active={isApp('analytics')} onClick={() => { go('app'); setAppTab('analytics'); }} />
+              <Item label="Accounts" active={isApp('accounts')} onClick={() => { go('app'); setAppTab('accounts'); }} />
+              <Item label="Goal calculator" active={scene === 'goal'} onClick={() => go('goal')} />
+              <Item label="Settings" active={isApp('settings')} onClick={() => { go('app'); setAppTab('settings'); }} />
+            </Section>
+          </div>
+
+          <button onClick={() => { go('onboarding'); setAppTab('home'); setSheetOpen(false); }} style={{
+            marginTop: 12, width: '100%', padding: '11px', borderRadius: 12, cursor: 'pointer',
+            border: '1px solid rgba(10,22,40,0.12)', background: 'transparent', color: '#0A1628',
+            fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
+          }}>↺ Restart from the top</button>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<FullFlow />);
+  </script>
+</body>
+</html>

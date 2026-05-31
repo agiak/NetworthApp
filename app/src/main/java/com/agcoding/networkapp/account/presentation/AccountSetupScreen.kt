@@ -1,5 +1,8 @@
 package com.agcoding.networkapp.account.presentation
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +30,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -100,7 +106,16 @@ fun AccountSetupScreen(
                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
             ) {
                 accounts.forEach { account ->
-                    AccountSetupChip(account = account)
+                    // nwPop: each chip pops in when first composed (0 → 1.12 → 1.0)
+                    val scale = remember(account.id) { Animatable(0f) }
+                    LaunchedEffect(account.id) {
+                        scale.animateTo(1.12f, animationSpec = tween(180, easing = LinearEasing))
+                        scale.animateTo(1.0f, animationSpec = tween(120, easing = LinearEasing))
+                    }
+                    AccountSetupChip(
+                        account = account,
+                        modifier = Modifier.graphicsLayer { scaleX = scale.value; scaleY = scale.value },
+                    )
                 }
             }
 
@@ -144,7 +159,7 @@ fun AccountSetupScreen(
 }
 
 @Composable
-private fun AccountSetupChip(account: Account) {
+private fun AccountSetupChip(account: Account, modifier: Modifier = Modifier) {
     val accentColor = try {
         Color(android.graphics.Color.parseColor(account.colorHex))
     } catch (e: Exception) {
@@ -154,7 +169,7 @@ private fun AccountSetupChip(account: Account) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

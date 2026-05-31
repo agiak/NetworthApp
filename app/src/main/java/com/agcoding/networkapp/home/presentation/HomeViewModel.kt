@@ -265,9 +265,9 @@ class HomeViewModel @Inject constructor(
             val entry = NetWorthEntry(value = input, date = _uiState.value.selectedDate, note = _uiState.value.noteInput, accountId = _uiState.value.selectedAccountId)
             addNetWorthEntryUseCase(entry).fold(
                 onSuccess = {
-                    _uiState.update { it.copy(isSaving = false, entrySaved = true) }
-                    delay(900)
-                    _uiState.update { it.copy(isAddEntrySheetVisible = false, entryInput = "", noteInput = "", selectedDate = LocalDate.now(), entrySaved = false) }
+                    _uiState.update { it.copy(isSaving = false, entrySaved = true, savedAmountRaw = input.toLong()) }
+                    delay(1800)
+                    _uiState.update { it.copy(isAddEntrySheetVisible = false, entryInput = "", noteInput = "", selectedDate = LocalDate.now(), entrySaved = false, savedAmountRaw = 0L) }
                 },
                 onFailure = { error ->
                     Timber.e(error)

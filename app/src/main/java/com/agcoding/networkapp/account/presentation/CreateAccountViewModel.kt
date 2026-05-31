@@ -7,6 +7,7 @@ import com.agcoding.networkapp.account.domain.usecase.CreateAccountUseCase
 import com.agcoding.networkapp.shared.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,7 @@ data class CreateAccountUiState(
     val startingBalance: String = "",
     val colorHex: String = Account.PRESET_COLORS.first(),
     val isCreating: Boolean = false,
+    val isCreated: Boolean = false,
     val isComplete: Boolean = false,
     val error: String? = null,
 ) {
@@ -65,7 +67,9 @@ class CreateAccountViewModel @Inject constructor(
                         colorHex        = state.colorHex,
                     )
                 )
-                _uiState.update { it.copy(isCreating = false, isComplete = true) }
+                _uiState.update { it.copy(isCreating = false, isCreated = true) }
+                delay(1800)
+                _uiState.update { it.copy(isComplete = true) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isCreating = false, error = e.message) }
             }

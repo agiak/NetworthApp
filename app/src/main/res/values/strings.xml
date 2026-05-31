@@ -39,6 +39,10 @@
     <!-- Add Entry Sheet -->
     <string name="btn_save_snapshot">Save snapshot</string>
     <string name="label_entry_saved">Snapshot saved</string>
+    <string name="label_snapshot_saved_upper">SNAPSHOT\nSAVED</string>
+    <string name="label_updating_dashboard">Updating your dashboard…</string>
+    <string name="label_account_created_upper">ACCOUNT\nCREATED</string>
+    <string name="label_starting_at">Starting at %1$s</string>
     <string name="chip_pick_date">Pick date</string>
     <string name="chip_today">Today</string>
     <string name="chip_yesterday">Yesterday</string>

@@ -43,7 +43,6 @@ fun PinDotsRow(
 
     LaunchedEffect(hasError) {
         if (!hasError) return@LaunchedEffect
-        // Shake sequence matching nwShake keyframes (dp → px)
         val toX = { dp: Float -> with(density) { dp.dp.toPx() } }
         for (target in listOf(-2f, 4f, -9f, 9f, -9f, 9f, -9f, 4f, -2f, 0f)) {
             shakeOffset.animateTo(toX(target), animationSpec = tween(50, easing = LinearEasing))
@@ -61,9 +60,9 @@ fun PinDotsRow(
                     .clip(CircleShape)
                     .background(
                         when {
-                            hasError           -> errorColor
+                            hasError         -> errorColor
                             index < pin.length -> accentColor
-                            else               -> accentColor.copy(alpha = 0.25f)
+                            else             -> accentColor.copy(alpha = 0.25f)
                         }
                     )
             )

@@ -49,5 +49,6 @@ data class HomeUiState(
     val selectedDate: LocalDate = LocalDate.now(),
     val isSaving: Boolean = false,
     val entrySaved: Boolean = false,
+    val savedAmountRaw: Long = 0L,
     val error: String? = null
 )
