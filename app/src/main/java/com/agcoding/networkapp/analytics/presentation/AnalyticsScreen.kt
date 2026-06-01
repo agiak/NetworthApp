@@ -1,5 +1,6 @@
 package com.agcoding.networkapp.analytics.presentation
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -14,13 +15,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -54,6 +57,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
@@ -64,11 +68,9 @@ import com.agcoding.networkapp.analytics.presentation.components.ComparePeriodsE
 import com.agcoding.networkapp.analytics.presentation.components.FuturePredictionEntryCard
 import com.agcoding.networkapp.analytics.presentation.components.GoalCalculatorEntryCard
 import com.agcoding.networkapp.analytics.presentation.components.MonthByMonthRow
-import com.agcoding.networkapp.analytics.presentation.components.TrendCard
 import com.agcoding.networkapp.analytics.presentation.components.YearlyRecapEntryCard
 import com.agcoding.networkapp.analytics.presentation.model.MonthlyEntryUiModel
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
-import com.agcoding.networkapp.shared.ui.components.ProjectionCard
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 import kotlinx.coroutines.launch
@@ -109,6 +111,7 @@ private fun AnalyticsContent(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     var showFilterSheet by remember { mutableStateOf(false) }
+    var showAllEntries by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -123,26 +126,43 @@ private fun AnalyticsContent(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.nav_analytics),
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (uiState.hasData) {
-                            Text(
-                                text = uiState.selectedFilter.toLabel(),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+                    Text(
+                        text = stringResource(R.string.nav_analytics),
+                        fontWeight = FontWeight.Bold
+                    )
                 },
                 actions = {
                     if (uiState.hasData) {
-                        IconButton(onClick = { showFilterSheet = true }) {
+                        // Filter chip "6M ▼"
+                        Surface(
+                            onClick = { showFilterSheet = true },
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text(
+                                    text = uiState.selectedFilter.toShortLabel(),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        IconButton(onClick = onNavigateToAllMonths) {
                             Icon(
                                 imageVector = Icons.Default.DateRange,
-                                contentDescription = stringResource(R.string.analytics_filter_title),
+                                contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -154,18 +174,12 @@ private fun AnalyticsContent(
     ) { paddingValues ->
         when {
             uiState.isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
             !uiState.hasData -> {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                     Text(
                         text = stringResource(R.string.analytics_no_data),
                         style = MaterialTheme.typography.bodyLarge,
@@ -179,203 +193,197 @@ private fun AnalyticsContent(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Account filter chips (multi-account only)
                     if (uiState.accounts.size > 1) {
-                        item {
-                            AccountFilterRow(
-                                accounts = uiState.accounts,
-                                selectedAccountId = uiState.selectedAccountId,
-                                onSelect = { onIntent(AnalyticsIntent.SelectAccount(it)) },
-                            )
-                        }
+                        item { AccountFilterRow(uiState.accounts, uiState.selectedAccountId) { onIntent(AnalyticsIntent.SelectAccount(it)) } }
                     }
 
+                    // Hero chart card
                     item {
                         AnalyticsChartCard(
-                            chartData  = uiState.chartData,
-                            startLabel = uiState.chartStartLabel,
-                            midLabel   = uiState.chartMidLabel,
-                            endLabel   = uiState.chartEndLabel,
-                            topLabel   = uiState.highestNetWorth,
-                            bottomLabel = uiState.lowestNetWorth,
+                            chartData           = uiState.chartData,
+                            startLabel          = uiState.chartStartLabel,
+                            midLabel            = uiState.chartMidLabel,
+                            endLabel            = uiState.chartEndLabel,
+                            headerLabel         = uiState.filterPeriodLabel,
+                            currentNetWorth     = uiState.currentNetWorthFormatted,
+                            totalGrowth         = uiState.totalGrowth,
+                            totalGrowthPercent  = uiState.totalGrowthPercent,
+                            totalGrowthPositive = uiState.totalGrowthPositive,
                         )
                     }
 
-                    if (uiState.accountComparison.size >= 2) {
-                        item {
-                            AccountComparisonCard(lines = uiState.accountComparison)
+                    // 4 stat cards (2×2 grid)
+                    item {
+                        val filterMonths = when (uiState.selectedFilter) {
+                            TimeFilter.ONE_MONTH     -> 1
+                            TimeFilter.THREE_MONTHS  -> 3
+                            TimeFilter.SIX_MONTHS    -> 6
+                            TimeFilter.TWELVE_MONTHS -> 12
+                            TimeFilter.ALL           -> uiState.monthlyEntries.size
                         }
-                    }
-
-                    item {
-                        TrendCard(
-                            trendLabel = uiState.trendLabel,
-                            trendDescription = uiState.trendDescription,
-                            isPositive = uiState.trendIsPositive,
-                            isNeutral = uiState.trendIsNeutral
-                        )
-                    }
-
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(IntrinsicSize.Max),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            AnalyticsSummaryCard(
-                                label = stringResource(R.string.analytics_total_growth),
-                                value = uiState.totalGrowth,
-                                subLabel = uiState.totalGrowthPercent,
-                                valueColor = if (uiState.totalGrowthPositive) PositiveGreen else MaterialTheme.colorScheme.error,
-                                modifier = Modifier.weight(1f)
-                            )
-                            AnalyticsSummaryCard(
-                                label = stringResource(R.string.analytics_avg_month),
-                                value = uiState.avgMonthlyGrowth,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(IntrinsicSize.Max),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            AnalyticsSummaryCard(
-                                label = stringResource(R.string.analytics_best_month),
-                                value = uiState.bestMonthValue,
-                                subLabel = uiState.bestMonthLabel,
-                                valueColor = PositiveGreen,
-                                modifier = Modifier.weight(1f)
-                            )
-                            AnalyticsSummaryCard(
-                                label = stringResource(R.string.analytics_worst_month),
-                                value = uiState.worstMonthValue,
-                                subLabel = uiState.worstMonthLabel,
-                                valueColor = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(IntrinsicSize.Max),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            AnalyticsSummaryCard(
-                                label = stringResource(R.string.analytics_highest_net_worth),
-                                value = uiState.highestNetWorth,
-                                subLabel = uiState.highestNetWorthDate,
-                                valueColor = PositiveGreen,
-                                modifier = Modifier.weight(1f)
-                            )
-                            AnalyticsSummaryCard(
-                                label = stringResource(R.string.analytics_lowest_net_worth),
-                                value = uiState.lowestNetWorth,
-                                subLabel = uiState.lowestNetWorthDate,
-                                valueColor = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(IntrinsicSize.Max),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            AnalyticsSummaryCard(
-                                label = stringResource(R.string.analytics_consistency),
-                                value = uiState.consistencyPercent,
-                                subLabel = uiState.consistencyDetail,
-                                modifier = Modifier.weight(1f)
-                            )
-                            AnalyticsSummaryCard(
-                                label = stringResource(R.string.analytics_streak),
-                                value = uiState.currentStreakLabel,
-                                subLabel = uiState.currentStreakSubLabel,
-                                valueColor = if (uiState.currentStreakLabel != "—") PositiveGreen else Color.Unspecified,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-
-                    item {
-                        ProjectionCard(
-                            projectedNetWorth = uiState.projectedNetWorth,
-                            projectedNetWorthDate = uiState.projectedNetWorthDate
-                        )
-                    }
-
-                    item {
-                        FuturePredictionEntryCard(onClick = onNavigateToPrediction)
-                    }
-
-                    item {
-                        GoalCalculatorEntryCard(onClick = onNavigateToGoal)
-                    }
-
-                    item {
-                        YearlyRecapEntryCard(onClick = onNavigateToRecap)
-                    }
-
-                    item {
-                        ComparePeriodsEntryCard(onClick = onNavigateToCompare)
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.analytics_month_by_month),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            if (uiState.monthlyEntries.size > 5) {
-                                TextButton(onClick = onNavigateToAllMonths) {
-                                    Text(stringResource(R.string.analytics_show_all))
-                                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
-                                }
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                AnalyticsSummaryCard(
+                                    label    = stringResource(R.string.analytics_avg_month),
+                                    value    = uiState.avgMonthlyGrowth,
+                                    subLabel = stringResource(R.string.analytics_across_months, filterMonths),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                AnalyticsSummaryCard(
+                                    label      = stringResource(R.string.analytics_best_month),
+                                    value      = uiState.bestMonthValue,
+                                    subLabel   = uiState.bestMonthLabel,
+                                    valueColor = PositiveGreen,
+                                    modifier   = Modifier.weight(1f)
+                                )
+                            }
+                            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                AnalyticsSummaryCard(
+                                    label    = stringResource(R.string.analytics_hardest_month),
+                                    value    = uiState.worstMonthValue,
+                                    subLabel = uiState.worstMonthLabel,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                AnalyticsSummaryCard(
+                                    label      = stringResource(R.string.analytics_total_growth_label),
+                                    value      = uiState.totalGrowthPercent,
+                                    subLabel   = stringResource(R.string.analytics_this_period),
+                                    valueColor = if (uiState.totalGrowthPositive) PositiveGreen else MaterialTheme.colorScheme.error,
+                                    modifier   = Modifier.weight(1f)
+                                )
                             }
                         }
                     }
 
+                    // ── EXPLORE section ──────────────────────────────────────
                     item {
-                        val recentEntries = uiState.monthlyEntries.take(5)
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = MaterialTheme.colorScheme.surface,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
+                        Text(
+                            text = stringResource(R.string.analytics_explore),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            letterSpacing = 1.2.sp,
+                        )
+                    }
+
+                    item { FuturePredictionEntryCard(onClick = onNavigateToPrediction) }
+
+                    item {
+                        GoalCalculatorEntryCard(
+                            onClick = onNavigateToGoal,
+                            currentNetWorthFormatted = uiState.currentNetWorthFormatted,
+                            targetAmountFormatted    = uiState.targetAmountFormatted,
+                            goalProgressPercent      = uiState.goalProgressPercent,
+                            hasGoal                  = uiState.hasGoal,
+                        )
+                    }
+
+                    item {
+                        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            YearlyRecapEntryCard(onClick = onNavigateToRecap, modifier = Modifier.weight(1f))
+                            ComparePeriodsEntryCard(onClick = onNavigateToCompare, modifier = Modifier.weight(1f))
+                        }
+                    }
+
+                    // Account comparison (multi-account)
+                    if (uiState.accountComparison.size >= 2) {
+                        item { AccountComparisonCard(lines = uiState.accountComparison) }
+                    }
+
+                    // ── Monthly change bar chart ──────────────────────────────
+                    if (uiState.monthlyEntries.size >= 2) {
+                        item {
                             Column {
-                                recentEntries.forEachIndexed { index, entry ->
-                                    MonthByMonthRow(
-                                        entry = entry,
-                                        showDivider = index < recentEntries.lastIndex
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.analytics_monthly_change),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = uiState.filterPeriodLabel.lowercase().removePrefix("total · "),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Spacer(Modifier.height(10.dp))
+                                MonthlyChangeBarChart(entries = uiState.monthlyEntries)
+                            }
+                        }
+                    }
+
+                    // ── Month-by-month section ────────────────────────────────
+                    val nonFirstEntries = uiState.monthlyEntries.filter { !it.isFirst }
+                    if (nonFirstEntries.isNotEmpty()) {
+                        item {
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.analytics_month_by_month),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                TextButton(onClick = { showAllEntries = !showAllEntries }) {
+                                    Text(
+                                        text = if (showAllEntries) stringResource(R.string.analytics_show_less)
+                                               else stringResource(R.string.analytics_show_all),
+                                        color = PositiveGreen,
+                                        style = MaterialTheme.typography.labelLarge,
+                                    )
+                                    Icon(
+                                        imageVector = if (showAllEntries) Icons.Default.KeyboardArrowUp
+                                                      else Icons.Default.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        tint = PositiveGreen,
+                                        modifier = Modifier.size(16.dp),
                                     )
                                 }
                             }
                         }
+                        item {
+                            val allEntries     = uiState.monthlyEntries
+                            val displayEntries = if (showAllEntries) allEntries else allEntries.take(5)
+                            Surface(
+                                shape    = RoundedCornerShape(20.dp),
+                                color    = MaterialTheme.colorScheme.surface,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column {
+                                    displayEntries.forEachIndexed { i, entry ->
+                                        if (entry.isFirst) return@forEachIndexed
+                                        val fromEntry = allEntries.getOrNull(i + 1)
+                                        val fromShort = fromEntry?.monthLabel?.split(" ")?.firstOrNull() ?: ""
+                                        val toShort   = entry.monthLabel.split(" ").firstOrNull() ?: ""
+                                        val range     = if (fromEntry != null)
+                                            "${fromEntry.formattedValue} → ${entry.formattedValue}"
+                                        else ""
+                                        MonthByMonthRow(
+                                            entry           = entry,
+                                            transitionLabel = "$fromShort → $toShort",
+                                            rangeLabel      = range,
+                                            showDivider     = i < displayEntries.lastIndex,
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
 
-                    item { Spacer(modifier = Modifier.height(16.dp)) }
+                    item { Spacer(Modifier.height(16.dp)) }
                 }
             }
         }
     }
 
+    // Filter bottom sheet (triggered by the "6M ▼" chip)
     if (showFilterSheet) {
         ModalBottomSheet(
             onDismissRequest = { showFilterSheet = false },
@@ -396,16 +404,19 @@ private fun AnalyticsContent(
     }
 }
 
+// ── Filter bottom sheet ───────────────────────────────────────────────────
+
 @Composable
 private fun FilterBottomSheet(
     selectedFilter: TimeFilter,
     onFilterSelect: (TimeFilter) -> Unit
 ) {
     val options = listOf(
-        TimeFilter.THREE_MONTHS to stringResource(R.string.filter_label_3m),
-        TimeFilter.SIX_MONTHS to stringResource(R.string.filter_label_6m),
+        TimeFilter.ONE_MONTH     to stringResource(R.string.filter_label_3m).replace("3", "1"),
+        TimeFilter.THREE_MONTHS  to stringResource(R.string.filter_label_3m),
+        TimeFilter.SIX_MONTHS    to stringResource(R.string.filter_label_6m),
         TimeFilter.TWELVE_MONTHS to stringResource(R.string.filter_label_12m),
-        TimeFilter.ALL to stringResource(R.string.filter_label_all)
+        TimeFilter.ALL           to stringResource(R.string.filter_label_all),
     )
 
     Column(modifier = Modifier.padding(bottom = 32.dp)) {
@@ -415,11 +426,8 @@ private fun FilterBottomSheet(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
         )
-
         Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ) {
@@ -432,9 +440,7 @@ private fun FilterBottomSheet(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -443,15 +449,13 @@ private fun FilterBottomSheet(
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                                 color = if (isSelected) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(vertical = 12.dp)
                             )
                             RadioButton(
                                 selected = isSelected,
                                 onClick = { onFilterSelect(filter) },
-                                colors = RadioButtonDefaults.colors(
-                                    selectedColor = PositiveGreen
-                                )
+                                colors = RadioButtonDefaults.colors(selectedColor = PositiveGreen)
                             )
                         }
                     }
@@ -468,6 +472,78 @@ private fun FilterBottomSheet(
     }
 }
 
+// ── Period label helpers ──────────────────────────────────────────────────
+
+@Composable
+private fun TimeFilter.toShortLabel(): String = when (this) {
+    TimeFilter.ONE_MONTH     -> stringResource(R.string.filter_1m)
+    TimeFilter.THREE_MONTHS  -> stringResource(R.string.filter_3m)
+    TimeFilter.SIX_MONTHS    -> stringResource(R.string.filter_6m)
+    TimeFilter.TWELVE_MONTHS -> stringResource(R.string.filter_1y)
+    TimeFilter.ALL           -> stringResource(R.string.filter_all)
+}
+
+// ── Monthly change bar chart ──────────────────────────────────────────────
+
+@Composable
+private fun MonthlyChangeBarChart(entries: List<MonthlyEntryUiModel>) {
+    val bars = buildList {
+        entries.forEachIndexed { i, entry ->
+            val prev = entries.getOrNull(i + 1) ?: return@forEachIndexed
+            add(entry.rawValue - prev.rawValue to entry.isPositive)
+        }
+    }.reversed()
+
+    if (bars.isEmpty()) return
+
+    val maxAbs = bars.maxOf { (v, _) -> kotlin.math.abs(v) }.takeIf { it > 0 } ?: 1.0
+    val posColor = PositiveGreen
+    val negColor = Color(0xFFE8836A)
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape    = RoundedCornerShape(16.dp),
+        color    = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Canvas(modifier = Modifier.fillMaxWidth().height(110.dp)) {
+                val n     = bars.size
+                val w     = size.width
+                val h     = size.height
+                val barW  = (w / n) * 0.55f
+                val gap   = (w / n) * 0.45f
+                val maxH  = h * 0.88f
+
+                bars.forEachIndexed { i, (rawDiff, isPos) ->
+                    val barH  = (kotlin.math.abs(rawDiff) / maxAbs * maxH).toFloat().coerceAtLeast(4.dp.toPx())
+                    val left  = i * (barW + gap) + gap / 2f
+                    drawRoundRect(
+                        color        = if (isPos) posColor else negColor,
+                        topLeft      = androidx.compose.ui.geometry.Offset(left, h - barH),
+                        size         = androidx.compose.ui.geometry.Size(barW, barH),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()),
+                    )
+                }
+            }
+            Spacer(Modifier.height(6.dp))
+            val labels = buildList {
+                entries.forEachIndexed { i, e ->
+                    if (entries.getOrNull(i + 1) != null)
+                        add(e.monthLabel.split(" ").firstOrNull()?.take(1) ?: "")
+                }
+            }.reversed()
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                labels.forEach { lbl ->
+                    Text(lbl, style = MaterialTheme.typography.labelSmall,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+                }
+            }
+        }
+    }
+}
+
+// ── Account filter row ────────────────────────────────────────────────────
+
 @Composable
 private fun AccountFilterRow(
     accounts: List<com.agcoding.networkapp.account.domain.model.Account>,
@@ -475,76 +551,44 @@ private fun AccountFilterRow(
     onSelect: (Long?) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // "All" chip
-        val allSelected = selectedAccountId == null
+        val allSel = selectedAccountId == null
         Surface(
-            onClick = { onSelect(null) },
-            shape = RoundedCornerShape(20.dp),
-            color = if (allSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
-            border = if (!allSelected) androidx.compose.foundation.BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-            ) else null,
+            onClick = { onSelect(null) }, shape = RoundedCornerShape(20.dp),
+            color  = if (allSel) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+            border = if (!allSel) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) else null,
         ) {
             Text(
                 text = stringResource(R.string.filter_all),
                 style = MaterialTheme.typography.labelLarge,
-                fontWeight = if (allSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (allSelected) MaterialTheme.colorScheme.surface
-                        else MaterialTheme.colorScheme.onSurface,
+                fontWeight = if (allSel) FontWeight.Bold else FontWeight.Normal,
+                color = if (allSel) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
-
-        // Per-account chips
         accounts.forEach { account ->
-            val isSelected = account.id == selectedAccountId
-            val accentColor = try { Color(android.graphics.Color.parseColor(account.colorHex)) }
-                              catch (e: Exception) { MaterialTheme.colorScheme.primary }
+            val isSel = account.id == selectedAccountId
+            val ac = try { Color(android.graphics.Color.parseColor(account.colorHex)) } catch (e: Exception) { MaterialTheme.colorScheme.primary }
             Surface(
-                onClick = { onSelect(account.id) },
-                shape = RoundedCornerShape(20.dp),
-                color = if (isSelected) accentColor else Color.Transparent,
-                border = if (!isSelected) androidx.compose.foundation.BorderStroke(
-                    1.dp, accentColor.copy(alpha = 0.5f)
-                ) else null,
+                onClick = { onSelect(account.id) }, shape = RoundedCornerShape(20.dp),
+                color  = if (isSel) ac else Color.Transparent,
+                border = if (!isSel) androidx.compose.foundation.BorderStroke(1.dp, ac.copy(alpha = 0.5f)) else null,
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(if (isSelected) MaterialTheme.colorScheme.surface else accentColor),
-                    )
-                    Spacer(Modifier.size(6.dp))
-                    Text(
-                        text = account.name,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        color = if (isSelected) MaterialTheme.colorScheme.surface
-                                else MaterialTheme.colorScheme.onSurface,
-                    )
+                Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(if (isSel) MaterialTheme.colorScheme.surface else ac))
+                    Spacer(Modifier.width(6.dp))
+                    Text(account.name, style = MaterialTheme.typography.labelLarge,
+                         fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                         color = if (isSel) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface)
                 }
             }
         }
     }
 }
 
-@Composable
-private fun TimeFilter.toLabel(): String = when (this) {
-    TimeFilter.THREE_MONTHS -> stringResource(R.string.filter_label_3m)
-    TimeFilter.SIX_MONTHS -> stringResource(R.string.filter_label_6m)
-    TimeFilter.TWELVE_MONTHS -> stringResource(R.string.filter_label_12m)
-    TimeFilter.ALL -> stringResource(R.string.filter_label_all)
-}
+// ── Preview ───────────────────────────────────────────────────────────────
 
 @Preview(showBackground = true)
 @Composable
@@ -552,62 +596,27 @@ private fun AnalyticsContentPreview() {
     NetWorthTheme {
         AnalyticsContent(
             uiState = AnalyticsUiState(
-                isLoading = false,
-                hasData = true,
-                selectedFilter = TimeFilter.TWELVE_MONTHS,
+                isLoading = false, hasData = true,
+                selectedFilter = TimeFilter.SIX_MONTHS,
                 chartData = listOf(
-                    ChartPoint(0f, 0.2f), ChartPoint(0.2f, 0.35f), ChartPoint(0.4f, 0.3f),
-                    ChartPoint(0.6f, 0.55f), ChartPoint(0.8f, 0.7f), ChartPoint(1f, 0.9f)
+                    ChartPoint(0f, 0.2f), ChartPoint(0.2f, 0.35f), ChartPoint(0.4f, 0.4f),
+                    ChartPoint(0.6f, 0.55f), ChartPoint(0.8f, 0.72f), ChartPoint(1f, 0.9f)
                 ),
-                chartStartLabel = "May '25",
-                chartMidLabel = "Nov '25",
-                chartEndLabel = "May '26",
-                totalGrowth = "+€8,200",
-                totalGrowthPercent = "+45.0%",
-                totalGrowthPositive = true,
-                avgMonthlyGrowth = "+€683",
-                bestMonthLabel = "Mar 2026",
-                bestMonthValue = "+€2,100",
-                worstMonthLabel = "Aug 2025",
-                worstMonthValue = "-€300",
-                highestNetWorth = "€26,200",
-                highestNetWorthDate = "May 2026",
-                lowestNetWorth = "€18,000",
-                lowestNetWorthDate = "May 2025",
-                trendLabel = "Increasing",
-                trendDescription = "Net worth trending upward in this period",
-                trendIsPositive = true,
-                trendIsNeutral = false,
-                consistencyPercent = "9/11",
-                consistencyDetail = "months positive",
-                projectedNetWorth = "€34,396",
-                projectedNetWorthDate = "by May 2027",
-                currentStreakLabel = "3",
-                currentStreakSubLabel = "months in a row",
+                chartStartLabel = "Nov '25", chartMidLabel = "Feb '26", chartEndLabel = "May '26",
+                currentNetWorthFormatted = "€18,200",
+                filterPeriodLabel = "TOTAL · LAST 6 MONTHS",
+                totalGrowth = "+€6,080", totalGrowthPercent = "+50.2%", totalGrowthPositive = true,
+                avgMonthlyGrowth = "+€1,013", bestMonthLabel = "Dec", bestMonthValue = "+€1,460",
+                worstMonthLabel = "Jan", worstMonthValue = "€680",
+                hasGoal = true, targetAmountFormatted = "€100,000", goalProgressPercent = 18,
                 monthlyEntries = listOf(
-                    MonthlyEntryUiModel("May 2026", "€26,200", "+€1,200", "+4.8%", true, false),
-                    MonthlyEntryUiModel("April 2026", "€25,000", "+€2,000", "+8.7%", true, false),
-                    MonthlyEntryUiModel("March 2026", "€23,000", "+€3,000", "+15.0%", true, false),
-                    MonthlyEntryUiModel("February 2026", "€20,000", "—", "", true, true)
+                    MonthlyEntryUiModel("May 2026", "€18,200", "+€850", "+4.9%", true, false, 18200.0),
+                    MonthlyEntryUiModel("Apr 2026", "€17,350", "+€870", "+5.3%", true, false, 17350.0),
+                    MonthlyEntryUiModel("Nov 2025", "€12,120", "—", "", true, true, 12120.0),
                 )
             ),
-            onIntent = {},
-            onNavigateToAllMonths = {},
-            onNavigateToPrediction = {},
-            onNavigateToGoal = {},
-            onNavigateToRecap = {},
-            onNavigateToCompare = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun FilterBottomSheetPreview() {
-    NetWorthTheme {
-        FilterBottomSheet(
-            selectedFilter = TimeFilter.TWELVE_MONTHS,
-            onFilterSelect = {}
+            onIntent = {}, onNavigateToAllMonths = {}, onNavigateToPrediction = {},
+            onNavigateToGoal = {}, onNavigateToRecap = {}, onNavigateToCompare = {}
         )
     }
 }

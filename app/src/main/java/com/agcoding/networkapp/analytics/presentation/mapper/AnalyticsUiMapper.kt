@@ -39,7 +39,9 @@ data class AnalyticsMapResult(
     val currentStreakLabel: String = "",
     val currentStreakSubLabel: String = "",
     val monthlyEntries: List<MonthlyEntryUiModel> = emptyList(),
-    val hasData: Boolean = false
+    val hasData: Boolean = false,
+    val currentNetWorthFormatted: String = "",
+    val filterPeriodLabel: String = "",
 )
 
 class AnalyticsUiMapper @Inject constructor() {
@@ -128,6 +130,21 @@ class AnalyticsUiMapper @Inject constructor() {
         val projectedValue = lastVal + (avgGrowth * 12)
         val projectedDate = YearMonth.now().plusMonths(12).format(shortFormatter)
 
+        val periodMonths = when (filter) {
+            TimeFilter.ONE_MONTH    -> 1
+            TimeFilter.THREE_MONTHS -> 3
+            TimeFilter.SIX_MONTHS   -> 6
+            TimeFilter.TWELVE_MONTHS -> 12
+            TimeFilter.ALL          -> sorted.size
+        }
+        val filterPeriodLabel = when (filter) {
+            TimeFilter.ONE_MONTH     -> "TOTAL · LAST MONTH"
+            TimeFilter.THREE_MONTHS  -> "TOTAL · LAST 3 MONTHS"
+            TimeFilter.SIX_MONTHS    -> "TOTAL · LAST 6 MONTHS"
+            TimeFilter.TWELVE_MONTHS -> "TOTAL · LAST 12 MONTHS"
+            TimeFilter.ALL           -> "TOTAL · ALL TIME"
+        }
+
         return AnalyticsMapResult(
             chartData = chartData,
             chartStartLabel = sorted.first().yearMonth.format(axisFormatter),
@@ -156,12 +173,15 @@ class AnalyticsUiMapper @Inject constructor() {
             currentStreakLabel = currentStreakLabel,
             currentStreakSubLabel = currentStreakSubLabel,
             monthlyEntries = buildMonthlyEntries(sorted, fullFormatter),
-            hasData = true
+            hasData = true,
+            currentNetWorthFormatted = formatCurrency(lastVal),
+            filterPeriodLabel = filterPeriodLabel,
         )
     }
 
     private fun applyFilter(data: List<MonthlyNetWorth>, filter: TimeFilter): List<MonthlyNetWorth> {
         val months = when (filter) {
+            TimeFilter.ONE_MONTH -> 1L
             TimeFilter.THREE_MONTHS -> 3L
             TimeFilter.SIX_MONTHS -> 6L
             TimeFilter.TWELVE_MONTHS -> 12L
@@ -212,6 +232,16 @@ class AnalyticsUiMapper @Inject constructor() {
     private fun formatChange(value: Double): String {
         val absStr = String.format(Locale.US, "%,.0f", abs(value))
         return if (value >= 0) "+$symbol$absStr" else "-$symbol$absStr"
+    }
+
+    private fun formatCompact(value: Double): String {
+        val absVal = abs(value)
+        val prefix = if (value < 0) "-$symbol" else symbol
+        return when {
+            absVal >= 1_000_000 -> "$prefix${String.format(Locale.US, "%.1f", absVal / 1_000_000)}M"
+            absVal >= 1_000     -> "$prefix${String.format(Locale.US, "%.1f", absVal / 1_000)}k"
+            else                -> "$prefix${String.format(Locale.US, "%.0f", absVal)}"
+        }
     }
 
     private fun formatPercent(pct: Double): String {

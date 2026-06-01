@@ -12,6 +12,7 @@ import com.agcoding.networkapp.home.domain.usecase.computeMonthlyForAccount
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
+import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +28,7 @@ class AnalyticsViewModel @Inject constructor(
     private val getNetWorthEntriesUseCase: GetNetWorthEntriesUseCase,
     private val getAccountsUseCase: GetAccountsUseCase,
     private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
     private val mapper: AnalyticsUiMapper,
 ) : ViewModel() {
 
@@ -36,6 +38,7 @@ class AnalyticsViewModel @Inject constructor(
     val uiState: StateFlow<AnalyticsUiState> = _uiState.asStateFlow()
 
     private var currentCurrency: AppCurrency = AppCurrency.EUR
+    private var targetAmountRaw: Double = 0.0
 
     init {
         viewModelScope.launch {
@@ -69,9 +72,23 @@ class AnalyticsViewModel @Inject constructor(
         viewModelScope.launch {
             getAccountsUseCase().collect { accounts ->
                 val currentSel = _uiState.value.selectedAccountId
-                // If the selected account no longer exists, reset to All
                 val validSel = if (accounts.any { it.id == currentSel }) currentSel else null
                 _uiState.update { it.copy(accounts = accounts, selectedAccountId = validSel) }
+            }
+        }
+        viewModelScope.launch {
+            getUserProfileUseCase().collect { profile ->
+                targetAmountRaw = profile.targetAmount
+                val hasGoal = targetAmountRaw > 0.0
+                _uiState.update {
+                    it.copy(
+                        hasGoal = hasGoal,
+                        targetAmountFormatted = if (hasGoal)
+                            "${currentCurrency.symbol}${String.format(java.util.Locale.US, "%,.0f", targetAmountRaw)}"
+                        else "",
+                    )
+                }
+                recompute(_uiState.value.selectedFilter, _uiState.value.selectedAccountId)
             }
         }
     }
@@ -126,8 +143,14 @@ class AnalyticsViewModel @Inject constructor(
                 projectedNetWorthDate   = result.projectedNetWorthDate,
                 currentStreakLabel      = result.currentStreakLabel,
                 currentStreakSubLabel   = result.currentStreakSubLabel,
-                monthlyEntries         = result.monthlyEntries,
-                hasData                = result.hasData,
+                monthlyEntries              = result.monthlyEntries,
+                hasData                     = result.hasData,
+                currentNetWorthFormatted    = result.currentNetWorthFormatted,
+                filterPeriodLabel           = result.filterPeriodLabel,
+                goalProgressPercent         = if (targetAmountRaw > 0.0) {
+                    val currentRaw = result.monthlyEntries.firstOrNull()?.rawValue ?: 0.0
+                    ((currentRaw / targetAmountRaw) * 100).toInt().coerceIn(0, 100)
+                } else 0,
             )
         }
     }

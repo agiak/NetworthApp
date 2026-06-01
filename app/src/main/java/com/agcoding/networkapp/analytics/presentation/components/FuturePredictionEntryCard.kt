@@ -1,7 +1,8 @@
 package com.agcoding.networkapp.analytics.presentation.components
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,41 +41,61 @@ fun FuturePredictionEntryCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         color = DarkBackground,
-        border = BorderStroke(1.dp, PositiveGreen.copy(alpha = 0.4f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
+            modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Icon box
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(PositiveGreen.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(text = "✦", style = MaterialTheme.typography.titleMedium, color = PositiveGreen)
+            }
+
+            // Text column
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(R.string.analytics_future_prediction),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(Modifier.height(2.dp))
                 Text(
                     text = stringResource(R.string.analytics_future_prediction_desc),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.6f)
+                    color = Color.White.copy(alpha = 0.55f),
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = stringResource(R.string.prediction_range_2y) + " · " +
-                        stringResource(R.string.prediction_range_3y) + " · " +
-                        stringResource(R.string.prediction_range_5y) + " · " +
+                Spacer(Modifier.height(10.dp))
+                // Year chips
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    listOf(
+                        stringResource(R.string.prediction_range_2y),
+                        stringResource(R.string.prediction_range_3y),
+                        stringResource(R.string.prediction_range_5y),
                         stringResource(R.string.prediction_range_15y),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = PositiveGreen
-                )
+                    ).forEach { label ->
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = PositiveGreen,
+                        )
+                    }
+                }
             }
+
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.7f),
-                modifier = Modifier.size(28.dp)
+                tint = Color.White.copy(alpha = 0.5f),
+                modifier = Modifier.size(24.dp),
             )
         }
     }
@@ -82,7 +104,5 @@ fun FuturePredictionEntryCard(
 @Preview(showBackground = true)
 @Composable
 private fun FuturePredictionEntryCardPreview() {
-    NetWorthTheme {
-        FuturePredictionEntryCard(onClick = {})
-    }
+    NetWorthTheme { FuturePredictionEntryCard(onClick = {}) }
 }

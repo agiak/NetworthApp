@@ -6,7 +6,7 @@ import com.agcoding.networkapp.home.presentation.model.ChartPoint
 
 data class AccountComparisonLine(val name: String, val colorHex: String, val points: List<ChartPoint>)
 
-enum class TimeFilter { THREE_MONTHS, SIX_MONTHS, TWELVE_MONTHS, ALL }
+enum class TimeFilter { ONE_MONTH, THREE_MONTHS, SIX_MONTHS, TWELVE_MONTHS, ALL }
 
 data class AnalyticsUiState(
     val isLoading: Boolean = true,
@@ -42,5 +42,10 @@ data class AnalyticsUiState(
     val monthlyEntries: List<MonthlyEntryUiModel> = emptyList(),
     val hasData: Boolean = false,
     val accountComparison: List<AccountComparisonLine> = emptyList(),
+    val currentNetWorthFormatted: String = "",
+    val filterPeriodLabel: String = "",
+    val targetAmountFormatted: String = "",
+    val goalProgressPercent: Int = 0,
+    val hasGoal: Boolean = false,
     val error: String? = null
 )
