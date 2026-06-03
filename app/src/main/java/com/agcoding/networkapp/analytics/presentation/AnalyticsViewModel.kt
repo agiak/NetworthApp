@@ -110,7 +110,10 @@ class AnalyticsViewModel @Inject constructor(
         } else {
             _allMonthlyData.value
         }
-        val result = mapper.map(monthlyData, filter, currentCurrency)
+        val relevantEntries = if (accountId != null)
+            _rawEntries.value.filter { it.accountId == accountId }
+        else _rawEntries.value
+        val result = mapper.map(monthlyData, filter, currentCurrency, relevantEntries)
         val comparison = buildComparison(_rawEntries.value, _uiState.value.accounts)
         _uiState.update {
             it.copy(

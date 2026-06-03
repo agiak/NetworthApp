@@ -8,4 +8,8 @@ data class NetWorthEntry(
     val date: LocalDate,
     val note: String = "",
     val accountId: Long = 1,
-)
+) {
+    companion object {
+        const val DELETION_MARKER = "__account_deleted__"
+    }
+}

@@ -2,6 +2,7 @@ package com.agcoding.networkapp.analytics.presentation
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,9 +22,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -53,8 +54,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -111,7 +114,6 @@ private fun AnalyticsContent(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     var showFilterSheet by remember { mutableStateOf(false) }
-    var showAllEntries by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -159,7 +161,7 @@ private fun AnalyticsContent(
                             }
                         }
                         Spacer(Modifier.width(8.dp))
-                        IconButton(onClick = onNavigateToAllMonths) {
+                        IconButton(onClick = { showFilterSheet = true }) {
                             Icon(
                                 imageVector = Icons.Default.DateRange,
                                 contentDescription = null,
@@ -317,30 +319,28 @@ private fun AnalyticsContent(
                         }
                     }
 
-                    // ── Month-by-month section ────────────────────────────────
+                    // ── Month-by-month section (preview, full list in AllMonths) ──
                     val nonFirstEntries = uiState.monthlyEntries.filter { !it.isFirst }
                     if (nonFirstEntries.isNotEmpty()) {
                         item {
                             Row(
                                 Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Text(
                                     text = stringResource(R.string.analytics_month_by_month),
                                     style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
                                 )
-                                TextButton(onClick = { showAllEntries = !showAllEntries }) {
+                                TextButton(onClick = onNavigateToAllMonths) {
                                     Text(
-                                        text = if (showAllEntries) stringResource(R.string.analytics_show_less)
-                                               else stringResource(R.string.analytics_show_all),
+                                        text = stringResource(R.string.analytics_see_all),
                                         color = PositiveGreen,
                                         style = MaterialTheme.typography.labelLarge,
                                     )
                                     Icon(
-                                        imageVector = if (showAllEntries) Icons.Default.KeyboardArrowUp
-                                                      else Icons.Default.KeyboardArrowDown,
+                                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                         contentDescription = null,
                                         tint = PositiveGreen,
                                         modifier = Modifier.size(16.dp),
@@ -349,27 +349,19 @@ private fun AnalyticsContent(
                             }
                         }
                         item {
-                            val allEntries     = uiState.monthlyEntries
-                            val displayEntries = if (showAllEntries) allEntries else allEntries.take(5)
+                            val previewEntries = nonFirstEntries.take(3)
                             Surface(
                                 shape    = RoundedCornerShape(20.dp),
                                 color    = MaterialTheme.colorScheme.surface,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Column {
-                                    displayEntries.forEachIndexed { i, entry ->
-                                        if (entry.isFirst) return@forEachIndexed
-                                        val fromEntry = allEntries.getOrNull(i + 1)
-                                        val fromShort = fromEntry?.monthLabel?.split(" ")?.firstOrNull() ?: ""
-                                        val toShort   = entry.monthLabel.split(" ").firstOrNull() ?: ""
-                                        val range     = if (fromEntry != null)
-                                            "${fromEntry.formattedValue} → ${entry.formattedValue}"
-                                        else ""
+                                    previewEntries.forEachIndexed { i, entry ->
                                         MonthByMonthRow(
                                             entry           = entry,
-                                            transitionLabel = "$fromShort → $toShort",
-                                            rangeLabel      = range,
-                                            showDivider     = i < displayEntries.lastIndex,
+                                            transitionLabel = entry.transitionLabel,
+                                            rangeLabel      = entry.rangeLabel,
+                                            showDivider     = i < previewEntries.lastIndex,
                                         )
                                     }
                                 }
@@ -487,18 +479,46 @@ private fun TimeFilter.toShortLabel(): String = when (this) {
 
 @Composable
 private fun MonthlyChangeBarChart(entries: List<MonthlyEntryUiModel>) {
+    data class BarData(
+        val displayDiff: Double,
+        val isPositive: Boolean,
+        val formattedDisplayDiff: String,
+        val formattedEventAmount: String,
+        val hasAccountAddition: Boolean,
+        val hasAccountRemoval: Boolean,
+        val monthLabel: String,   // "May"
+        val yearLabel: String,    // "26"  — shown on a second line
+    )
+
     val bars = buildList {
         entries.forEachIndexed { i, entry ->
             val prev = entries.getOrNull(i + 1) ?: return@forEachIndexed
-            add(entry.rawValue - prev.rawValue to entry.isPositive)
+            val rawDiff     = entry.rawValue - prev.rawValue
+            val displayDiff = entry.organicDiff ?: rawDiff
+            val parts       = entry.monthLabel.split(" ")
+            add(BarData(
+                displayDiff          = displayDiff,
+                isPositive           = displayDiff >= 0,
+                formattedDisplayDiff = entry.formattedOrganicDiff.ifEmpty { entry.formattedDiff },
+                formattedEventAmount = entry.formattedEventAmount,
+                hasAccountAddition   = entry.hasAccountAddition,
+                hasAccountRemoval    = entry.hasAccountRemoval,
+                monthLabel           = parts.firstOrNull()?.take(3) ?: "",
+                yearLabel            = parts.lastOrNull()?.takeLast(2) ?: "",
+            ))
         }
     }.reversed()
 
     if (bars.isEmpty()) return
 
-    val maxAbs = bars.maxOf { (v, _) -> kotlin.math.abs(v) }.takeIf { it > 0 } ?: 1.0
-    val posColor = PositiveGreen
-    val negColor = Color(0xFFE8836A)
+    // Scale is based on organic diffs so a large account addition doesn't crush other bars
+    val maxAbs = bars.maxOf { kotlin.math.abs(it.displayDiff) }.takeIf { it > 0 } ?: 1.0
+    val posColor       = PositiveGreen
+    val negColor       = Color(0xFFE8836A)
+    val additionColor  = Color(0xFFFFC107)   // amber — account added
+    val removalColor   = Color(0xFFE8836A)   // coral — account removed
+    val hasAnyEvent    = bars.any { it.hasAccountAddition || it.hasAccountRemoval }
+    var selectedBarIndex by remember(bars) { mutableStateOf<Int?>(null) }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -506,36 +526,115 @@ private fun MonthlyChangeBarChart(entries: List<MonthlyEntryUiModel>) {
         color    = MaterialTheme.colorScheme.surface,
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Canvas(modifier = Modifier.fillMaxWidth().height(110.dp)) {
-                val n     = bars.size
-                val w     = size.width
-                val h     = size.height
-                val barW  = (w / n) * 0.55f
-                val gap   = (w / n) * 0.45f
-                val maxH  = h * 0.88f
+            // Tooltip area — always reserves space to avoid layout jumps
+            Box(modifier = Modifier.fillMaxWidth().height(if (hasAnyEvent) 36.dp else 20.dp)) {
+                selectedBarIndex?.let { idx ->
+                    val bar = bars[idx]
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.align(Alignment.Center),
+                    ) {
+                        Text(
+                            text       = "${bar.monthLabel} '${bar.yearLabel}  ${bar.formattedDisplayDiff}",
+                            style      = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color      = if (bar.isPositive) posColor else negColor,
+                        )
+                        when {
+                            bar.hasAccountAddition && bar.formattedEventAmount.isNotEmpty() -> Text(
+                                text     = "+${bar.formattedEventAmount} account added",
+                                style    = MaterialTheme.typography.labelSmall,
+                                color    = additionColor,
+                                fontSize = 9.sp,
+                            )
+                            bar.hasAccountRemoval && bar.formattedEventAmount.isNotEmpty() -> Text(
+                                text     = "−${bar.formattedEventAmount} account removed",
+                                style    = MaterialTheme.typography.labelSmall,
+                                color    = removalColor,
+                                fontSize = 9.sp,
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(110.dp)
+                    .pointerInput(bars) {
+                        detectTapGestures { offset ->
+                            val w    = size.width.toFloat()
+                            val n    = bars.size
+                            val barW = (w / n) * 0.55f
+                            val gap  = (w / n) * 0.45f
+                            val tapped = bars.indices.firstOrNull { i ->
+                                val left = i * (barW + gap) + gap / 2f
+                                offset.x >= left && offset.x <= left + barW
+                            }
+                            selectedBarIndex = if (tapped == selectedBarIndex) null else tapped
+                        }
+                    }
+            ) {
+                val n    = bars.size
+                val w    = size.width
+                val h    = size.height
+                val barW = (w / n) * 0.55f
+                val gap  = (w / n) * 0.45f
+                val maxH = h * 0.82f  // leave headroom for markers
 
-                bars.forEachIndexed { i, (rawDiff, isPos) ->
-                    val barH  = (kotlin.math.abs(rawDiff) / maxAbs * maxH).toFloat().coerceAtLeast(4.dp.toPx())
+                bars.forEachIndexed { i, bar ->
+                    val barH  = (kotlin.math.abs(bar.displayDiff) / maxAbs * maxH).toFloat().coerceAtLeast(4.dp.toPx())
                     val left  = i * (barW + gap) + gap / 2f
+                    val alpha = if (selectedBarIndex == null || i == selectedBarIndex) 1f else 0.3f
                     drawRoundRect(
-                        color        = if (isPos) posColor else negColor,
+                        color        = (if (bar.isPositive) posColor else negColor).copy(alpha = alpha),
                         topLeft      = androidx.compose.ui.geometry.Offset(left, h - barH),
                         size         = androidx.compose.ui.geometry.Size(barW, barH),
                         cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()),
                     )
+                    // Event dot: amber = account added, coral = account removed
+                    val eventColor = when {
+                        bar.hasAccountAddition -> additionColor
+                        bar.hasAccountRemoval  -> removalColor
+                        else                   -> null
+                    }
+                    if (eventColor != null) {
+                        val markerR = 3.5.dp.toPx()
+                        val markerX = left + barW / 2f
+                        val markerY = (h - barH - markerR - 4.dp.toPx()).coerceAtLeast(markerR)
+                        drawCircle(
+                            color  = eventColor.copy(alpha = alpha),
+                            radius = markerR,
+                            center = androidx.compose.ui.geometry.Offset(markerX, markerY),
+                        )
+                    }
                 }
             }
-            Spacer(Modifier.height(6.dp))
-            val labels = buildList {
-                entries.forEachIndexed { i, e ->
-                    if (entries.getOrNull(i + 1) != null)
-                        add(e.monthLabel.split(" ").firstOrNull()?.take(1) ?: "")
-                }
-            }.reversed()
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                labels.forEach { lbl ->
-                    Text(lbl, style = MaterialTheme.typography.labelSmall,
-                         color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+            Spacer(Modifier.height(4.dp))
+            Row(Modifier.fillMaxWidth()) {
+                bars.forEach { bar ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            text      = bar.monthLabel,
+                            style     = MaterialTheme.typography.labelSmall,
+                            color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize  = 9.sp,
+                            textAlign = TextAlign.Center,
+                        )
+                        if (bar.yearLabel.isNotEmpty()) {
+                            Text(
+                                text      = bar.yearLabel,
+                                style     = MaterialTheme.typography.labelSmall,
+                                color     = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                fontSize  = 8.sp,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -3,6 +3,9 @@ package com.agcoding.networkapp.analytics.presentation.mapper
 import com.agcoding.networkapp.analytics.presentation.TimeFilter
 import com.agcoding.networkapp.analytics.presentation.model.MonthlyEntryUiModel
 import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
+import com.agcoding.networkapp.home.domain.model.NetWorthEntry
+import com.agcoding.networkapp.home.domain.usecase.computeInjectionByMonth
+import com.agcoding.networkapp.home.domain.usecase.formatInjectionAmount
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import java.time.YearMonth
@@ -48,7 +51,12 @@ class AnalyticsUiMapper @Inject constructor() {
 
     private var symbol: String = "€"
 
-    fun map(allData: List<MonthlyNetWorth>, filter: TimeFilter, currency: AppCurrency = AppCurrency.EUR): AnalyticsMapResult {
+    fun map(
+        allData: List<MonthlyNetWorth>,
+        filter: TimeFilter,
+        currency: AppCurrency = AppCurrency.EUR,
+        rawEntries: List<NetWorthEntry> = emptyList(),
+    ): AnalyticsMapResult {
         symbol = currency.symbol
         val filtered = applyFilter(allData, filter)
         if (filtered.isEmpty()) return AnalyticsMapResult()
@@ -172,7 +180,7 @@ class AnalyticsUiMapper @Inject constructor() {
             projectedNetWorthDate = "by $projectedDate",
             currentStreakLabel = currentStreakLabel,
             currentStreakSubLabel = currentStreakSubLabel,
-            monthlyEntries = buildMonthlyEntries(sorted, fullFormatter),
+            monthlyEntries = buildMonthlyEntries(sorted, fullFormatter, rawEntries),
             hasData = true,
             currentNetWorthFormatted = formatCurrency(lastVal),
             filterPeriodLabel = filterPeriodLabel,
@@ -193,32 +201,50 @@ class AnalyticsUiMapper @Inject constructor() {
 
     private fun buildMonthlyEntries(
         sorted: List<MonthlyNetWorth>,
-        formatter: DateTimeFormatter
+        formatter: DateTimeFormatter,
+        rawEntries: List<NetWorthEntry> = emptyList(),
     ): List<MonthlyEntryUiModel> {
+        val injectionByMonth = computeInjectionByMonth(rawEntries)
+        val monthOnlyFmt = DateTimeFormatter.ofPattern("MMM", Locale.getDefault())
+
         val reversed = sorted.reversed()
         return reversed.mapIndexed { i, month ->
             val prev = reversed.getOrNull(i + 1)
             if (prev == null) {
                 MonthlyEntryUiModel(
-                    monthLabel = month.yearMonth.format(formatter),
-                    formattedValue = formatCurrency(month.value),
-                    formattedDiff = "—",
+                    monthLabel       = month.yearMonth.format(formatter),
+                    formattedValue   = formatCurrency(month.value),
+                    formattedDiff    = "—",
                     formattedPercent = "",
-                    isPositive = true,
-                    isFirst = true,
-                    rawValue = month.value,
+                    isPositive       = true,
+                    isFirst          = true,
+                    rawValue         = month.value,
                 )
             } else {
                 val diff = month.value - prev.value
-                val pct = if (prev.value != 0.0) (diff / prev.value) * 100.0 else 0.0
+                val pct  = if (prev.value != 0.0) (diff / prev.value) * 100.0 else 0.0
+                val injection          = injectionByMonth[month.yearMonth] ?: 0.0
+                val hasAccountAddition = injection > 0.0
+                val hasAccountRemoval  = injection < 0.0
+                val hasEvent           = hasAccountAddition || hasAccountRemoval
+                val organicDiff        = diff - injection
+                val fromShort = prev.yearMonth.format(monthOnlyFmt)
+                val toShort   = month.yearMonth.format(monthOnlyFmt)
                 MonthlyEntryUiModel(
-                    monthLabel = month.yearMonth.format(formatter),
-                    formattedValue = formatCurrency(month.value),
-                    formattedDiff = formatChange(diff),
-                    formattedPercent = formatPercent(pct),
-                    isPositive = diff >= 0,
-                    isFirst = false,
-                    rawValue = month.value,
+                    monthLabel           = month.yearMonth.format(formatter),
+                    formattedValue       = formatCurrency(month.value),
+                    formattedDiff        = formatChange(diff),
+                    formattedPercent     = formatPercent(pct),
+                    isPositive           = diff >= 0,
+                    isFirst              = false,
+                    rawValue             = month.value,
+                    hasAccountAddition   = hasAccountAddition,
+                    hasAccountRemoval    = hasAccountRemoval,
+                    organicDiff          = if (hasEvent) organicDiff else null,
+                    formattedOrganicDiff = if (hasEvent) formatChange(organicDiff) else "",
+                    formattedEventAmount = if (hasEvent) formatInjectionAmount(injection, symbol) else "",
+                    transitionLabel      = "$fromShort → $toShort",
+                    rangeLabel           = "${formatCurrency(prev.value)} → ${formatCurrency(month.value)}",
                 )
             }
         }

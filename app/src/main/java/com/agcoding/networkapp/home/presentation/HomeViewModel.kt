@@ -163,7 +163,7 @@ class HomeViewModel @Inject constructor(
             }
             return
         }
-        val displayData = mapper.map(monthlyData, currentCurrency)
+        val displayData = mapper.map(monthlyData, currentCurrency, cachedRawEntries)
         val rawNetWorth = monthlyData.sortedBy { it.yearMonth }.lastOrNull()?.value ?: 0.0
         _uiState.update { state ->
             state.copy(

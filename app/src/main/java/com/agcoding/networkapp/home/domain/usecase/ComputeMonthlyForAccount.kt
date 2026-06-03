@@ -4,6 +4,22 @@ import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
 import com.agcoding.networkapp.home.domain.model.NetWorthEntry
 import java.time.YearMonth
 
+fun computeMonthlyForAccounts(entries: List<NetWorthEntry>, accountIds: Set<Long>): List<MonthlyNetWorth> {
+    require(accountIds.isNotEmpty())
+    val perAccount = accountIds.map { computeMonthlyForAccount(entries, it) }
+    val allMonths = perAccount.flatMap { monthly -> monthly.map { it.yearMonth } }.toSortedSet()
+    if (allMonths.isEmpty()) return emptyList()
+    return allMonths.map { month ->
+        val total = perAccount.sumOf { monthly -> monthly.find { it.yearMonth == month }?.value ?: 0.0 }
+        MonthlyNetWorth(
+            yearMonth        = month,
+            value            = total,
+            lastUpdatedDate  = month.atEndOfMonth(),
+            isCarriedForward = false,
+        )
+    }
+}
+
 fun computeMonthlyForAccount(entries: List<NetWorthEntry>, accountId: Long): List<MonthlyNetWorth> {
     val accountEntries = entries.filter { it.accountId == accountId }
     if (accountEntries.isEmpty()) return emptyList()

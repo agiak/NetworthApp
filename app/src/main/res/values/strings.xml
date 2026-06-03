@@ -118,6 +118,7 @@
     <string name="analytics_projection">12M Projection</string>
     <string name="analytics_projection_at_pace">at current pace</string>
     <string name="analytics_show_all">Show all</string>
+    <string name="analytics_see_all">See all</string>
     <string name="analytics_streak">Current Streak</string>
     <string name="analytics_total_growth">Total Growth</string>
     <string name="analytics_trend">Trend</string>
@@ -127,6 +128,7 @@
     <string name="filter_6m">6M</string>
     <string name="filter_all">All</string>
     <string name="filter_label_12m">Last 12 months</string>
+    <string name="filter_label_1m">Last month</string>
     <string name="filter_label_3m">Last 3 months</string>
     <string name="filter_label_6m">Last 6 months</string>
     <string name="filter_label_all">All time</string>

@@ -6,7 +6,8 @@ import com.agcoding.networkapp.analytics.presentation.model.MonthlyEntryUiModel
 data class AllMonthsUiState(
     val isLoading: Boolean = true,
     val accounts: List<Account> = emptyList(),
-    val selectedAccountId: Long? = null,
+    val selectedAccountIds: Set<Long> = emptySet(),
+    val selectedFilter: TimeFilter = TimeFilter.ALL,
     val monthlyEntries: List<MonthlyEntryUiModel> = emptyList(),
     val sortOrder: AllMonthsSortOrder = AllMonthsSortOrder.NEWEST_FIRST,
 )

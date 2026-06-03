@@ -1,6 +1,8 @@
 package com.agcoding.networkapp.home.presentation.mapper
 
 import com.agcoding.networkapp.home.domain.model.MonthlyNetWorth
+import com.agcoding.networkapp.home.domain.model.NetWorthEntry
+import com.agcoding.networkapp.home.domain.usecase.computeInjectionByMonth
 import com.agcoding.networkapp.home.presentation.model.ChartPoint
 import com.agcoding.networkapp.home.presentation.model.InsightData
 import com.agcoding.networkapp.home.presentation.model.NetWorthDisplayData
@@ -14,21 +16,30 @@ import kotlin.math.ceil
 
 class NetWorthDomainToUiMapper @Inject constructor() {
 
-    fun map(monthlyData: List<MonthlyNetWorth>, currency: AppCurrency = AppCurrency.EUR): NetWorthDisplayData {
+    fun map(
+        monthlyData: List<MonthlyNetWorth>,
+        currency: AppCurrency = AppCurrency.EUR,
+        rawEntries: List<NetWorthEntry> = emptyList(),
+    ): NetWorthDisplayData {
         if (monthlyData.isEmpty()) return NetWorthDisplayData()
 
         val sortedDesc = monthlyData.sortedByDescending { it.yearMonth }
-        val latest = sortedDesc.first()
+        val latest   = sortedDesc.first()
         val previous = sortedDesc.drop(1).firstOrNull()
+
+        // Compute injection map once to exclude additions/removals from performance stats.
+        val injectionByMonth = computeInjectionByMonth(rawEntries)
 
         val changeThisMonth: String
         val changePercentage: String
         val isPositiveChange: Boolean
         if (previous != null) {
-            val diff = latest.value - previous.value
-            val pct = if (previous.value != 0.0) (diff / previous.value) * 100.0 else 0.0
-            isPositiveChange = diff >= 0
-            changeThisMonth = diff.formatAsCurrency(currency)
+            val totalDiff   = latest.value - previous.value
+            val injection   = injectionByMonth[latest.yearMonth] ?: 0.0
+            val organicDiff = totalDiff - injection
+            val pct = if (previous.value != 0.0) (organicDiff / previous.value) * 100.0 else 0.0
+            isPositiveChange = organicDiff >= 0
+            changeThisMonth = organicDiff.formatAsCurrency(currency)
             changePercentage = "${if (pct >= 0) "+ " else "- "}${String.format(Locale.US, "%.1f", Math.abs(pct))} %"
         } else {
             changeThisMonth = "${currency.symbol}0"
@@ -58,9 +69,13 @@ class NetWorthDomainToUiMapper @Inject constructor() {
         val ytdGrowth = ytdDiff.formatAsChange(currency)
         val ytdPercentage = "${if (ytdPct >= 0) "+" else ""}${String.format(Locale.US, "%.0f", Math.abs(ytdPct))}%"
 
-        val avgGrowthRaw: Double = if (sortedDesc.size >= 2) {
-            (sortedDesc.first().value - sortedDesc.last().value) / (sortedDesc.size - 1)
-        } else 0.0
+        // Compute average organic monthly change (excludes addition/removal injections)
+        val organicDiffs = sortedDesc.zipWithNext().map { (curr, prev) ->
+            val rawDiff  = curr.value - prev.value
+            val inj      = injectionByMonth[curr.yearMonth] ?: 0.0
+            rawDiff - inj
+        }
+        val avgGrowthRaw: Double = if (organicDiffs.isNotEmpty()) organicDiffs.average() else 0.0
         val avgPerMonth: String = if (sortedDesc.size >= 2) avgGrowthRaw.formatAsCurrency(currency) else "${currency.symbol}0"
 
         val showProjection = avgGrowthRaw > 0 && sortedDesc.size >= 2

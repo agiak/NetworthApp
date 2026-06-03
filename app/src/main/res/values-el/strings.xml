@@ -103,6 +103,7 @@
     <string name="analytics_all_months_title">Όλοι οι μήνες</string>
     <string name="analytics_month_by_month">Ανά μήνα</string>
     <string name="analytics_show_all">Εμφάνιση όλων</string>
+    <string name="analytics_see_all">Όλα</string>
     <string name="analytics_no_data">Δεν υπάρχουν δεδομένα. Προσθέστε εγγραφές για να δείτε αναλύσεις.</string>
     <string name="analytics_total_growth">Συνολική ανάπτυξη</string>
     <string name="analytics_worst_month">Χειρότερος μήνας</string>
@@ -117,6 +118,7 @@
     <string name="filter_6m">6Μ</string>
     <string name="filter_all">Όλα</string>
     <string name="filter_label_12m">Τελευταίους 12 μήνες</string>
+    <string name="filter_label_1m">Τελευταίο μήνα</string>
     <string name="filter_label_3m">Τελευταίους 3 μήνες</string>
     <string name="filter_label_6m">Τελευταίους 6 μήνες</string>
     <string name="filter_label_all">Όλο το ιστορικό</string>
