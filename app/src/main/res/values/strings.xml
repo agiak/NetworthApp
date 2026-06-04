@@ -457,6 +457,7 @@
     <string name="fixed_expenses_monthly_equivalent">monthly equivalent</string>
     <string name="fixed_expenses_total_monthly">Monthly</string>
     <string name="fixed_expenses_total_yearly">Yearly</string>
+    <string name="fixed_expenses_by_account">By Account</string>
     <string name="fixed_expense_filter_title">Sort &amp; Filter</string>
     <string name="fixed_expense_sort_section_label">SORT BY</string>
     <string name="fixed_expense_sort_cost_high">Cost: High → Low</string>

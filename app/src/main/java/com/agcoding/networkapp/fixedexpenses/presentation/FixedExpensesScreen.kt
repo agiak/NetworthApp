@@ -5,11 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,7 +42,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -182,16 +179,12 @@ private fun FixedExpensesContent(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     item {
-                        TotalCard(
-                            monthlyTotal = uiState.totalFormatted,
-                            yearlyTotal = uiState.yearlyFormatted,
-                            count = uiState.expenses.size,
+                        AccountStatsCard(
+                            totalMonthly = uiState.totalFormatted,
+                            totalYearly  = uiState.yearlyFormatted,
+                            totalCount   = uiState.totalExpensesCount,
+                            stats        = uiState.accountStats,
                         )
-                    }
-                    if (uiState.accountStats.isNotEmpty()) {
-                        item {
-                            AccountStatsCard(stats = uiState.accountStats)
-                        }
                     }
                     if (uiState.expenses.isEmpty()) {
                         item {
@@ -390,70 +383,6 @@ private fun FilterBottomSheet(
     }
 }
 
-@Composable
-private fun TotalCard(
-    monthlyTotal: String,
-    yearlyTotal: String,
-    count: Int,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.fixed_expenses_total_monthly).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        letterSpacing = 0.8.sp,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = monthlyTotal,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = PositiveGreen,
-                    )
-                }
-                VerticalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp).fillMaxHeight(),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.fixed_expenses_total_yearly).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        letterSpacing = 0.8.sp,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = yearlyTotal,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            }
-            Spacer(Modifier.height(10.dp))
-            HorizontalDivider(
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.fixed_expenses_count, count),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
 
 @Composable
 private fun FixedExpensesEmptyState(
@@ -522,8 +451,8 @@ private fun FixedExpensesContentPreview() {
                 ),
                 availableAccounts = listOf(Account(1, "Main"), Account(2, "Savings")),
                 accountStats = listOf(
-                    AccountExpenseStatsUiModel(1, "Main", "#76C893", 2, "€1,215.99"),
-                    AccountExpenseStatsUiModel(2, "Savings", "#5B8DEF", 1, "€50.00"),
+                    AccountExpenseStatsUiModel(1, "Main",    "#76C893", 2, "€1,215.99", "€14,591.88"),
+                    AccountExpenseStatsUiModel(2, "Savings", "#5B8DEF", 1, "€50.00",    "€600.00"),
                 ),
             ),
             onIntent = {},

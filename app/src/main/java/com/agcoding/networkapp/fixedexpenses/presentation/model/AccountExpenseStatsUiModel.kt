@@ -6,4 +6,5 @@ data class AccountExpenseStatsUiModel(
     val accountColorHex: String,
     val count: Int,
     val formattedMonthlyTotal: String,
+    val formattedYearlyTotal: String,
 )

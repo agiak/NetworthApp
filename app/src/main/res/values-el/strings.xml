@@ -429,6 +429,7 @@
     <string name="fixed_expenses_total_label">Σύνολο ανά μήνα</string>
     <string name="fixed_expenses_total_monthly">Μηνιαίο</string>
     <string name="fixed_expenses_total_yearly">Ετήσιο</string>
+    <string name="fixed_expenses_by_account">Ανά Λογαριασμό</string>
     <string name="fixed_expenses_count">%1$d έξοδο(α)</string>
     <string name="fixed_expenses_monthly_equivalent">μηνιαίο ισοδύναμο</string>
     <string name="fixed_expenses_empty_title">Δεν υπάρχουν πάγια έξοδα</string>

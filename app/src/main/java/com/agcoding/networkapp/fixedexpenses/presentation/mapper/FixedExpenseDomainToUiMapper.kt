@@ -57,23 +57,41 @@ class FixedExpenseDomainToUiMapper @Inject constructor() {
         expenses: List<FixedExpense>,
         accounts: List<Account>,
         currency: AppCurrency,
-    ): List<AccountExpenseStatsUiModel> = accounts.map { account ->
-        val accountExpenses = expenses.filter { expense ->
-            expense.accountIds.isEmpty() || account.id in expense.accountIds
-        }
-        val monthlyTotal = accountExpenses.sumOf { expense ->
-            when (expense.recurrence) {
-                RecurrenceType.MONTHLY -> expense.cost
-                RecurrenceType.ANNUAL  -> expense.cost / 12.0
+    ): List<AccountExpenseStatsUiModel> {
+        if (accounts.isEmpty()) return emptyList()
+
+        // Expenses with no specific account are split evenly across all accounts so
+        // the per-account totals always add up to the grand total (no double-counting).
+        val accountCount = accounts.size.toDouble()
+
+        return accounts.map { account ->
+            val accountExpenses = expenses.filter { expense ->
+                expense.accountIds.isEmpty() || account.id in expense.accountIds
             }
+            val monthlyTotal = accountExpenses.sumOf { expense ->
+                val raw = when (expense.recurrence) {
+                    RecurrenceType.MONTHLY -> expense.cost
+                    RecurrenceType.ANNUAL  -> expense.cost / 12.0
+                }
+                // Unassigned expenses are divided equally to avoid double-counting
+                if (expense.accountIds.isEmpty()) raw / accountCount else raw
+            }
+            val yearlyTotal = accountExpenses.sumOf { expense ->
+                val raw = when (expense.recurrence) {
+                    RecurrenceType.MONTHLY -> expense.cost * 12.0
+                    RecurrenceType.ANNUAL  -> expense.cost
+                }
+                if (expense.accountIds.isEmpty()) raw / accountCount else raw
+            }
+            AccountExpenseStatsUiModel(
+                accountId             = account.id,
+                accountName           = account.name,
+                accountColorHex       = account.colorHex,
+                count                 = accountExpenses.size,
+                formattedMonthlyTotal = "${currency.symbol}${fmt(monthlyTotal)}",
+                formattedYearlyTotal  = "${currency.symbol}${fmt(yearlyTotal)}",
+            )
         }
-        AccountExpenseStatsUiModel(
-            accountId = account.id,
-            accountName = account.name,
-            accountColorHex = account.colorHex,
-            count = accountExpenses.size,
-            formattedMonthlyTotal = "${currency.symbol}${fmt(monthlyTotal)}",
-        )
     }
 
     private fun fmt(value: Double) = String.format(Locale.US, "%,.2f", value)

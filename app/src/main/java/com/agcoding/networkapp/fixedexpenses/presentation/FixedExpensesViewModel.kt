@@ -165,16 +165,18 @@ class FixedExpensesViewModel @Inject constructor(
         sortOption: FixedExpenseSortOption = _uiState.value.sortOption,
         filterAccountIds: Set<Long> = _uiState.value.filterAccountIds,
     ) {
-        val filtered = applyAccountFilter(expenses, filterAccountIds)
-        val uiModels = filtered.sorted(sortOption).map { mapper.map(it, currentCurrency, accounts) }
+        val filtered     = applyAccountFilter(expenses, filterAccountIds)
+        val uiModels     = filtered.sorted(sortOption).map { mapper.map(it, currentCurrency, accounts) }
+        // Summary always uses ALL expenses so totals never change when a filter is applied
         val accountStats = mapper.computeAccountStats(expenses, accounts, currentCurrency)
         _uiState.update { state ->
             state.copy(
-                isLoading = false,
-                expenses = uiModels,
-                totalFormatted = mapper.formatMonthlyTotal(filtered, currentCurrency),
-                yearlyFormatted = mapper.formatYearlyTotal(filtered, currentCurrency),
-                accountStats = accountStats,
+                isLoading          = false,
+                expenses           = uiModels,
+                totalExpensesCount = expenses.size,
+                totalFormatted     = mapper.formatMonthlyTotal(expenses, currentCurrency),
+                yearlyFormatted    = mapper.formatYearlyTotal(expenses, currentCurrency),
+                accountStats       = accountStats,
             )
         }
     }

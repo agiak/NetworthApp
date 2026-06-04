@@ -10,6 +10,7 @@ import java.time.LocalDate
 data class FixedExpensesUiState(
     val isLoading: Boolean = true,
     val expenses: List<FixedExpenseUiModel> = emptyList(),
+    val totalExpensesCount: Int = 0,
     val totalFormatted: String = "€0.00",
     val yearlyFormatted: String = "€0.00",
     val currencySymbol: String = "€",
