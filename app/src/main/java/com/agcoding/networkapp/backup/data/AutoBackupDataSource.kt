@@ -41,6 +41,9 @@ class AutoBackupDataSource @Inject constructor(
             val entries = dao.getAllEntriesOnce().map { mapper.map(it) }
             val accounts = accountDao.getAllAccountsOnce().map { accountMapper.map(it) }
             val fixedExpenses = fixedExpenseDao.getAllOnce().map { fixedExpenseMapper.toDomain(it) }
+            // Never overwrite the previous backup with an empty database (e.g. fresh install or
+            // mid-reset): that file is the only way to recover the data
+            if (entries.isEmpty() && fixedExpenses.isEmpty()) return@withContext
             val profile = settingsRepository.getUserProfile().first()
             val theme = settingsRepository.getAppTheme().first()
             val language = settingsRepository.getAppLanguage().first()

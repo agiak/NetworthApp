@@ -21,6 +21,9 @@ interface NetWorthDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEntry(entry: NetWorthEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entries: List<NetWorthEntity>)
+
     @Update
     suspend fun updateEntry(entry: NetWorthEntity)
 

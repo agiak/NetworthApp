@@ -51,6 +51,8 @@ class BackupSerializer @Inject constructor() {
                 put("id", entry.id)
                 put("value", entry.value)
                 put("date", entry.date.toString())
+                put("note", entry.note)
+                put("accountId", entry.accountId)
             })
         }
         root.put("entries", entriesArray)
@@ -133,18 +135,6 @@ class BackupSerializer @Inject constructor() {
             }.getOrNull()
         } else null
 
-        val entriesArray = root.getJSONArray("entries")
-        val entries = (0 until entriesArray.length()).mapNotNull { i ->
-            runCatching {
-                val e = entriesArray.getJSONObject(i)
-                NetWorthEntry(
-                    id = e.optLong("id", 0L),
-                    value = e.getDouble("value"),
-                    date = LocalDate.parse(e.getString("date"))
-                )
-            }.getOrNull()
-        }
-
         val accounts = if (root.has("accounts")) {
             val arr = root.getJSONArray("accounts")
             (0 until arr.length()).mapNotNull { i ->
@@ -160,6 +150,23 @@ class BackupSerializer @Inject constructor() {
                 }.getOrNull()
             }
         } else emptyList()
+
+        // Backups before v3 don't store the account of each entry: fall back to the first account
+        val fallbackAccountId = accounts.minOfOrNull { it.id } ?: 1L
+
+        val entriesArray = root.getJSONArray("entries")
+        val entries = (0 until entriesArray.length()).mapNotNull { i ->
+            runCatching {
+                val e = entriesArray.getJSONObject(i)
+                NetWorthEntry(
+                    id = e.optLong("id", 0L),
+                    value = e.getDouble("value"),
+                    date = LocalDate.parse(e.getString("date")),
+                    note = e.optString("note", ""),
+                    accountId = e.optLong("accountId", fallbackAccountId),
+                )
+            }.getOrNull()
+        }
 
         val fixedExpenses = if (root.has("fixedExpenses")) {
             val arr = root.getJSONArray("fixedExpenses")
@@ -183,7 +190,7 @@ class BackupSerializer @Inject constructor() {
                     )
                 }.getOrNull()
             }
-        } else emptyList()
+        } else null
 
         return AppBackupData(
             version = version,
@@ -198,6 +205,6 @@ class BackupSerializer @Inject constructor() {
     }
 
     companion object {
-        const val BACKUP_VERSION = 2
+        const val BACKUP_VERSION = 3
     }
 }

@@ -1,12 +1,12 @@
 package com.agcoding.networkapp.backup.domain.usecase
 
+import com.agcoding.networkapp.backup.data.BackupRestoreDataSource
 import com.agcoding.networkapp.backup.data.BackupSerializer
-import com.agcoding.networkapp.home.domain.repository.NetWorthRepository
 import com.agcoding.networkapp.settings.domain.repository.SettingsRepository
 import javax.inject.Inject
 
 class ImportDataUseCaseImpl @Inject constructor(
-    private val repository: NetWorthRepository,
+    private val restoreDataSource: BackupRestoreDataSource,
     private val settingsRepository: SettingsRepository,
     private val serializer: BackupSerializer
 ) : ImportDataUseCase {
@@ -16,13 +16,8 @@ class ImportDataUseCaseImpl @Inject constructor(
     override suspend fun invoke(json: String): Result<Unit> = runCatching {
         val backup = serializer.deserialize(json)
 
-        // Clear existing entries before restoring
-        repository.deleteAllEntries().getOrThrow()
-
-        // Insert all imported entries
-        backup.entries.forEach { entry ->
-            repository.addEntry(entry).getOrThrow()
-        }
+        // Accounts, entries and fixed expenses are replaced atomically
+        restoreDataSource.restore(backup)
 
         // Restore profile if present
         backup.profile?.let { settingsRepository.setUserProfile(it) }

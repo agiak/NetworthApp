@@ -19,6 +19,9 @@ interface FixedExpenseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: FixedExpenseEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entities: List<FixedExpenseEntity>)
+
     @Update
     suspend fun update(entity: FixedExpenseEntity)
 

@@ -14,6 +14,8 @@ data class AppBackupData(
     val theme: AppTheme?,
     val language: AppLanguage?,
     val entries: List<NetWorthEntry>,
+    /** Empty when the backup predates accounts: the current accounts are kept. */
     val accounts: List<Account> = emptyList(),
-    val fixedExpenses: List<FixedExpense> = emptyList(),
+    /** Null when the backup predates fixed expenses: the current ones are kept. */
+    val fixedExpenses: List<FixedExpense>? = null,
 )
