@@ -13,4 +13,8 @@ data class FixedExpenseUiModel(
     val monthlyEquivalent: String?,
     val accountIds: List<Long> = emptyList(),
     val accountColors: List<String> = emptyList(),
+    /** Set only when an account filter is active and the expense is shared: the filtered accounts' share (1–99) */
+    val sharePercent: Int? = null,
+    /** Full cost of a shared expense, shown next to [sharePercent] */
+    val formattedFullCost: String? = null,
 )

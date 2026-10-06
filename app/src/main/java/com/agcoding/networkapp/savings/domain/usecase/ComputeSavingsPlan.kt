@@ -2,16 +2,14 @@ package com.agcoding.networkapp.savings.domain.usecase
 
 import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpense
-import com.agcoding.networkapp.fixedexpenses.domain.model.RecurrenceType
+import com.agcoding.networkapp.fixedexpenses.domain.model.monthlyCost
+import com.agcoding.networkapp.fixedexpenses.domain.model.sharingAccountIds
 import com.agcoding.networkapp.savings.domain.model.AccountSavingsPlan
 import com.agcoding.networkapp.savings.domain.model.SavingsPlan
 
 /**
- * Splits every fixed expense across the accounts that carry it, so the per-account
- * amounts always add up to the household total:
- * - no account assigned (= all) → split evenly across all accounts
- * - assigned to several accounts (e.g. shared rent) → split evenly across those accounts
- * - assigned only to accounts that no longer exist → treated as shared by all
+ * Splits every fixed expense evenly across the accounts that carry it (see [sharingAccountIds]),
+ * so the per-account amounts always add up to the household total.
  */
 fun computeSavingsPlan(accounts: List<Account>, expenses: List<FixedExpense>): SavingsPlan {
     if (accounts.isEmpty()) return SavingsPlan(accounts = emptyList(), totalExpenseCount = expenses.size)
@@ -21,8 +19,7 @@ fun computeSavingsPlan(accounts: List<Account>, expenses: List<FixedExpense>): S
     val counts = mutableMapOf<Long, Int>()
 
     expenses.forEach { expense ->
-        val assigned = expense.accountIds.filter { it in allIds }
-        val targets = assigned.ifEmpty { allIds }
+        val targets = expense.sharingAccountIds(allIds)
         val share = expense.monthlyCost() / targets.size
         targets.forEach { id ->
             shares[id] = (shares[id] ?: 0.0) + share
@@ -40,9 +37,4 @@ fun computeSavingsPlan(accounts: List<Account>, expenses: List<FixedExpense>): S
         },
         totalExpenseCount = expenses.size,
     )
-}
-
-private fun FixedExpense.monthlyCost(): Double = when (recurrence) {
-    RecurrenceType.MONTHLY -> cost
-    RecurrenceType.ANNUAL  -> cost / 12.0
 }

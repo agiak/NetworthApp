@@ -7,6 +7,7 @@ import com.agcoding.networkapp.account.domain.usecase.GetAccountsUseCase
 import com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpense
 import com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpenseSortOption
 import com.agcoding.networkapp.fixedexpenses.domain.model.RecurrenceType
+import com.agcoding.networkapp.fixedexpenses.domain.model.shareFor
 import com.agcoding.networkapp.fixedexpenses.domain.usecase.AddFixedExpenseUseCase
 import com.agcoding.networkapp.fixedexpenses.domain.usecase.DeleteFixedExpenseUseCase
 import com.agcoding.networkapp.fixedexpenses.domain.usecase.GetFixedExpensesUseCase
@@ -165,8 +166,18 @@ class FixedExpensesViewModel @Inject constructor(
         sortOption: FixedExpenseSortOption = _uiState.value.sortOption,
         filterAccountIds: Set<Long> = _uiState.value.filterAccountIds,
     ) {
-        val filtered     = applyAccountFilter(expenses, filterAccountIds)
-        val uiModels     = filtered.sorted(sortOption).map { mapper.map(it, currentCurrency, accounts) }
+        val allAccountIds = accounts.map { it.id }
+        // With a filter, each expense is reduced to the share the selected accounts carry
+        val shown = expenses
+            .map { expense ->
+                val share = if (filterAccountIds.isEmpty()) 1.0
+                            else expense.shareFor(filterAccountIds, allAccountIds)
+                expense to share
+            }
+            .filter { (_, share) -> share > 0.0 }
+        val uiModels     = shown.sorted(sortOption).map { (expense, share) ->
+            mapper.map(expense, currentCurrency, accounts, share)
+        }
         // Summary always uses ALL expenses so totals never change when a filter is applied
         val accountStats = mapper.computeAccountStats(expenses, accounts, currentCurrency)
         _uiState.update { state ->
@@ -178,18 +189,6 @@ class FixedExpensesViewModel @Inject constructor(
                 yearlyFormatted    = mapper.formatYearlyTotal(expenses, currentCurrency),
                 accountStats       = accountStats,
             )
-        }
-    }
-
-    private fun applyAccountFilter(
-        expenses: List<FixedExpense>,
-        filterAccountIds: Set<Long>,
-    ): List<FixedExpense> {
-        if (filterAccountIds.isEmpty()) return expenses
-        return expenses.filter { expense ->
-            // Expenses with no specific account (= all) always appear.
-            // Expenses with specific accounts appear only if they share one with the filter.
-            expense.accountIds.isEmpty() || expense.accountIds.any { it in filterAccountIds }
         }
     }
 
@@ -243,9 +242,9 @@ class FixedExpensesViewModel @Inject constructor(
         }
     }
 
-    private fun List<FixedExpense>.sorted(option: FixedExpenseSortOption): List<FixedExpense> =
+    private fun List<Pair<FixedExpense, Double>>.sorted(option: FixedExpenseSortOption): List<Pair<FixedExpense, Double>> =
         when (option) {
-            FixedExpenseSortOption.COST_HIGH -> sortedByDescending { it.cost }
-            FixedExpenseSortOption.COST_LOW  -> sortedBy { it.cost }
+            FixedExpenseSortOption.COST_HIGH -> sortedByDescending { (expense, share) -> expense.cost * share }
+            FixedExpenseSortOption.COST_LOW  -> sortedBy { (expense, share) -> expense.cost * share }
         }
 }

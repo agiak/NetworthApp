@@ -20,10 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.agcoding.networkapp.R
 import com.agcoding.networkapp.fixedexpenses.domain.model.RecurrenceType
 import com.agcoding.networkapp.fixedexpenses.presentation.model.FixedExpenseUiModel
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
@@ -77,6 +79,13 @@ fun FixedExpenseItem(
                 if (expense.monthlyEquivalent != null) {
                     Text(
                         text = expense.monthlyEquivalent,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (expense.sharePercent != null && expense.formattedFullCost != null) {
+                    Text(
+                        text = stringResource(R.string.fixed_expense_share_of, expense.sharePercent, expense.formattedFullCost),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -179,6 +188,18 @@ private fun FixedExpenseItemPreview() {
                     formattedDate = null, recurrence = RecurrenceType.MONTHLY,
                     monthlyEquivalent = null,
                     accountColors = listOf("#76C893", "#5B8DEF", "#A78BFA"),
+                ),
+                onClick = {},
+            )
+            // Shared expense seen through an account filter
+            FixedExpenseItem(
+                expense = FixedExpenseUiModel(
+                    id = 6, title = "House", note = "",
+                    formattedCost = "€175.00 / mo", costRaw = 350.0,
+                    formattedDate = null, recurrence = RecurrenceType.MONTHLY,
+                    monthlyEquivalent = null,
+                    accountColors = emptyList(),
+                    sharePercent = 50, formattedFullCost = "€350.00 / mo",
                 ),
                 onClick = {},
             )
