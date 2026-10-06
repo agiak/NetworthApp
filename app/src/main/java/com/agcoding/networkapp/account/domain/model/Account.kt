@@ -5,6 +5,7 @@ data class Account(
     val name: String,
     val startingBalance: Double = 0.0,
     val colorHex: String = "#76C893",
+    val monthlySalary: Double = 0.0,
 ) {
     companion object {
         val PRESET_COLORS = listOf(

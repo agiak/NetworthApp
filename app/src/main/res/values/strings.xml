@@ -468,4 +468,25 @@
     <string name="fixed_expense_accounts_label">Assign to accounts</string>
     <string name="fixed_expense_account_all">All</string>
     <string name="header_finance">Finance</string>
+    <string name="savings_planner_title">Savings Planner</string>
+    <string name="savings_planner_settings_subtitle">How much you should save based on your salary</string>
+    <string name="savings_planner_intro">Enter each person\'s net monthly salary. Their declared fixed expenses are subtracted to show how much they should be saving every month.</string>
+    <string name="savings_planner_should_save_together">Should save together</string>
+    <string name="savings_planner_should_save">Should save</string>
+    <string name="savings_planner_per_month_suffix">/ mo</string>
+    <string name="savings_planner_per_year">%1$s per year</string>
+    <string name="savings_planner_rate">%1$d%% of salary</string>
+    <string name="savings_planner_deficit">Fixed expenses exceed the salary</string>
+    <string name="savings_planner_total_salary">Net salaries</string>
+    <string name="savings_planner_net_salary">Net salary</string>
+    <string name="savings_planner_fixed_expenses">Fixed expenses</string>
+    <string name="savings_planner_per_person">Per person</string>
+    <string name="savings_planner_no_salary_hint">Add a net salary to calculate savings</string>
+    <string name="savings_planner_add_salary">Add net salary</string>
+    <string name="savings_planner_manage_expenses">Manage fixed expenses</string>
+    <string name="savings_planner_expenses_declared">%1$d fixed expense(s) declared</string>
+    <string name="savings_planner_no_expenses">No fixed expenses declared yet</string>
+    <string name="savings_planner_salary_dialog_title">Net monthly salary</string>
+    <string name="savings_planner_salary_hint">Amount after taxes</string>
+    <string name="savings_planner_split_note">Expenses assigned to several accounts, or to all, are split evenly between them.</string>
 </resources>

@@ -28,13 +28,18 @@ class AccountRepositoryImpl @Inject constructor(
     override fun getAccountCount(): Flow<Int> = dao.getAccountCount()
 
     override suspend fun createAccount(account: Account): Long = withContext(ioDispatcher) {
-        val id = dao.insertAccount(AccountEntity(name = account.name, startingBalance = account.startingBalance, colorHex = account.colorHex))
+        val id = dao.insertAccount(AccountEntity(name = account.name, startingBalance = account.startingBalance, colorHex = account.colorHex, monthlySalary = account.monthlySalary))
         autoBackup.trigger()
         id
     }
 
     override suspend fun updateAccount(account: Account) = withContext(ioDispatcher) {
-        dao.updateAccount(AccountEntity(id = account.id, name = account.name, startingBalance = account.startingBalance, colorHex = account.colorHex))
+        dao.updateAccountDetails(id = account.id, name = account.name, startingBalance = account.startingBalance, colorHex = account.colorHex)
+        autoBackup.trigger()
+    }
+
+    override suspend fun updateMonthlySalary(id: Long, salary: Double) = withContext(ioDispatcher) {
+        dao.updateMonthlySalary(id, salary)
         autoBackup.trigger()
     }
 

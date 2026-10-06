@@ -10,5 +10,6 @@ class AccountEntityToDomainMapper @Inject constructor() {
         name           = entity.name,
         startingBalance = entity.startingBalance,
         colorHex       = entity.colorHex,
+        monthlySalary  = entity.monthlySalary,
     )
 }

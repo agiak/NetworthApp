@@ -468,4 +468,25 @@
     <string name="sort_lowest_value">Χαμηλότερο</string>
     <string name="sort_newest_first">Νεότερο</string>
     <string name="sort_oldest_first">Παλαιότερο</string>
+    <string name="savings_planner_title">Πλάνο Αποταμίευσης</string>
+    <string name="savings_planner_settings_subtitle">Πόσα πρέπει να αποταμιεύετε με βάση τον μισθό</string>
+    <string name="savings_planner_intro">Βάλτε τον καθαρό μηνιαίο μισθό κάθε ατόμου. Αφαιρούνται τα δηλωμένα πάγια έξοδά του για να δείτε πόσα θα έπρεπε να αποταμιεύει κάθε μήνα.</string>
+    <string name="savings_planner_should_save_together">Πρέπει να αποταμιεύετε μαζί</string>
+    <string name="savings_planner_should_save">Πρέπει να αποταμιεύει</string>
+    <string name="savings_planner_per_month_suffix">/ μήνα</string>
+    <string name="savings_planner_per_year">%1$s τον χρόνο</string>
+    <string name="savings_planner_rate">%1$d%% του μισθού</string>
+    <string name="savings_planner_deficit">Τα πάγια ξεπερνούν τον μισθό</string>
+    <string name="savings_planner_total_salary">Καθαροί μισθοί</string>
+    <string name="savings_planner_net_salary">Καθαρός μισθός</string>
+    <string name="savings_planner_fixed_expenses">Πάγια έξοδα</string>
+    <string name="savings_planner_per_person">Ανά άτομο</string>
+    <string name="savings_planner_no_salary_hint">Προσθέστε καθαρό μισθό για να υπολογιστεί η αποταμίευση</string>
+    <string name="savings_planner_add_salary">Προσθήκη καθαρού μισθού</string>
+    <string name="savings_planner_manage_expenses">Διαχείριση πάγιων εξόδων</string>
+    <string name="savings_planner_expenses_declared">%1$d δηλωμένα πάγια έξοδα</string>
+    <string name="savings_planner_no_expenses">Δεν έχουν δηλωθεί πάγια έξοδα</string>
+    <string name="savings_planner_salary_dialog_title">Καθαρός μηνιαίος μισθός</string>
+    <string name="savings_planner_salary_hint">Ποσό μετά από φόρους</string>
+    <string name="savings_planner_split_note">Τα έξοδα που αφορούν πολλούς λογαριασμούς ή όλους μοιράζονται εξίσου μεταξύ τους.</string>
 </resources>

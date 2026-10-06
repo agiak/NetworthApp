@@ -62,6 +62,7 @@ class BackupSerializer @Inject constructor() {
                 put("name", account.name)
                 put("startingBalance", account.startingBalance)
                 put("colorHex", account.colorHex)
+                put("monthlySalary", account.monthlySalary)
             })
         }
         root.put("accounts", accountsArray)
@@ -154,6 +155,7 @@ class BackupSerializer @Inject constructor() {
                         name = a.getString("name"),
                         startingBalance = a.optDouble("startingBalance", 0.0),
                         colorHex = a.optString("colorHex", "#76C893"),
+                        monthlySalary = a.optDouble("monthlySalary", 0.0),
                     )
                 }.getOrNull()
             }

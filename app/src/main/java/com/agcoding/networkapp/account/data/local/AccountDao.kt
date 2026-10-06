@@ -28,6 +28,13 @@ interface AccountDao {
     @Update
     suspend fun updateAccount(account: AccountEntity)
 
+    // Leaves monthlySalary untouched so editing an account never resets the salary
+    @Query("UPDATE accounts SET name = :name, startingBalance = :startingBalance, colorHex = :colorHex WHERE id = :id")
+    suspend fun updateAccountDetails(id: Long, name: String, startingBalance: Double, colorHex: String)
+
+    @Query("UPDATE accounts SET monthlySalary = :salary WHERE id = :id")
+    suspend fun updateMonthlySalary(id: Long, salary: Double)
+
     @Query("DELETE FROM accounts WHERE id = :id")
     suspend fun deleteAccount(id: Long)
 }

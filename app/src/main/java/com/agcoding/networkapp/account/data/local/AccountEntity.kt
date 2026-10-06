@@ -1,5 +1,6 @@
 package com.agcoding.networkapp.account.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -9,4 +10,5 @@ data class AccountEntity(
     val name: String,
     val startingBalance: Double = 0.0,
     val colorHex: String = "#76C893",
+    @ColumnInfo(defaultValue = "0") val monthlySalary: Double = 0.0,
 )

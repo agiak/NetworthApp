@@ -8,6 +8,7 @@ interface AccountRepository {
     fun getAccountCount(): Flow<Int>
     suspend fun createAccount(account: Account): Long
     suspend fun updateAccount(account: Account)
+    suspend fun updateMonthlySalary(id: Long, salary: Double)
     suspend fun deleteAccount(id: Long)
     suspend fun seedDefaultAccountIfNeeded()
 }

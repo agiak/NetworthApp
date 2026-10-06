@@ -76,6 +76,7 @@ fun SettingsScreen(
     onNavigateToSetupPin: () -> Unit,
     onNavigateToOnboarding: () -> Unit,
     onNavigateToFixedExpenses: () -> Unit,
+    onNavigateToSavingsPlanner: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -84,6 +85,7 @@ fun SettingsScreen(
         onIntent = { intent ->
             when (intent) {
                 SettingsIntent.NavigateToFixedExpenses -> onNavigateToFixedExpenses()
+                SettingsIntent.NavigateToSavingsPlanner -> onNavigateToSavingsPlanner()
                 SettingsIntent.NavigateToOnboarding    -> onNavigateToOnboarding()
                 SettingsIntent.NavigateToProfileEdit   -> onNavigateToProfileEdit()
                 SettingsIntent.NavigateToSetupPin      -> onNavigateToSetupPin()
@@ -299,13 +301,22 @@ private fun SettingsContent(
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 ) {
-                    NavigationRow(
-                        icon = "💸",
-                        title = stringResource(R.string.fixed_expense_settings_title),
-                        description = stringResource(R.string.fixed_expense_settings_subtitle),
-                        trailingText = uiState.fixedExpensesYearlySummary.ifBlank { null },
-                        onClick = { onIntent(SettingsIntent.NavigateToFixedExpenses) },
-                    )
+                    Column {
+                        NavigationRow(
+                            icon = "💸",
+                            title = stringResource(R.string.fixed_expense_settings_title),
+                            description = stringResource(R.string.fixed_expense_settings_subtitle),
+                            trailingText = uiState.fixedExpensesYearlySummary.ifBlank { null },
+                            onClick = { onIntent(SettingsIntent.NavigateToFixedExpenses) },
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        NavigationRow(
+                            icon = "🐷",
+                            title = stringResource(R.string.savings_planner_title),
+                            description = stringResource(R.string.savings_planner_settings_subtitle),
+                            onClick = { onIntent(SettingsIntent.NavigateToSavingsPlanner) },
+                        )
+                    }
                 }
             }
 
