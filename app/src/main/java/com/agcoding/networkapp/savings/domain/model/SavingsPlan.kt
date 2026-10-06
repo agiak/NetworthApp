@@ -23,3 +23,11 @@ data class SavingsPlan(
     val totalSavings: Double get() = totalSalary - totalFixedExpenses
     val savingsRate: Double? get() = if (totalSalary > 0.0) totalSavings / totalSalary else null
 }
+
+data class SavingsProjection(
+    val years: Int,
+    val total: Double,
+    val deposits: Double,
+) {
+    val returns: Double get() = total - deposits
+}

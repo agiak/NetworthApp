@@ -29,6 +29,7 @@ class SavingsPlanUiMapper @Inject constructor() {
     )
 
     fun mapSummary(plan: SavingsPlan, currency: AppCurrency) = SavingsSummaryUiModel(
+        savingsRaw             = plan.totalSavings,
         formattedSalary        = money(plan.totalSalary, currency),
         formattedFixedExpenses = money(plan.totalFixedExpenses, currency),
         formattedSavings       = money(plan.totalSavings, currency),

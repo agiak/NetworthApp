@@ -7,6 +7,7 @@ import com.agcoding.networkapp.savings.domain.usecase.GetSavingsPlanUseCase
 import com.agcoding.networkapp.savings.presentation.mapper.SavingsPlanUiMapper
 import com.agcoding.networkapp.settings.domain.usecase.GetAppCurrencyUseCase
 import com.agcoding.networkapp.shared.di.IoDispatcher
+import com.agcoding.networkapp.shared.ui.utils.sanitizeAmountInput
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,10 +47,11 @@ class SavingsPlannerViewModel @Inject constructor(
                     )
                 }
             }
-            is SavingsPlannerIntent.UpdateSalaryInput -> _uiState.update { it.copy(salaryInput = sanitize(intent.value)) }
+            is SavingsPlannerIntent.UpdateSalaryInput -> _uiState.update { it.copy(salaryInput = sanitizeAmountInput(intent.value)) }
             SavingsPlannerIntent.SaveSalary           -> saveSalary()
             SavingsPlannerIntent.DismissSalaryDialog  -> _uiState.update { it.copy(editingAccount = null, salaryInput = "") }
             SavingsPlannerIntent.NavigateToFixedExpenses -> { /* Handled in UI */ }
+            SavingsPlannerIntent.NavigateToCalculator    -> { /* Handled in UI */ }
             SavingsPlannerIntent.ClearError           -> _uiState.update { it.copy(error = null) }
         }
     }
@@ -97,16 +99,6 @@ class SavingsPlannerViewModel @Inject constructor(
                 }
             )
         }
-    }
-
-    // Accepts both "." and "," as decimal separator, keeps at most one separator and two decimals
-    private fun sanitize(raw: String): String {
-        val normalized = raw.replace(',', '.').filter { it.isDigit() || it == '.' }
-        val dotIdx = normalized.indexOf('.')
-        if (dotIdx < 0) return normalized
-        val intPart = normalized.substring(0, dotIdx)
-        val decPart = normalized.substring(dotIdx + 1).replace(".", "").take(2)
-        return "$intPart.$decPart"
     }
 
     private fun Double.toInputString(): String =

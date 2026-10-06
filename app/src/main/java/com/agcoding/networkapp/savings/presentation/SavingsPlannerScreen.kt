@@ -61,11 +61,13 @@ import com.agcoding.networkapp.savings.presentation.model.SavingsSummaryUiModel
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 import com.agcoding.networkapp.shared.ui.utils.ThousandSeparatorTransformation
+import kotlin.math.roundToLong
 
 @Composable
 fun SavingsPlannerScreen(
     onNavigateBack: () -> Unit,
     onNavigateToFixedExpenses: () -> Unit,
+    onNavigateToCalculator: (prefillAmountCents: Long) -> Unit,
     viewModel: SavingsPlannerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -74,6 +76,11 @@ fun SavingsPlannerScreen(
         onIntent = { intent ->
             when (intent) {
                 SavingsPlannerIntent.NavigateToFixedExpenses -> onNavigateToFixedExpenses()
+                SavingsPlannerIntent.NavigateToCalculator    -> {
+                    // Prefill with what the household should be saving, if positive
+                    val savings = uiState.summary?.savingsRaw?.takeIf { it > 0.0 } ?: 0.0
+                    onNavigateToCalculator((savings * 100).roundToLong())
+                }
                 else -> viewModel.onIntent(intent)
             }
         },
@@ -138,9 +145,20 @@ private fun SavingsPlannerContent(
                 }
 
                 item {
-                    ManageFixedExpensesButton(
-                        expenseCount = uiState.totalExpenseCount,
+                    ShortcutRow(
+                        icon = "💸",
+                        title = stringResource(R.string.savings_planner_manage_expenses),
+                        subtitle = if (uiState.totalExpenseCount == 0) stringResource(R.string.savings_planner_no_expenses)
+                                   else stringResource(R.string.savings_planner_expenses_declared, uiState.totalExpenseCount),
                         onClick = { onIntent(SavingsPlannerIntent.NavigateToFixedExpenses) },
+                    )
+                }
+                item {
+                    ShortcutRow(
+                        icon = "🧮",
+                        title = stringResource(R.string.savings_calc_open_from_planner),
+                        subtitle = stringResource(R.string.savings_calc_open_from_planner_subtitle),
+                        onClick = { onIntent(SavingsPlannerIntent.NavigateToCalculator) },
                     )
                 }
 
@@ -192,8 +210,10 @@ private fun SavingsPlannerContent(
 }
 
 @Composable
-private fun ManageFixedExpensesButton(
-    expenseCount: Int,
+private fun ShortcutRow(
+    icon: String,
+    title: String,
+    subtitle: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -213,20 +233,19 @@ private fun ManageFixedExpensesButton(
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(text = "💸", fontSize = 20.sp)
+                    Text(text = icon, fontSize = 20.sp)
                 }
             }
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.savings_planner_manage_expenses),
+                    text = title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = if (expenseCount == 0) stringResource(R.string.savings_planner_no_expenses)
-                           else stringResource(R.string.savings_planner_expenses_declared, expenseCount),
+                    text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                 )
@@ -329,6 +348,7 @@ private fun SavingsPlannerContentPreview() {
                 isLoading = false,
                 totalExpenseCount = 4,
                 summary = SavingsSummaryUiModel(
+                    savingsRaw             = 2_360.0,
                     formattedSalary        = "€3,500.00",
                     formattedFixedExpenses = "€1,140.00",
                     formattedSavings       = "€2,360.00",

@@ -19,6 +19,7 @@ data class SavingsAccountUiModel(
 )
 
 data class SavingsSummaryUiModel(
+    val savingsRaw: Double,
     val formattedSalary: String,
     val formattedFixedExpenses: String,
     val formattedSavings: String,

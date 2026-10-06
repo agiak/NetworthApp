@@ -37,6 +37,7 @@ import com.agcoding.networkapp.shared.navigation.ProfileEditRoute
 import com.agcoding.networkapp.shared.navigation.ProfileSetupRoute
 import com.agcoding.networkapp.shared.navigation.ProfileTargetSetupRoute
 import com.agcoding.networkapp.shared.navigation.RecapRoute
+import com.agcoding.networkapp.shared.navigation.SavingsCalculatorRoute
 import com.agcoding.networkapp.shared.navigation.SavingsPlannerRoute
 import com.agcoding.networkapp.shared.navigation.SecuritySetupRoute
 import com.agcoding.networkapp.shared.shortcut.ShortcutEvent
@@ -114,6 +115,7 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
                 !d.hasRoute<ProfileTargetSetupRoute>() &&
                 !d.hasRoute<RecapRoute>() &&
                 !d.hasRoute<SavingsPlannerRoute>() &&
+                !d.hasRoute<SavingsCalculatorRoute>() &&
                 !d.hasRoute<SecuritySetupRoute>()
             } ?: true
 

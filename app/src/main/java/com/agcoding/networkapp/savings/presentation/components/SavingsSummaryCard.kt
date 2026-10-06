@@ -118,6 +118,7 @@ private fun SavingsSummaryCardPreview() {
     NetWorthTheme {
         SavingsSummaryCard(
             summary = SavingsSummaryUiModel(
+                    savingsRaw             = 2_660.0,
                 formattedSalary        = "€3,500.00",
                 formattedFixedExpenses = "€840.00",
                 formattedSavings       = "€2,660.00",

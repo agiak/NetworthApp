@@ -77,6 +77,7 @@ fun SettingsScreen(
     onNavigateToOnboarding: () -> Unit,
     onNavigateToFixedExpenses: () -> Unit,
     onNavigateToSavingsPlanner: () -> Unit,
+    onNavigateToSavingsCalculator: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -86,6 +87,7 @@ fun SettingsScreen(
             when (intent) {
                 SettingsIntent.NavigateToFixedExpenses -> onNavigateToFixedExpenses()
                 SettingsIntent.NavigateToSavingsPlanner -> onNavigateToSavingsPlanner()
+                SettingsIntent.NavigateToSavingsCalculator -> onNavigateToSavingsCalculator()
                 SettingsIntent.NavigateToOnboarding    -> onNavigateToOnboarding()
                 SettingsIntent.NavigateToProfileEdit   -> onNavigateToProfileEdit()
                 SettingsIntent.NavigateToSetupPin      -> onNavigateToSetupPin()
@@ -315,6 +317,13 @@ private fun SettingsContent(
                             title = stringResource(R.string.savings_planner_title),
                             description = stringResource(R.string.savings_planner_settings_subtitle),
                             onClick = { onIntent(SettingsIntent.NavigateToSavingsPlanner) },
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        NavigationRow(
+                            icon = "🧮",
+                            title = stringResource(R.string.savings_calc_title),
+                            description = stringResource(R.string.savings_calc_settings_subtitle),
+                            onClick = { onIntent(SettingsIntent.NavigateToSavingsCalculator) },
                         )
                     }
                 }

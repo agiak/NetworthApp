@@ -30,6 +30,7 @@ import com.agcoding.networkapp.onboarding.OnboardingScreen
 import com.agcoding.networkapp.onboarding.OnboardingViewModel
 import com.agcoding.networkapp.recap.presentation.RecapScreen
 import com.agcoding.networkapp.savings.presentation.SavingsPlannerScreen
+import com.agcoding.networkapp.savings.presentation.calculator.SavingsCalculatorScreen
 import com.agcoding.networkapp.settings.presentation.ProfileScreen
 import com.agcoding.networkapp.settings.presentation.ProfileTargetSetupScreen
 import com.agcoding.networkapp.settings.presentation.SettingsScreen
@@ -53,6 +54,7 @@ import com.agcoding.networkapp.shared.navigation.ProfileEditRoute
 import com.agcoding.networkapp.shared.navigation.ProfileSetupRoute
 import com.agcoding.networkapp.shared.navigation.ProfileTargetSetupRoute
 import com.agcoding.networkapp.shared.navigation.RecapRoute
+import com.agcoding.networkapp.shared.navigation.SavingsCalculatorRoute
 import com.agcoding.networkapp.shared.navigation.SavingsPlannerRoute
 import com.agcoding.networkapp.shared.navigation.SecuritySetupRoute
 import com.agcoding.networkapp.shared.navigation.SettingsRoute
@@ -228,6 +230,7 @@ fun NavGraph(
                 onNavigateToOnboarding     = { navController.navigate(OnboardingRoute(fromSettings = true)) },
                 onNavigateToFixedExpenses  = { navController.navigate(FixedExpensesRoute) },
                 onNavigateToSavingsPlanner = { navController.navigate(SavingsPlannerRoute) },
+                onNavigateToSavingsCalculator = { navController.navigate(SavingsCalculatorRoute()) },
             )
         }
 
@@ -239,7 +242,12 @@ fun NavGraph(
             SavingsPlannerScreen(
                 onNavigateBack            = { navController.navigateUp() },
                 onNavigateToFixedExpenses = { navController.navigate(FixedExpensesRoute) },
+                onNavigateToCalculator    = { cents -> navController.navigate(SavingsCalculatorRoute(prefillAmountCents = cents)) },
             )
+        }
+
+        composable<SavingsCalculatorRoute> {
+            SavingsCalculatorScreen(onNavigateBack = { navController.navigateUp() })
         }
 
         // ── Add Snapshot (via app shortcut) ────────────────────────────────────

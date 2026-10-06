@@ -490,4 +490,21 @@
     <string name="savings_planner_salary_hint">Amount after taxes</string>
     <string name="savings_planner_split_note">Expenses assigned to several accounts, or to all, are split evenly between them.</string>
     <string name="fixed_expense_share_of">%1$d%% of %2$s</string>
+    <string name="savings_calc_title">Savings Calculator</string>
+    <string name="savings_calc_settings_subtitle">How much you\'ll have saved in a few years</string>
+    <string name="savings_calc_monthly_amount">Monthly savings</string>
+    <string name="savings_calc_annual_return">Annual return</string>
+    <string name="savings_calc_custom_years">Custom years</string>
+    <string name="savings_calc_return_hint">Leave the return empty to count only what you put aside.</string>
+    <string name="savings_calc_empty_hint">Enter how much you plan to save each month to see how much you\'ll have collected.</string>
+    <string name="savings_calc_results_header">You will have</string>
+    <string name="savings_calc_breakdown">Deposits %1$s · Returns %2$s</string>
+    <string name="savings_calc_deposits_only">Deposits %1$s</string>
+    <string name="savings_calc_note">With a return, interest is compounded monthly. Estimates only, without taxes or inflation.</string>
+    <string name="savings_calc_open_from_planner">Calculate future savings</string>
+    <string name="savings_calc_open_from_planner_subtitle">See how much you\'ll have collected over the years</string>
+    <plurals name="savings_calc_years">
+        <item quantity="one">In %1$d year</item>
+        <item quantity="other">In %1$d years</item>
+    </plurals>
 </resources>
