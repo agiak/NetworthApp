@@ -6,6 +6,8 @@ import androidx.room.withTransaction
 import com.agcoding.networkapp.account.data.local.AccountDao
 import com.agcoding.networkapp.account.data.local.AccountEntity
 import com.agcoding.networkapp.backup.domain.model.AppBackupData
+import com.agcoding.networkapp.expenseanalysis.data.local.CategoryFeedbackDao
+import com.agcoding.networkapp.expenseanalysis.data.local.toEntity
 import com.agcoding.networkapp.fixedexpenses.data.local.FixedExpenseDao
 import com.agcoding.networkapp.fixedexpenses.data.mapper.FixedExpenseEntityToDomainMapper
 import com.agcoding.networkapp.home.data.local.NetWorthDao
@@ -34,6 +36,7 @@ class BackupRestoreDataSource @Inject constructor(
     private val accountDao: AccountDao,
     private val fixedExpenseDao: FixedExpenseDao,
     private val fixedExpenseMapper: FixedExpenseEntityToDomainMapper,
+    private val categoryFeedbackDao: CategoryFeedbackDao,
     private val autoBackup: AutoBackupDataSource,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
@@ -70,6 +73,11 @@ class BackupRestoreDataSource @Inject constructor(
             backup.fixedExpenses?.let { expenses ->
                 fixedExpenseDao.deleteAll()
                 fixedExpenseDao.insertAll(expenses.map(fixedExpenseMapper::toEntity))
+            }
+
+            backup.categoryFeedback?.let { feedback ->
+                categoryFeedbackDao.deleteAll()
+                categoryFeedbackDao.insertAll(feedback.map { it.toEntity() })
             }
         }
         refreshWidgets()

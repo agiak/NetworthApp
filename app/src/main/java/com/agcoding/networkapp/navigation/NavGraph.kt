@@ -29,6 +29,7 @@ import com.agcoding.networkapp.home.presentation.HomeScreen
 import com.agcoding.networkapp.onboarding.OnboardingScreen
 import com.agcoding.networkapp.onboarding.OnboardingViewModel
 import com.agcoding.networkapp.recap.presentation.RecapScreen
+import com.agcoding.networkapp.expenseanalysis.presentation.ExpenseAnalysisScreen
 import com.agcoding.networkapp.savings.presentation.SavingsPlannerScreen
 import com.agcoding.networkapp.savings.presentation.calculator.SavingsCalculatorScreen
 import com.agcoding.networkapp.settings.presentation.ProfileScreen
@@ -54,6 +55,7 @@ import com.agcoding.networkapp.shared.navigation.ProfileEditRoute
 import com.agcoding.networkapp.shared.navigation.ProfileSetupRoute
 import com.agcoding.networkapp.shared.navigation.ProfileTargetSetupRoute
 import com.agcoding.networkapp.shared.navigation.RecapRoute
+import com.agcoding.networkapp.shared.navigation.ExpenseAnalysisRoute
 import com.agcoding.networkapp.shared.navigation.SavingsCalculatorRoute
 import com.agcoding.networkapp.shared.navigation.SavingsPlannerRoute
 import com.agcoding.networkapp.shared.navigation.SecuritySetupRoute
@@ -231,11 +233,15 @@ fun NavGraph(
                 onNavigateToFixedExpenses  = { navController.navigate(FixedExpensesRoute) },
                 onNavigateToSavingsPlanner = { navController.navigate(SavingsPlannerRoute) },
                 onNavigateToSavingsCalculator = { navController.navigate(SavingsCalculatorRoute()) },
+                onNavigateToExpenseAnalysis = { navController.navigate(ExpenseAnalysisRoute) },
             )
         }
 
         composable<FixedExpensesRoute> {
-            FixedExpensesScreen(onNavigateBack = { navController.navigateUp() })
+            FixedExpensesScreen(
+                onNavigateBack       = { navController.navigateUp() },
+                onNavigateToAnalysis = { navController.navigate(ExpenseAnalysisRoute) },
+            )
         }
 
         composable<SavingsPlannerRoute> {
@@ -248,6 +254,18 @@ fun NavGraph(
 
         composable<SavingsCalculatorRoute> {
             SavingsCalculatorScreen(onNavigateBack = { navController.navigateUp() })
+        }
+
+        composable<ExpenseAnalysisRoute> {
+            ExpenseAnalysisScreen(
+                onNavigateBack            = { navController.navigateUp() },
+                // Coming from Fixed Expenses, go back there instead of stacking another copy
+                onNavigateToFixedExpenses = {
+                    if (!navController.popBackStack<FixedExpensesRoute>(inclusive = false)) {
+                        navController.navigate(FixedExpensesRoute)
+                    }
+                },
+            )
         }
 
         // ── Add Snapshot (via app shortcut) ────────────────────────────────────

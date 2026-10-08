@@ -78,6 +78,7 @@ class SettingsViewModel @Inject constructor(
             SettingsIntent.NavigateToFixedExpenses -> { /* Handled in UI */ }
             SettingsIntent.NavigateToSavingsPlanner -> { /* Handled in UI */ }
             SettingsIntent.NavigateToSavingsCalculator -> { /* Handled in UI */ }
+            SettingsIntent.NavigateToExpenseAnalysis -> { /* Handled in UI */ }
             SettingsIntent.NavigateToOnboarding -> { /* Handled in UI */ }
             SettingsIntent.NavigateToProfileEdit -> { /* Handled in UI */ }
             SettingsIntent.NavigateToSetupPin -> { /* Handled in UI */ }

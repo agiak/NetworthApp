@@ -2,6 +2,8 @@ package com.agcoding.networkapp.backup.data
 
 import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.backup.domain.model.AppBackupData
+import com.agcoding.networkapp.expenseanalysis.domain.model.CategoryFeedback
+import com.agcoding.networkapp.expenseanalysis.domain.model.ExpenseCategory
 import com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpense
 import com.agcoding.networkapp.fixedexpenses.domain.model.RecurrenceType
 import com.agcoding.networkapp.home.domain.model.NetWorthEntry
@@ -26,6 +28,7 @@ class BackupSerializer @Inject constructor() {
         language: AppLanguage,
         accounts: List<Account> = emptyList(),
         fixedExpenses: List<FixedExpense> = emptyList(),
+        categoryFeedback: List<CategoryFeedback> = emptyList(),
     ): String {
         val root = JSONObject()
         root.put("version", BACKUP_VERSION)
@@ -84,6 +87,15 @@ class BackupSerializer @Inject constructor() {
             })
         }
         root.put("fixedExpenses", expensesArray)
+
+        val feedbackArray = JSONArray()
+        categoryFeedback.forEach { feedback ->
+            feedbackArray.put(JSONObject().apply {
+                put("name", feedback.nameKey)
+                put("category", feedback.category.name)
+            })
+        }
+        root.put("categoryFeedback", feedbackArray)
 
         return root.toString(2)
     }
@@ -192,6 +204,17 @@ class BackupSerializer @Inject constructor() {
             }
         } else null
 
+        val categoryFeedback = if (root.has("categoryFeedback")) {
+            val arr = root.getJSONArray("categoryFeedback")
+            (0 until arr.length()).mapNotNull { i ->
+                runCatching {
+                    val f = arr.getJSONObject(i)
+                    val category = ExpenseCategory.fromName(f.getString("category")) ?: return@runCatching null
+                    CategoryFeedback(nameKey = f.getString("name"), category = category)
+                }.getOrNull()
+            }
+        } else null
+
         return AppBackupData(
             version = version,
             exportedAt = exportedAt,
@@ -201,10 +224,11 @@ class BackupSerializer @Inject constructor() {
             entries = entries,
             accounts = accounts,
             fixedExpenses = fixedExpenses,
+            categoryFeedback = categoryFeedback,
         )
     }
 
     companion object {
-        const val BACKUP_VERSION = 3
+        const val BACKUP_VERSION = 4
     }
 }

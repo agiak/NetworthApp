@@ -507,4 +507,45 @@
         <item quantity="one">Σε %1$d χρόνο</item>
         <item quantity="other">Σε %1$d χρόνια</item>
     </plurals>
+    <!-- Expense analysis -->
+    <string name="expense_analysis_title">Ανάλυση Εξόδων</string>
+    <string name="expense_analysis_settings_subtitle">Πού πάνε τα χρήματα, ανά κατηγορία</string>
+    <string name="expense_analysis_all_accounts">Όλοι</string>
+    <string name="expense_analysis_per_month">τον μήνα</string>
+    <string name="expense_analysis_per_year">%1$s τον χρόνο</string>
+    <string name="expense_analysis_share">μερίδιο %1$d%%</string>
+    <string name="expense_analysis_badge_manual">Δική σας επιλογή</string>
+    <string name="expense_analysis_badge_learned">Το έμαθε από εσάς</string>
+    <string name="expense_analysis_badge_uncertain">Αβέβαιο, πατήστε για έλεγχο</string>
+    <string name="expense_analysis_picker_subtitle">Η εφαρμογή θα το θυμάται και θα κατατάσσει καλύτερα παρόμοια έξοδα.</string>
+    <string name="expense_analysis_reset_auto">Επαναφορά σε αυτόματη</string>
+    <string name="expense_analysis_how_it_works">Οι κατηγορίες επιλέγονται αυτόματα από το όνομα κάθε εξόδου. Πατήστε ένα έξοδο για να αλλάξετε κατηγορία: η εφαρμογή μαθαίνει από κάθε επιλογή σας και κατατάσσει καλύτερα παρόμοια ονόματα.</string>
+    <string name="expense_analysis_no_expenses_for_account">Δεν υπάρχουν πάγια έξοδα για αυτόν τον λογαριασμό</string>
+    <string name="expense_analysis_empty_title">Δεν υπάρχουν πάγια έξοδα ακόμα</string>
+    <string name="expense_analysis_empty_subtitle">Προσθέστε τα πάγια έξοδά σας και θα κατηγοριοποιηθούν αυτόματα.</string>
+    <string name="expense_analysis_go_to_expenses">Μετάβαση στα Πάγια Έξοδα</string>
+    <plurals name="expense_analysis_expense_count">
+        <item quantity="one">%1$d έξοδο</item>
+        <item quantity="other">%1$d έξοδα</item>
+    </plurals>
+    <plurals name="expense_analysis_uncertain">
+        <item quantity="one">Η εφαρμογή δεν είναι σίγουρη για %1$d έξοδο. Πατήστε το για να διαλέξετε κατηγορία και θα μάθει από την επιλογή σας.</item>
+        <item quantity="other">Η εφαρμογή δεν είναι σίγουρη για %1$d έξοδα. Πατήστε τα για να διαλέξετε κατηγορία και θα μάθει από τις επιλογές σας.</item>
+    </plurals>
+    <plurals name="expense_analysis_learned_count">
+        <item quantity="one">Έχει μάθει από %1$d επιλογή σας</item>
+        <item quantity="other">Έχει μάθει από %1$d επιλογές σας</item>
+    </plurals>
+    <string name="expense_category_subscriptions">Συνδρομές</string>
+    <string name="expense_category_housing">Σπίτι &amp; λογαριασμοί</string>
+    <string name="expense_category_transport">Μετακίνηση &amp; αυτοκίνητο</string>
+    <string name="expense_category_dining_leisure">Φαγητό έξω &amp; ελεύθερος χρόνος</string>
+    <string name="expense_category_travel">Ταξίδια</string>
+    <string name="expense_category_groceries">Σούπερ μάρκετ</string>
+    <string name="expense_category_health">Υγεία</string>
+    <string name="expense_category_finance">Τράπεζες, δάνεια &amp; φόροι</string>
+    <string name="expense_category_education">Εκπαίδευση</string>
+    <string name="expense_category_shopping_personal">Ψώνια &amp; προσωπική φροντίδα</string>
+    <string name="expense_category_kids_pets">Παιδιά &amp; κατοικίδια</string>
+    <string name="expense_category_other">Άλλα</string>
 </resources>

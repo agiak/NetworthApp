@@ -507,4 +507,45 @@
         <item quantity="one">In %1$d year</item>
         <item quantity="other">In %1$d years</item>
     </plurals>
+    <!-- Expense analysis -->
+    <string name="expense_analysis_title">Expense Analysis</string>
+    <string name="expense_analysis_settings_subtitle">Where your money goes, by category</string>
+    <string name="expense_analysis_all_accounts">All</string>
+    <string name="expense_analysis_per_month">per month</string>
+    <string name="expense_analysis_per_year">%1$s per year</string>
+    <string name="expense_analysis_share">%1$d%% share</string>
+    <string name="expense_analysis_badge_manual">Your choice</string>
+    <string name="expense_analysis_badge_learned">Learned from you</string>
+    <string name="expense_analysis_badge_uncertain">Not sure, tap to check</string>
+    <string name="expense_analysis_picker_subtitle">The app will remember this and categorise similar expenses better.</string>
+    <string name="expense_analysis_reset_auto">Back to automatic</string>
+    <string name="expense_analysis_how_it_works">Categories are picked automatically from each expense\'s name. Tap an expense to change its category: the app learns from every choice and gets better at similar names.</string>
+    <string name="expense_analysis_no_expenses_for_account">No fixed expenses for this account</string>
+    <string name="expense_analysis_empty_title">No fixed expenses yet</string>
+    <string name="expense_analysis_empty_subtitle">Add your fixed expenses and they will be categorised automatically.</string>
+    <string name="expense_analysis_go_to_expenses">Go to Fixed Expenses</string>
+    <plurals name="expense_analysis_expense_count">
+        <item quantity="one">%1$d expense</item>
+        <item quantity="other">%1$d expenses</item>
+    </plurals>
+    <plurals name="expense_analysis_uncertain">
+        <item quantity="one">Not sure about %1$d expense. Tap it to pick its category and the app will learn from it.</item>
+        <item quantity="other">Not sure about %1$d expenses. Tap them to pick their category and the app will learn from it.</item>
+    </plurals>
+    <plurals name="expense_analysis_learned_count">
+        <item quantity="one">Learned from %1$d choice you made</item>
+        <item quantity="other">Learned from %1$d choices you made</item>
+    </plurals>
+    <string name="expense_category_subscriptions">Subscriptions</string>
+    <string name="expense_category_housing">Home &amp; bills</string>
+    <string name="expense_category_transport">Transport &amp; car</string>
+    <string name="expense_category_dining_leisure">Dining out &amp; leisure</string>
+    <string name="expense_category_travel">Travel</string>
+    <string name="expense_category_groceries">Groceries</string>
+    <string name="expense_category_health">Health</string>
+    <string name="expense_category_finance">Banking, loans &amp; taxes</string>
+    <string name="expense_category_education">Education</string>
+    <string name="expense_category_shopping_personal">Shopping &amp; personal care</string>
+    <string name="expense_category_kids_pets">Kids &amp; pets</string>
+    <string name="expense_category_other">Other</string>
 </resources>

@@ -78,6 +78,7 @@ fun SettingsScreen(
     onNavigateToFixedExpenses: () -> Unit,
     onNavigateToSavingsPlanner: () -> Unit,
     onNavigateToSavingsCalculator: () -> Unit,
+    onNavigateToExpenseAnalysis: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -88,6 +89,7 @@ fun SettingsScreen(
                 SettingsIntent.NavigateToFixedExpenses -> onNavigateToFixedExpenses()
                 SettingsIntent.NavigateToSavingsPlanner -> onNavigateToSavingsPlanner()
                 SettingsIntent.NavigateToSavingsCalculator -> onNavigateToSavingsCalculator()
+                SettingsIntent.NavigateToExpenseAnalysis -> onNavigateToExpenseAnalysis()
                 SettingsIntent.NavigateToOnboarding    -> onNavigateToOnboarding()
                 SettingsIntent.NavigateToProfileEdit   -> onNavigateToProfileEdit()
                 SettingsIntent.NavigateToSetupPin      -> onNavigateToSetupPin()
@@ -310,6 +312,13 @@ private fun SettingsContent(
                             description = stringResource(R.string.fixed_expense_settings_subtitle),
                             trailingText = uiState.fixedExpensesYearlySummary.ifBlank { null },
                             onClick = { onIntent(SettingsIntent.NavigateToFixedExpenses) },
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        NavigationRow(
+                            icon = "📊",
+                            title = stringResource(R.string.expense_analysis_title),
+                            description = stringResource(R.string.expense_analysis_settings_subtitle),
+                            onClick = { onIntent(SettingsIntent.NavigateToExpenseAnalysis) },
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                         NavigationRow(

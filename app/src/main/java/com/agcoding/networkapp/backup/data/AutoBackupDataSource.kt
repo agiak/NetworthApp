@@ -8,6 +8,8 @@ import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import com.agcoding.networkapp.account.data.local.AccountDao
 import com.agcoding.networkapp.account.data.mapper.AccountEntityToDomainMapper
+import com.agcoding.networkapp.expenseanalysis.data.local.CategoryFeedbackDao
+import com.agcoding.networkapp.expenseanalysis.data.local.toDomain
 import com.agcoding.networkapp.fixedexpenses.data.local.FixedExpenseDao
 import com.agcoding.networkapp.fixedexpenses.data.mapper.FixedExpenseEntityToDomainMapper
 import com.agcoding.networkapp.home.data.local.NetWorthDao
@@ -32,6 +34,7 @@ class AutoBackupDataSource @Inject constructor(
     private val accountMapper: AccountEntityToDomainMapper,
     private val fixedExpenseDao: FixedExpenseDao,
     private val fixedExpenseMapper: FixedExpenseEntityToDomainMapper,
+    private val categoryFeedbackDao: CategoryFeedbackDao,
     private val serializer: BackupSerializer,
     private val settingsRepository: SettingsRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -41,13 +44,14 @@ class AutoBackupDataSource @Inject constructor(
             val entries = dao.getAllEntriesOnce().map { mapper.map(it) }
             val accounts = accountDao.getAllAccountsOnce().map { accountMapper.map(it) }
             val fixedExpenses = fixedExpenseDao.getAllOnce().map { fixedExpenseMapper.toDomain(it) }
+            val categoryFeedback = categoryFeedbackDao.getAllOnce().mapNotNull { it.toDomain() }
             // Never overwrite the previous backup with an empty database (e.g. fresh install or
             // mid-reset): that file is the only way to recover the data
             if (entries.isEmpty() && fixedExpenses.isEmpty()) return@withContext
             val profile = settingsRepository.getUserProfile().first()
             val theme = settingsRepository.getAppTheme().first()
             val language = settingsRepository.getAppLanguage().first()
-            val json = serializer.serialize(entries, profile, theme, language, accounts, fixedExpenses)
+            val json = serializer.serialize(entries, profile, theme, language, accounts, fixedExpenses, categoryFeedback)
             writeToDownloads(json)
         } catch (e: Exception) {
             Timber.e(e, "Auto-backup failed")

@@ -70,6 +70,18 @@ private val MIGRATION_7_8 = object : Migration(7, 8) {
     }
 }
 
+private val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS `expense_category_feedback` (
+                `nameKey` TEXT NOT NULL,
+                `category` TEXT NOT NULL,
+                PRIMARY KEY(`nameKey`)
+            )"""
+        )
+    }
+}
+
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class NetWorthDataModule {
@@ -84,7 +96,7 @@ abstract class NetWorthDataModule {
         @Singleton
         fun provideNetWorthDatabase(@ApplicationContext context: Context): NetWorthDatabase =
             Room.databaseBuilder(context, NetWorthDatabase::class.java, "net_worth_db")
-                .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                 .fallbackToDestructiveMigration()
                 .build()
 

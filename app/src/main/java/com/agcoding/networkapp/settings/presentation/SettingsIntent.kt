@@ -18,6 +18,7 @@ sealed interface SettingsIntent {
     data object NavigateToFixedExpenses : SettingsIntent
     data object NavigateToSavingsPlanner : SettingsIntent
     data object NavigateToSavingsCalculator : SettingsIntent
+    data object NavigateToExpenseAnalysis : SettingsIntent
     data object NavigateToOnboarding : SettingsIntent
     data object NavigateToProfileEdit : SettingsIntent
     data object NavigateToSetupPin : SettingsIntent

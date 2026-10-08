@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -75,6 +76,7 @@ import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 @Composable
 fun FixedExpensesScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToAnalysis: () -> Unit,
     viewModel: FixedExpensesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -82,6 +84,7 @@ fun FixedExpensesScreen(
         uiState = uiState,
         onIntent = viewModel::onIntent,
         onNavigateBack = onNavigateBack,
+        onNavigateToAnalysis = onNavigateToAnalysis,
     )
 }
 
@@ -91,6 +94,7 @@ private fun FixedExpensesContent(
     uiState: FixedExpensesUiState,
     onIntent: (FixedExpensesIntent) -> Unit,
     onNavigateBack: () -> Unit,
+    onNavigateToAnalysis: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var showFilterSheet by remember { mutableStateOf(false) }
@@ -126,6 +130,15 @@ private fun FixedExpensesContent(
                     }
                 },
                 actions = {
+                    if (uiState.totalExpensesCount > 0) {
+                        IconButton(onClick = onNavigateToAnalysis) {
+                            Icon(
+                                imageVector = Icons.Default.PieChart,
+                                contentDescription = stringResource(R.string.expense_analysis_title),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
                     if (uiState.availableAccounts.isNotEmpty() || uiState.expenses.isNotEmpty()) {
                         IconButton(onClick = { showFilterSheet = true }) {
                             BadgedBox(
@@ -457,6 +470,7 @@ private fun FixedExpensesContentPreview() {
             ),
             onIntent = {},
             onNavigateBack = {},
+            onNavigateToAnalysis = {},
         )
     }
 }

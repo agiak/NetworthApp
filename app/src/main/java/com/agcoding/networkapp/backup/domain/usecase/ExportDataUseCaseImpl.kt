@@ -2,6 +2,7 @@ package com.agcoding.networkapp.backup.domain.usecase
 
 import com.agcoding.networkapp.account.domain.repository.AccountRepository
 import com.agcoding.networkapp.backup.data.BackupSerializer
+import com.agcoding.networkapp.expenseanalysis.domain.repository.CategoryFeedbackRepository
 import com.agcoding.networkapp.fixedexpenses.domain.repository.FixedExpensesRepository
 import com.agcoding.networkapp.home.domain.repository.NetWorthRepository
 import com.agcoding.networkapp.settings.domain.repository.SettingsRepository
@@ -13,6 +14,7 @@ class ExportDataUseCaseImpl @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val accountRepository: AccountRepository,
     private val fixedExpensesRepository: FixedExpensesRepository,
+    private val categoryFeedbackRepository: CategoryFeedbackRepository,
     private val serializer: BackupSerializer
 ) : ExportDataUseCase {
 
@@ -20,9 +22,10 @@ class ExportDataUseCaseImpl @Inject constructor(
         val entries = repository.getEntries().first().getOrElse { emptyList() }
         val accounts = accountRepository.getAccounts().first()
         val fixedExpenses = fixedExpensesRepository.getAll().first().getOrElse { emptyList() }
+        val categoryFeedback = categoryFeedbackRepository.getAll().first()
         val profile = settingsRepository.getUserProfile().first()
         val theme = settingsRepository.getAppTheme().first()
         val language = settingsRepository.getAppLanguage().first()
-        return serializer.serialize(entries, profile, theme, language, accounts, fixedExpenses)
+        return serializer.serialize(entries, profile, theme, language, accounts, fixedExpenses, categoryFeedback)
     }
 }
