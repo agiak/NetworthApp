@@ -7,5 +7,6 @@ sealed interface SavingsPlannerIntent {
     data object DismissSalaryDialog : SavingsPlannerIntent
     data object NavigateToFixedExpenses : SavingsPlannerIntent
     data object NavigateToCalculator : SavingsPlannerIntent
+    data object NavigateToScenario : SavingsPlannerIntent
     data object ClearError : SavingsPlannerIntent
 }

@@ -52,6 +52,7 @@ class SavingsPlannerViewModel @Inject constructor(
             SavingsPlannerIntent.DismissSalaryDialog  -> _uiState.update { it.copy(editingAccount = null, salaryInput = "") }
             SavingsPlannerIntent.NavigateToFixedExpenses -> { /* Handled in UI */ }
             SavingsPlannerIntent.NavigateToCalculator    -> { /* Handled in UI */ }
+            SavingsPlannerIntent.NavigateToScenario      -> { /* Handled in UI */ }
             SavingsPlannerIntent.ClearError           -> _uiState.update { it.copy(error = null) }
         }
     }

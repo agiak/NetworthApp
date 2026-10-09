@@ -31,6 +31,7 @@ import com.agcoding.networkapp.onboarding.OnboardingViewModel
 import com.agcoding.networkapp.recap.presentation.RecapScreen
 import com.agcoding.networkapp.expenseanalysis.presentation.ExpenseAnalysisScreen
 import com.agcoding.networkapp.savings.presentation.SavingsPlannerScreen
+import com.agcoding.networkapp.scenario.presentation.ScenarioScreen
 import com.agcoding.networkapp.savings.presentation.calculator.SavingsCalculatorScreen
 import com.agcoding.networkapp.settings.presentation.ProfileScreen
 import com.agcoding.networkapp.settings.presentation.ProfileTargetSetupScreen
@@ -57,6 +58,7 @@ import com.agcoding.networkapp.shared.navigation.ProfileTargetSetupRoute
 import com.agcoding.networkapp.shared.navigation.RecapRoute
 import com.agcoding.networkapp.shared.navigation.ExpenseAnalysisRoute
 import com.agcoding.networkapp.shared.navigation.SavingsCalculatorRoute
+import com.agcoding.networkapp.shared.navigation.ScenarioRoute
 import com.agcoding.networkapp.shared.navigation.SavingsPlannerRoute
 import com.agcoding.networkapp.shared.navigation.SecuritySetupRoute
 import com.agcoding.networkapp.shared.navigation.SettingsRoute
@@ -234,6 +236,7 @@ fun NavGraph(
                 onNavigateToSavingsPlanner = { navController.navigate(SavingsPlannerRoute) },
                 onNavigateToSavingsCalculator = { navController.navigate(SavingsCalculatorRoute()) },
                 onNavigateToExpenseAnalysis = { navController.navigate(ExpenseAnalysisRoute) },
+                onNavigateToScenario = { navController.navigate(ScenarioRoute) },
             )
         }
 
@@ -249,6 +252,7 @@ fun NavGraph(
                 onNavigateBack            = { navController.navigateUp() },
                 onNavigateToFixedExpenses = { navController.navigate(FixedExpensesRoute) },
                 onNavigateToCalculator    = { navController.navigate(SavingsCalculatorRoute()) },
+                onNavigateToScenario      = { navController.navigate(ScenarioRoute) },
             )
         }
 
@@ -256,6 +260,17 @@ fun NavGraph(
             SavingsCalculatorScreen(
                 onNavigateBack             = { navController.navigateUp() },
                 // Coming from the planner, go back there instead of stacking another copy
+                onNavigateToSavingsPlanner = {
+                    if (!navController.popBackStack<SavingsPlannerRoute>(inclusive = false)) {
+                        navController.navigate(SavingsPlannerRoute)
+                    }
+                },
+            )
+        }
+
+        composable<ScenarioRoute> {
+            ScenarioScreen(
+                onNavigateBack             = { navController.navigateUp() },
                 onNavigateToSavingsPlanner = {
                     if (!navController.popBackStack<SavingsPlannerRoute>(inclusive = false)) {
                         navController.navigate(SavingsPlannerRoute)

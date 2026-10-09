@@ -24,6 +24,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object RecapRoute
 @Serializable data object SavingsPlannerRoute
 @Serializable data object ExpenseAnalysisRoute
+@Serializable data object ScenarioRoute
 @Serializable data class  SavingsCalculatorRoute(val prefillAmountCents: Long = 0L)
 @Serializable data class  SecuritySetupRoute(val skipPrompt: Boolean = false)
 @Serializable data object SettingsRoute

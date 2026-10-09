@@ -67,6 +67,7 @@ fun SavingsPlannerScreen(
     onNavigateBack: () -> Unit,
     onNavigateToFixedExpenses: () -> Unit,
     onNavigateToCalculator: () -> Unit,
+    onNavigateToScenario: () -> Unit,
     viewModel: SavingsPlannerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -77,6 +78,7 @@ fun SavingsPlannerScreen(
                 SavingsPlannerIntent.NavigateToFixedExpenses -> onNavigateToFixedExpenses()
                 // The calculator starts from the salaries and fixed expenses on its own
                 SavingsPlannerIntent.NavigateToCalculator    -> onNavigateToCalculator()
+                SavingsPlannerIntent.NavigateToScenario      -> onNavigateToScenario()
                 else -> viewModel.onIntent(intent)
             }
         },
@@ -155,6 +157,14 @@ private fun SavingsPlannerContent(
                         title = stringResource(R.string.savings_calc_open_from_planner),
                         subtitle = stringResource(R.string.savings_calc_open_from_planner_subtitle),
                         onClick = { onIntent(SavingsPlannerIntent.NavigateToCalculator) },
+                    )
+                }
+                item {
+                    ShortcutRow(
+                        icon = "🔮",
+                        title = stringResource(R.string.scenario_title),
+                        subtitle = stringResource(R.string.scenario_settings_subtitle),
+                        onClick = { onIntent(SavingsPlannerIntent.NavigateToScenario) },
                     )
                 }
 
