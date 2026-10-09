@@ -491,7 +491,7 @@
     <string name="savings_planner_split_note">Τα έξοδα που αφορούν πολλούς λογαριασμούς ή όλους μοιράζονται εξίσου μεταξύ τους.</string>
     <string name="fixed_expense_share_of">%1$d%% από %2$s</string>
     <string name="savings_calc_title">Υπολογιστής Αποταμίευσης</string>
-    <string name="savings_calc_settings_subtitle">Πόσα θα έχετε μαζέψει σε μερικά χρόνια</string>
+    <string name="savings_calc_settings_subtitle">Από μισθούς και έξοδα, πόσα θα έχετε μαζέψει σε μερικά χρόνια</string>
     <string name="savings_calc_monthly_amount">Μηνιαία αποταμίευση</string>
     <string name="savings_calc_annual_return">Ετήσια απόδοση</string>
     <string name="savings_calc_custom_years">Άλλα χρόνια</string>
@@ -503,6 +503,13 @@
     <string name="savings_calc_note">Με απόδοση, ο τόκος ανατοκίζεται μηνιαία. Πρόκειται για εκτίμηση, χωρίς φόρους ή πληθωρισμό.</string>
     <string name="savings_calc_open_from_planner">Υπολογισμός μελλοντικής αποταμίευσης</string>
     <string name="savings_calc_open_from_planner_subtitle">Δείτε πόσα θα έχετε μαζέψει με τα χρόνια</string>
+    <string name="savings_calc_source_plan">Από μισθούς &amp; έξοδα</string>
+    <string name="savings_calc_source_manual">Δικό μου ποσό</string>
+    <string name="savings_calc_all_accounts">Όλοι</string>
+    <string name="savings_calc_no_salary">Δεν έχει δηλωθεί καθαρός μισθός. Προσθέστε μισθούς στο Πλάνο Αποταμίευσης και η μηνιαία αποταμίευση θα υπολογιστεί από τα πάγια έξοδα.</string>
+    <string name="savings_calc_deficit">Τα πάγια έξοδα ξεπερνούν τον μισθό, οπότε δεν μένει κάτι για αποταμίευση.</string>
+    <string name="savings_calc_missing_salary">Χωρίς μισθό: %1$s. Μετράνε μόνο τα έξοδά τους.</string>
+    <string name="savings_calc_edit_salaries">Επεξεργασία μισθών</string>
     <plurals name="savings_calc_years">
         <item quantity="one">Σε %1$d χρόνο</item>
         <item quantity="other">Σε %1$d χρόνια</item>

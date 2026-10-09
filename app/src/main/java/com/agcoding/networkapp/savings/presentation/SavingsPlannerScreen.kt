@@ -61,13 +61,12 @@ import com.agcoding.networkapp.savings.presentation.model.SavingsSummaryUiModel
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 import com.agcoding.networkapp.shared.ui.utils.ThousandSeparatorTransformation
-import kotlin.math.roundToLong
 
 @Composable
 fun SavingsPlannerScreen(
     onNavigateBack: () -> Unit,
     onNavigateToFixedExpenses: () -> Unit,
-    onNavigateToCalculator: (prefillAmountCents: Long) -> Unit,
+    onNavigateToCalculator: () -> Unit,
     viewModel: SavingsPlannerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -76,11 +75,8 @@ fun SavingsPlannerScreen(
         onIntent = { intent ->
             when (intent) {
                 SavingsPlannerIntent.NavigateToFixedExpenses -> onNavigateToFixedExpenses()
-                SavingsPlannerIntent.NavigateToCalculator    -> {
-                    // Prefill with what the household should be saving, if positive
-                    val savings = uiState.summary?.savingsRaw?.takeIf { it > 0.0 } ?: 0.0
-                    onNavigateToCalculator((savings * 100).roundToLong())
-                }
+                // The calculator starts from the salaries and fixed expenses on its own
+                SavingsPlannerIntent.NavigateToCalculator    -> onNavigateToCalculator()
                 else -> viewModel.onIntent(intent)
             }
         },

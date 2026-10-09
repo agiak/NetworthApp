@@ -491,7 +491,7 @@
     <string name="savings_planner_split_note">Expenses assigned to several accounts, or to all, are split evenly between them.</string>
     <string name="fixed_expense_share_of">%1$d%% of %2$s</string>
     <string name="savings_calc_title">Savings Calculator</string>
-    <string name="savings_calc_settings_subtitle">How much you\'ll have saved in a few years</string>
+    <string name="savings_calc_settings_subtitle">From your salaries and expenses, how much you\'ll have in a few years</string>
     <string name="savings_calc_monthly_amount">Monthly savings</string>
     <string name="savings_calc_annual_return">Annual return</string>
     <string name="savings_calc_custom_years">Custom years</string>
@@ -503,6 +503,13 @@
     <string name="savings_calc_note">With a return, interest is compounded monthly. Estimates only, without taxes or inflation.</string>
     <string name="savings_calc_open_from_planner">Calculate future savings</string>
     <string name="savings_calc_open_from_planner_subtitle">See how much you\'ll have collected over the years</string>
+    <string name="savings_calc_source_plan">From salaries &amp; expenses</string>
+    <string name="savings_calc_source_manual">Custom amount</string>
+    <string name="savings_calc_all_accounts">All</string>
+    <string name="savings_calc_no_salary">No net salary set yet. Add salaries in the Savings Planner and the monthly savings will be worked out from your fixed expenses.</string>
+    <string name="savings_calc_deficit">Fixed expenses exceed the salary, so nothing is left to save.</string>
+    <string name="savings_calc_missing_salary">No salary set for %1$s: only their expenses are counted.</string>
+    <string name="savings_calc_edit_salaries">Edit salaries</string>
     <plurals name="savings_calc_years">
         <item quantity="one">In %1$d year</item>
         <item quantity="other">In %1$d years</item>

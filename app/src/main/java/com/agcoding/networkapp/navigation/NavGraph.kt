@@ -248,12 +248,20 @@ fun NavGraph(
             SavingsPlannerScreen(
                 onNavigateBack            = { navController.navigateUp() },
                 onNavigateToFixedExpenses = { navController.navigate(FixedExpensesRoute) },
-                onNavigateToCalculator    = { cents -> navController.navigate(SavingsCalculatorRoute(prefillAmountCents = cents)) },
+                onNavigateToCalculator    = { navController.navigate(SavingsCalculatorRoute()) },
             )
         }
 
         composable<SavingsCalculatorRoute> {
-            SavingsCalculatorScreen(onNavigateBack = { navController.navigateUp() })
+            SavingsCalculatorScreen(
+                onNavigateBack             = { navController.navigateUp() },
+                // Coming from the planner, go back there instead of stacking another copy
+                onNavigateToSavingsPlanner = {
+                    if (!navController.popBackStack<SavingsPlannerRoute>(inclusive = false)) {
+                        navController.navigate(SavingsPlannerRoute)
+                    }
+                },
+            )
         }
 
         composable<ExpenseAnalysisRoute> {

@@ -31,3 +31,24 @@ data class SavingsProjection(
 ) {
     val returns: Double get() = total - deposits
 }
+
+/** Salary, fixed expenses and savings of one account or of everyone together. */
+data class SavingsSelection(
+    val monthlySalary: Double,
+    val monthlyFixedExpenses: Double,
+    /** Selected accounts with no salary set: their expenses count with no income against them. */
+    val accountsWithoutSalary: List<Account>,
+) {
+    val monthlySavings: Double get() = monthlySalary - monthlyFixedExpenses
+    val hasSalary: Boolean get() = monthlySalary > 0.0
+}
+
+/** @param accountId one account, or null for all accounts together */
+fun SavingsPlan.selection(accountId: Long?): SavingsSelection {
+    val selected = if (accountId == null) accounts else accounts.filter { it.account.id == accountId }
+    return SavingsSelection(
+        monthlySalary         = selected.sumOf { it.monthlySalary },
+        monthlyFixedExpenses  = selected.sumOf { it.monthlyFixedExpenses },
+        accountsWithoutSalary = selected.filter { it.monthlySalary <= 0.0 }.map { it.account },
+    )
+}

@@ -1,5 +1,6 @@
 package com.agcoding.networkapp.savings.presentation.calculator
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,11 +13,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +30,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -44,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 import com.agcoding.networkapp.shared.ui.utils.ThousandSeparatorTransformation
@@ -51,12 +58,16 @@ import com.agcoding.networkapp.shared.ui.utils.ThousandSeparatorTransformation
 @Composable
 fun SavingsCalculatorScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToSavingsPlanner: () -> Unit,
     viewModel: SavingsCalculatorViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     SavingsCalculatorContent(
         uiState = uiState,
-        onIntent = viewModel::onIntent,
+        onIntent = { intent ->
+            if (intent == SavingsCalculatorIntent.NavigateToSavingsPlanner) onNavigateToSavingsPlanner()
+            else viewModel.onIntent(intent)
+        },
         onNavigateBack = onNavigateBack,
     )
 }
@@ -95,7 +106,8 @@ private fun SavingsCalculatorContent(
             }
 
             if (uiState.projections.isEmpty()) {
-                item {
+                // In plan mode the inputs card already explains what is missing
+                if (uiState.source == SavingsSource.MANUAL) item {
                     Text(
                         text = stringResource(R.string.savings_calc_empty_hint),
                         style = MaterialTheme.typography.bodyMedium,
@@ -149,15 +161,36 @@ private fun InputsCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            CalculatorField(
-                value = uiState.monthlyAmountInput,
-                onValueChange = { onIntent(SavingsCalculatorIntent.UpdateMonthlyAmount(it)) },
-                label = stringResource(R.string.savings_calc_monthly_amount),
-                prefix = uiState.currencySymbol,
-                keyboardType = KeyboardType.Decimal,
-                visualTransformation = ThousandSeparatorTransformation(),
-                large = true,
+            SourceSelector(
+                selected = uiState.source,
+                onSelect = { onIntent(SavingsCalculatorIntent.SelectSource(it)) },
             )
+            when (uiState.source) {
+                SavingsSource.PLAN -> {
+                    if (uiState.accounts.size > 1) {
+                        AccountSelector(
+                            accounts = uiState.accounts,
+                            selectedAccountId = uiState.selectedAccountId,
+                            onSelect = { onIntent(SavingsCalculatorIntent.SelectAccount(it)) },
+                        )
+                    }
+                    uiState.planBreakdown?.let { breakdown ->
+                        PlanBreakdown(
+                            breakdown = breakdown,
+                            onEditSalaries = { onIntent(SavingsCalculatorIntent.NavigateToSavingsPlanner) },
+                        )
+                    }
+                }
+                SavingsSource.MANUAL -> CalculatorField(
+                    value = uiState.monthlyAmountInput,
+                    onValueChange = { onIntent(SavingsCalculatorIntent.UpdateMonthlyAmount(it)) },
+                    label = stringResource(R.string.savings_calc_monthly_amount),
+                    prefix = uiState.currencySymbol,
+                    keyboardType = KeyboardType.Decimal,
+                    visualTransformation = ThousandSeparatorTransformation(),
+                    large = true,
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 CalculatorField(
                     value = uiState.annualReturnInput,
@@ -181,6 +214,138 @@ private fun InputsCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+@Composable
+private fun SourceSelector(
+    selected: SavingsSource,
+    onSelect: (SavingsSource) -> Unit,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(
+            selected = selected == SavingsSource.PLAN,
+            onClick = { onSelect(SavingsSource.PLAN) },
+            label = { Text(stringResource(R.string.savings_calc_source_plan)) },
+            colors = selectorChipColors(),
+        )
+        FilterChip(
+            selected = selected == SavingsSource.MANUAL,
+            onClick = { onSelect(SavingsSource.MANUAL) },
+            label = { Text(stringResource(R.string.savings_calc_source_manual)) },
+            colors = selectorChipColors(),
+        )
+    }
+}
+
+@Composable
+private fun AccountSelector(
+    accounts: List<CalculatorAccountUiModel>,
+    selectedAccountId: Long?,
+    onSelect: (Long?) -> Unit,
+) {
+    Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FilterChip(
+            selected = selectedAccountId == null,
+            onClick = { onSelect(null) },
+            label = { Text(stringResource(R.string.savings_calc_all_accounts)) },
+            colors = selectorChipColors(),
+        )
+        accounts.forEach { account ->
+            FilterChip(
+                selected = selectedAccountId == account.id,
+                onClick = { onSelect(account.id) },
+                label = { Text(account.name) },
+                colors = selectorChipColors(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun selectorChipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = MaterialTheme.colorScheme.onSurface,
+    selectedLabelColor = MaterialTheme.colorScheme.surface,
+)
+
+/** Salary − fixed expenses = monthly savings, or what is missing to compute it. */
+@Composable
+private fun PlanBreakdown(
+    breakdown: PlanBreakdownUiModel,
+    onEditSalaries: () -> Unit,
+) {
+    val errorColor = LocalAppColorScheme.current.statusError
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+    ) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (!breakdown.hasSalary) {
+                Text(
+                    text = stringResource(R.string.savings_calc_no_salary),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            } else {
+                BreakdownLine(stringResource(R.string.savings_planner_total_salary), breakdown.formattedSalary)
+                BreakdownLine(stringResource(R.string.savings_planner_fixed_expenses), "−${breakdown.formattedFixedExpenses}")
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                BreakdownLine(
+                    label = stringResource(R.string.savings_calc_monthly_amount),
+                    value = breakdown.formattedSavings,
+                    valueColor = if (breakdown.isDeficit) errorColor else PositiveGreen,
+                    bold = true,
+                )
+                if (breakdown.isDeficit) {
+                    Text(
+                        text = stringResource(R.string.savings_calc_deficit),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = errorColor,
+                    )
+                }
+                if (breakdown.accountsWithoutSalary.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.savings_calc_missing_salary, breakdown.accountsWithoutSalary.joinToString(", ")),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            TextButton(onClick = onEditSalaries, contentPadding = PaddingValues(horizontal = 0.dp)) {
+                Text(
+                    text = stringResource(R.string.savings_calc_edit_salaries),
+                    color = PositiveGreen,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BreakdownLine(
+    label: String,
+    value: String,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
+    bold: Boolean = false,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = value,
+            style = if (bold) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,
+            fontWeight = if (bold) FontWeight.Bold else FontWeight.SemiBold,
+            color = valueColor,
+        )
     }
 }
 
@@ -276,7 +441,8 @@ private fun SavingsCalculatorContentPreview() {
     NetWorthTheme {
         SavingsCalculatorContent(
             uiState = SavingsCalculatorUiState(
-                monthlyAmountInput = "1000",
+                accounts = listOf(CalculatorAccountUiModel(1, "Anastasis"), CalculatorAccountUiModel(2, "Xristina")),
+                planBreakdown = PlanBreakdownUiModel("€3,500.00", "€736.67", "€2,763.33", hasSalary = true, isDeficit = false, accountsWithoutSalary = emptyList()),
                 annualReturnInput = "5",
                 customYearsInput = "30",
                 customProjection = SavingsProjectionUiModel(30, "€832,259", "€360,000", "€472,259", isCustom = true),

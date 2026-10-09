@@ -3,6 +3,7 @@ package com.agcoding.networkapp.savings.domain.usecase
 import com.agcoding.networkapp.account.domain.model.Account
 import com.agcoding.networkapp.fixedexpenses.domain.model.FixedExpense
 import com.agcoding.networkapp.fixedexpenses.domain.model.RecurrenceType
+import com.agcoding.networkapp.savings.domain.model.selection
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -69,5 +70,36 @@ class ComputeSavingsPlanTest {
         )
         assertNull(plan.accounts[0].savingsRate)
         assertNull(plan.savingsRate)
+    }
+
+    @Test
+    fun `selection gives one account or everyone together`() {
+        val plan = computeSavingsPlan(
+            accounts = listOf(anastasis, xristina),
+            expenses = listOf(
+                FixedExpense(title = "Rent", cost = 800.0),
+                FixedExpense(title = "Gym", cost = 600.0, recurrence = RecurrenceType.ANNUAL, accountIds = listOf(1L)),
+            ),
+        )
+        val all = plan.selection(null)
+        assertEquals(3_500.0, all.monthlySalary, 0.001)
+        assertEquals(850.0, all.monthlyFixedExpenses, 0.001)
+        assertEquals(2_650.0, all.monthlySavings, 0.001)
+
+        val mine = plan.selection(1L)
+        assertEquals(450.0, mine.monthlyFixedExpenses, 0.001)
+        assertEquals(1_550.0, mine.monthlySavings, 0.001)
+        assertEquals(emptyList<Account>(), mine.accountsWithoutSalary)
+    }
+
+    @Test
+    fun `selection lists accounts without a salary`() {
+        val plan = computeSavingsPlan(
+            accounts = listOf(anastasis, xristina.copy(monthlySalary = 0.0)),
+            expenses = listOf(FixedExpense(title = "Rent", cost = 800.0)),
+        )
+        assertEquals(listOf("Xristina"), plan.selection(null).accountsWithoutSalary.map { it.name })
+        assertEquals(false, plan.selection(2L).hasSalary)
+        assertEquals(1_200.0, plan.selection(null).monthlySavings, 0.001)
     }
 }
