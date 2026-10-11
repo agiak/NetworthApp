@@ -18,5 +18,7 @@ interface SettingsRepository {
     suspend fun setAppCurrency(currency: AppCurrency)
     suspend fun setUserProfile(profile: UserProfile)
     suspend fun setProfileCreated(created: Boolean)
+    /** Forgets the user (name, email, target, tracking date) and marks the profile not created. */
+    suspend fun clearUserProfile()
     suspend fun markOnboardingSeen()
 }

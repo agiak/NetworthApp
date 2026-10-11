@@ -66,6 +66,21 @@ class AutoBackupDataSource @Inject constructor(
         }
     }
 
+    /** Removes the backup file from Downloads (signing out: the data lives in the cloud). */
+    suspend fun deleteBackupFile() = withContext(ioDispatcher) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                context.contentResolver.delete(collection, "${MediaStore.Downloads.DISPLAY_NAME} = ?", arrayOf(BACKUP_FILE_NAME))
+            } else {
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), BACKUP_FILE_NAME).delete()
+            }
+        } catch (e: Exception) {
+            // e.g. a file left by an earlier install, which this one may not delete
+            Timber.w(e, "Could not delete the backup file")
+        }
+    }
+
     private fun writeToDownloads(json: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             writeViaMediaStore(json)

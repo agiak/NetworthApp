@@ -684,7 +684,7 @@
     <string name="account_ok">OK</string>
     <string name="account_cancel">Άκυρο</string>
     <string name="account_sign_out_title">Αποσύνδεση;</string>
-    <string name="account_sign_out_body">Τα δεδομένα του νοικοκυριού φεύγουν από αυτό το κινητό (είναι ασφαλή στο cloud) και επιστρέφεις στη σελίδα σύνδεσης. Συνδέσου ξανά για να τα φέρεις πίσω.</string>
+    <string name="account_sign_out_body">Όλα φεύγουν από αυτό το κινητό (είναι ασφαλή στο cloud): λογαριασμοί, ιστορικό, πάγια, το κλείδωμα της εφαρμογής και το αρχείο backup. Επιστρέφεις στη σελίδα σύνδεσης· συνδέσου ξανά για να τα φέρεις πίσω.</string>
     <string name="account_sign_out_anyway">Αποσύνδεση ούτως ή άλλως</string>
     <string name="cloud_error_unsynced_changes">Κάποιες αλλαγές δεν ανέβηκαν (χωρίς internet;). Αν αποσυνδεθείς τώρα, θα χαθούν.</string>
     <string name="account_signed_out">Αποσυνδέθηκες.</string>

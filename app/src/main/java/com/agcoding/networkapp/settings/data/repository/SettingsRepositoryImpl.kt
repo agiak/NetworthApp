@@ -94,6 +94,16 @@ class SettingsRepositoryImpl @Inject constructor(
         dataStore.edit { prefs -> prefs[Keys.PROFILE_CREATED] = created }
     }
 
+    override suspend fun clearUserProfile() {
+        dataStore.edit { prefs ->
+            prefs.remove(Keys.USER_NAME)
+            prefs.remove(Keys.USER_EMAIL)
+            prefs.remove(Keys.USER_TARGET)
+            prefs.remove(Keys.CREATED_AT)
+            prefs[Keys.PROFILE_CREATED] = false
+        }
+    }
+
     override suspend fun markOnboardingSeen() {
         dataStore.edit { prefs -> prefs[Keys.ONBOARDING_SEEN] = true }
     }

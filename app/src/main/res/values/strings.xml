@@ -684,7 +684,7 @@
     <string name="account_ok">OK</string>
     <string name="account_cancel">Cancel</string>
     <string name="account_sign_out_title">Sign out?</string>
-    <string name="account_sign_out_body">Your household\'s data leaves this phone (it\'s safe in the cloud) and you go back to the sign in page. Sign in again to bring it back.</string>
+    <string name="account_sign_out_body">Everything leaves this phone (it\'s safe in the cloud): accounts, history, fixed expenses, the app lock and the backup file. You go back to the sign in page; sign in again to bring your data back.</string>
     <string name="account_sign_out_anyway">Sign out anyway</string>
     <string name="cloud_error_unsynced_changes">Some changes couldn\'t be uploaded (no internet?). Signing out now loses them.</string>
     <string name="account_signed_out">You signed out.</string>

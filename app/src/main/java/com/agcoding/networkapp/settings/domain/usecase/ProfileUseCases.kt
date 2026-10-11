@@ -17,6 +17,10 @@ class IsProfileCreatedUseCase @Inject constructor(private val repository: Settin
     operator fun invoke(): Flow<Boolean> = repository.isProfileCreated()
 }
 
+class ClearUserProfileUseCase @Inject constructor(private val repository: SettingsRepository) {
+    suspend operator fun invoke() = repository.clearUserProfile()
+}
+
 class SetProfileCreatedUseCase @Inject constructor(private val repository: SettingsRepository) {
     suspend operator fun invoke(created: Boolean) = repository.setProfileCreated(created)
 }
