@@ -3,6 +3,7 @@ package com.agcoding.networkapp.cloud.data
 import com.agcoding.networkapp.cloud.data.local.SyncLinkDao
 import com.agcoding.networkapp.cloud.data.network.NetworkMonitor
 import com.agcoding.networkapp.cloud.data.remote.SupabaseClient
+import com.agcoding.networkapp.cloud.data.remote.SupabaseException
 import com.agcoding.networkapp.cloud.data.session.CloudSessionStore
 import com.agcoding.networkapp.cloud.data.sync.SyncManager
 import com.agcoding.networkapp.cloud.domain.model.CloudConnectionStatus
@@ -72,8 +73,14 @@ class CloudRepository @Inject constructor(
     }
 
     suspend fun signUp(email: String, password: String, displayName: String, syncAfter: Boolean = true): Result<SignUpResult> = cloudCall {
+        // The backend confirms new emails itself, so sign in right away when sign-up gives no session
         val session = client.signUp(email.trim(), password, displayName.trim())
-            ?: return@cloudCall SignUpResult.ConfirmEmail
+            ?: try {
+                client.signIn(email.trim(), password)
+            } catch (e: SupabaseException) {
+                if (e.code == "email_not_confirmed") return@cloudCall SignUpResult.ConfirmEmail
+                throw e
+            }
         connect(session, syncAfter)
         SignUpResult.SignedIn
     }

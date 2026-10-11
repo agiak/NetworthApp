@@ -616,6 +616,8 @@
     <string name="cloud_name">Το όνομά σας</string>
     <string name="cloud_email">Email</string>
     <string name="cloud_password">Κωδικός</string>
+    <string name="cloud_password_show">Εμφάνιση κωδικού</string>
+    <string name="cloud_password_hide">Απόκρυψη κωδικού</string>
     <string name="cloud_password_hint">Τουλάχιστον %1$d χαρακτήρες</string>
     <string name="cloud_signed_in_as">Συνδεδεμένος ως %1$s</string>
     <string name="cloud_sign_out">Αποσύνδεση</string>
