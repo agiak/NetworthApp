@@ -664,4 +664,19 @@
     <string name="cloud_error_invalid_invite">Ο κωδικός είναι λάθος, χρησιμοποιημένος ή έχει λήξει.</string>
     <string name="cloud_error_session_expired">Η σύνδεση έληξε. Συνδεθείτε ξανά.</string>
     <string name="cloud_error_unknown">Κάτι πήγε στραβά. Δοκιμάστε ξανά.</string>
+    <string name="cloud_mode_online">Online</string>
+    <string name="cloud_mode_offline">Offline</string>
+    <string name="cloud_mode_offline_mode">Offline mode</string>
+    <string name="cloud_detail_offline_mode">Τα δεδομένα είναι μόνο σε αυτό το κινητό. Πατήστε για συγχρονισμό με το cloud.</string>
+    <string name="cloud_detail_setup_incomplete">Συνδεδεμένοι. Δημιουργήστε ή μπείτε σε νοικοκυριό για να ξεκινήσει ο συγχρονισμός.</string>
+    <string name="cloud_detail_syncing">Συγχρονισμός…</string>
+    <string name="cloud_detail_error">Ο τελευταίος συγχρονισμός απέτυχε. Πατήστε για λεπτομέρειες.</string>
+    <string name="cloud_detail_no_internet">Χωρίς internet. Οι αλλαγές θα συγχρονιστούν μόλις συνδεθείτε.</string>
+    <string name="cloud_detail_no_internet_pending">Χωρίς internet. Οι τελευταίες αλλαγές σας θα ανέβουν μόλις συνδεθείτε.</string>
+    <string name="cloud_detail_pending">Ανεβαίνουν οι τελευταίες αλλαγές σας…</string>
+    <string name="cloud_detail_synced">Συγχρονισμένο %1$s</string>
+    <string name="cloud_prompt_title">Συγχρονίστε τα δεδομένα σας</string>
+    <string name="cloud_prompt_body">Τα δεδομένα σας είναι μόνο σε αυτό το κινητό. Συνδεθείτε για να τα κρατάτε με ασφάλεια στο cloud και να τα μοιράζεστε με το νοικοκυριό σας: κάθε αλλαγή που κάνετε θα συγχρονίζεται.</string>
+    <string name="cloud_prompt_sync">Συγχρονισμός</string>
+    <string name="cloud_prompt_later">Αργότερα</string>
 </resources>

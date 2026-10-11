@@ -301,7 +301,11 @@ private fun SyncCard(uiState: CloudUiState, onIntent: (CloudIntent) -> Unit) {
     CloudCard {
         CardTitle("☁️", uiState.householdName, stringResource(R.string.cloud_connected_subtitle))
         val status = when {
+            !uiState.isOnline    -> stringResource(
+                if (uiState.hasPendingChanges) R.string.cloud_detail_no_internet_pending else R.string.cloud_detail_no_internet
+            )
             uiState.isSyncing    -> stringResource(R.string.cloud_status_syncing)
+            uiState.hasPendingChanges -> stringResource(R.string.cloud_detail_pending)
             uiState.syncFailed   -> stringResource(R.string.cloud_status_failed)
             uiState.lastSyncAt != null -> stringResource(
                 R.string.cloud_status_synced,
@@ -327,7 +331,7 @@ private fun SyncCard(uiState: CloudUiState, onIntent: (CloudIntent) -> Unit) {
         )
         PrimaryButton(
             text = stringResource(R.string.cloud_sync_now),
-            enabled = !uiState.isBusy && !uiState.isSyncing,
+            enabled = !uiState.isBusy && !uiState.isSyncing && uiState.isOnline,
             busy = uiState.isBusy,
             onClick = { onIntent(CloudIntent.SyncNow) },
         )

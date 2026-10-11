@@ -1,11 +1,14 @@
 package com.agcoding.networkapp.cloud.data.sync
 
+import android.content.Context
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.room.withTransaction
 import com.agcoding.networkapp.account.data.local.AccountDao
 import com.agcoding.networkapp.account.data.local.AccountEntity
 import com.agcoding.networkapp.backup.data.AutoBackupDataSource
 import com.agcoding.networkapp.cloud.data.local.SyncLinkDao
 import com.agcoding.networkapp.cloud.data.local.SyncLinkEntity
+import com.agcoding.networkapp.cloud.data.network.NetworkMonitor
 import com.agcoding.networkapp.cloud.data.remote.RemoteRows
 import com.agcoding.networkapp.cloud.data.remote.RemoteTable
 import com.agcoding.networkapp.cloud.data.remote.SupabaseClient
@@ -34,6 +37,9 @@ import com.agcoding.networkapp.home.data.local.NetWorthDao
 import com.agcoding.networkapp.home.data.local.NetWorthDatabase
 import com.agcoding.networkapp.home.data.local.NetWorthEntity
 import com.agcoding.networkapp.shared.di.IoDispatcher
+import com.agcoding.networkapp.widget.NetWorthDetailWidget
+import com.agcoding.networkapp.widget.NetWorthWidget
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -42,6 +48,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -52,6 +60,7 @@ import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -64,7 +73,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class SyncManager @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val client: SupabaseClient,
+    private val networkMonitor: NetworkMonitor,
     private val store: CloudSessionStore,
     private val db: NetWorthDatabase,
     private val accountDao: AccountDao,
@@ -82,12 +93,39 @@ class SyncManager @Inject constructor(
     private val _status = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
     val status: StateFlow<SyncStatus> = _status.asStateFlow()
 
-    /** Syncs shortly after the latest local change; does nothing when not connected. */
-    fun requestSync(delayMillis: Long = DEBOUNCE_MILLIS) {
+    /** Local changes not uploaded yet (e.g. made while offline); survives restarts. */
+    private val _hasPendingChanges = MutableStateFlow(false)
+    val hasPendingChanges: StateFlow<Boolean> = _hasPendingChanges.asStateFlow()
+
+    /** Bumped on every local change, so a sync only clears the changes it actually uploaded. */
+    private val changeVersion = AtomicLong(0)
+
+    init {
+        scope.launch { _hasPendingChanges.value = store.hasPendingChanges() || _hasPendingChanges.value }
+        // Back online: upload what was changed meanwhile and fetch the other phones' changes
+        scope.launch {
+            networkMonitor.isOnline.drop(1).filter { it }.collect { requestSync(delayMillis = 0) }
+        }
+    }
+
+    /**
+     * Syncs shortly after the latest request; does nothing while not connected to a household
+     * or without internet (the change stays pending and goes up once back online).
+     *
+     * @param localChange the request comes from a change made on this phone
+     */
+    fun requestSync(delayMillis: Long = DEBOUNCE_MILLIS, localChange: Boolean = false) {
+        if (localChange) {
+            changeVersion.incrementAndGet()
+            if (!_hasPendingChanges.value) {
+                _hasPendingChanges.value = true
+                scope.launch { store.savePendingChanges(true) }
+            }
+        }
         pending?.cancel()
         pending = scope.launch {
             delay(delayMillis)
-            if (store.current().isSyncing) syncNow()
+            if (store.current().isSyncing && networkMonitor.isOnline.value) syncNow()
         }
     }
 
@@ -97,8 +135,18 @@ class SyncManager @Inject constructor(
     suspend fun syncNow(replaceLocal: Boolean = false): Result<Unit> = withContext(ioDispatcher) {
         mutex.withLock {
             _status.value = SyncStatus.Syncing
+            val version = changeVersion.get()
             runCatching { sync(replaceLocal) }
-                .onSuccess { _status.value = SyncStatus.Idle }
+                .onSuccess {
+                    _status.value = SyncStatus.Idle
+                    // Changes made while syncing stay pending for the next round
+                    if (changeVersion.get() == version) {
+                        _hasPendingChanges.value = false
+                        store.savePendingChanges(false)
+                    } else {
+                        requestSync()
+                    }
+                }
                 .onFailure { error ->
                     Timber.e(error, "Sync failed")
                     _status.value = SyncStatus.Failed(error.message ?: error.javaClass.simpleName)
@@ -210,8 +258,11 @@ class SyncManager @Inject constructor(
             delete = { key -> categoryFeedbackDao.delete(key) },
         ) || changedLocally
 
-        // Keep the backup file in Downloads up to date with what came from the other devices
-        if (changedLocally || replaceLocal) autoBackup.trigger(requestSync = false)
+        // Keep the backup file and the home screen widgets up to date with the other phones' changes
+        if (changedLocally || replaceLocal) {
+            autoBackup.trigger(requestSync = false)
+            refreshWidgets()
+        }
         store.saveLastSync(System.currentTimeMillis())
     }
 
@@ -259,6 +310,16 @@ class SyncManager @Inject constructor(
             linkDao.replaceAll(table.name, finalLinks.values.map { it.toEntity(table, it.hash) })
         }
         return plan.deleteLocal.isNotEmpty() || plan.updateLocal.isNotEmpty() || plan.insertLocal.isNotEmpty()
+    }
+
+    private suspend fun refreshWidgets() {
+        try {
+            val manager = GlanceAppWidgetManager(context)
+            manager.getGlanceIds(NetWorthWidget::class.java).forEach { NetWorthWidget().update(context, it) }
+            manager.getGlanceIds(NetWorthDetailWidget::class.java).forEach { NetWorthDetailWidget().update(context, it) }
+        } catch (e: Exception) {
+            Timber.e(e, "Widget refresh failed")
+        }
     }
 
     // ── Local rows ↔ sync fields ────────────────────────────────────────────
@@ -342,7 +403,7 @@ class SyncManager @Inject constructor(
     private fun String?.toDoubleOrZero(): Double = this?.let { runCatching { BigDecimal(it).toDouble() }.getOrNull() } ?: 0.0
 
     companion object {
-        private const val DEBOUNCE_MILLIS = 2_000L
+        private const val DEBOUNCE_MILLIS = 1_500L
         private const val MAX_NOTE = 1000
         private const val DEFAULT_ACCOUNT_NAME = "Account"
         private const val DEFAULT_EXPENSE_TITLE = "Expense"

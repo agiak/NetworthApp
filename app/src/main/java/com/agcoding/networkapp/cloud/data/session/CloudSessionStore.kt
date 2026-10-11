@@ -3,6 +3,7 @@ package com.agcoding.networkapp.cloud.data.session
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -70,13 +71,34 @@ class CloudSessionStore @Inject constructor(
         store.edit { it[LAST_SYNC_AT] = epochMillis }
     }
 
-    /** Signs out but keeps [linksHouseholdId], so signing in again resumes syncing where it left off. */
+    /**
+     * Signs out but keeps [linksHouseholdId] (signing in again resumes syncing where it left off),
+     * pending changes and the sync reminder.
+     */
     suspend fun clearSession() {
         store.edit { prefs ->
             val linksHousehold = prefs[LINKS_HOUSEHOLD_ID]
+            val pending = prefs[PENDING_CHANGES]
+            val snoozed = prefs[PROMPT_SNOOZED_UNTIL]
             prefs.clear()
             if (linksHousehold != null) prefs[LINKS_HOUSEHOLD_ID] = linksHousehold
+            if (pending != null) prefs[PENDING_CHANGES] = pending
+            if (snoozed != null) prefs[PROMPT_SNOOZED_UNTIL] = snoozed
         }
+    }
+
+    /** Local changes not yet uploaded, kept across restarts. */
+    suspend fun hasPendingChanges(): Boolean = store.data.first()[PENDING_CHANGES] ?: false
+
+    suspend fun savePendingChanges(pending: Boolean) {
+        store.edit { it[PENDING_CHANGES] = pending }
+    }
+
+    /** Until when (epoch millis) the "sync your data" reminder stays hidden. */
+    val promptSnoozedUntil: Flow<Long> = store.data.map { it[PROMPT_SNOOZED_UNTIL] ?: 0L }
+
+    suspend fun snoozePrompt(untilEpochMillis: Long) {
+        store.edit { it[PROMPT_SNOOZED_UNTIL] = untilEpochMillis }
     }
 
     /** The household the local sync links point to. */
@@ -97,5 +119,7 @@ class CloudSessionStore @Inject constructor(
         val HOUSEHOLD_ROLE = stringPreferencesKey("household_role")
         val LAST_SYNC_AT = longPreferencesKey("last_sync_at")
         val LINKS_HOUSEHOLD_ID = stringPreferencesKey("links_household_id")
+        val PENDING_CHANGES = booleanPreferencesKey("pending_changes")
+        val PROMPT_SNOOZED_UNTIL = longPreferencesKey("prompt_snoozed_until")
     }
 }

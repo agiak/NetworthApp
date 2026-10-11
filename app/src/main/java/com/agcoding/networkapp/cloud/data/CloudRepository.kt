@@ -1,9 +1,11 @@
 package com.agcoding.networkapp.cloud.data
 
 import com.agcoding.networkapp.cloud.data.local.SyncLinkDao
+import com.agcoding.networkapp.cloud.data.network.NetworkMonitor
 import com.agcoding.networkapp.cloud.data.remote.SupabaseClient
 import com.agcoding.networkapp.cloud.data.session.CloudSessionStore
 import com.agcoding.networkapp.cloud.data.sync.SyncManager
+import com.agcoding.networkapp.cloud.domain.model.CloudConnectionStatus
 import com.agcoding.networkapp.cloud.domain.model.CloudError
 import com.agcoding.networkapp.cloud.domain.model.CloudException
 import com.agcoding.networkapp.cloud.domain.model.CloudSession
@@ -11,10 +13,12 @@ import com.agcoding.networkapp.cloud.domain.model.CloudState
 import com.agcoding.networkapp.cloud.domain.model.HouseholdMember
 import com.agcoding.networkapp.cloud.domain.model.SignUpResult
 import com.agcoding.networkapp.cloud.domain.model.SyncStatus
+import com.agcoding.networkapp.cloud.domain.model.cloudConnectionStatus
 import com.agcoding.networkapp.shared.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,10 +33,26 @@ class CloudRepository @Inject constructor(
     private val store: CloudSessionStore,
     private val syncManager: SyncManager,
     private val linkDao: SyncLinkDao,
+    private val networkMonitor: NetworkMonitor,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     val state: Flow<CloudState> = store.state
     val syncStatus: StateFlow<SyncStatus> = syncManager.status
+    val isOnline: StateFlow<Boolean> = networkMonitor.isOnline
+    val hasPendingChanges: StateFlow<Boolean> = syncManager.hasPendingChanges
+
+    val connectionStatus: Flow<CloudConnectionStatus> =
+        combine(store.state, syncManager.status, networkMonitor.isOnline, syncManager.hasPendingChanges, ::cloudConnectionStatus)
+
+    /** Remind to set up sync while the data lives only on this phone, unless snoozed. */
+    val shouldPromptSync: Flow<Boolean> =
+        combine(connectionStatus, store.promptSnoozedUntil) { status, snoozedUntil ->
+            !status.isConnected && System.currentTimeMillis() >= snoozedUntil
+        }
+
+    suspend fun snoozeSyncPrompt(forMillis: Long) {
+        store.snoozePrompt(System.currentTimeMillis() + forMillis)
+    }
 
     suspend fun signIn(email: String, password: String): Result<Unit> = cloudCall {
         val session = client.signIn(email.trim(), password)

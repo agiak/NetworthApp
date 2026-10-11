@@ -17,6 +17,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.agcoding.networkapp.biometric.presentation.lock.LockScreen
 import com.agcoding.networkapp.biometric.presentation.lock.LockViewModel
+import com.agcoding.networkapp.cloud.presentation.CloudStatusViewModel
+import com.agcoding.networkapp.cloud.presentation.SyncPromptDialog
 import com.agcoding.networkapp.navigation.NavGraph
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
@@ -136,6 +138,21 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
                         hasSeenSecuritySetup = hasSeenSecuritySetup,
                     )
                 }
+            }
+
+            // Data only on this phone: offer to set up cloud sync (once set up, it syncs on its own)
+            val cloudStatusVm: CloudStatusViewModel = hiltViewModel()
+            val showSyncPrompt by cloudStatusVm.showSyncPrompt.collectAsStateWithLifecycle()
+            val setupFinished = isProfileCreated == true && hasSeenSecuritySetup && hasSeenOnboarding
+            val onCloudScreen = currentDest?.hasRoute<CloudRoute>() == true
+            if (showSyncPrompt && setupFinished && currentDest != null && !onCloudScreen) {
+                SyncPromptDialog(
+                    onSync  = {
+                        cloudStatusVm.startSetup()
+                        navController.navigate(CloudRoute)
+                    },
+                    onLater = cloudStatusVm::remindLater,
+                )
             }
         }
     }

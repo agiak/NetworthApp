@@ -61,6 +61,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.cloud.domain.model.CloudConnectionStatus
+import com.agcoding.networkapp.cloud.presentation.CloudStatusCard
+import com.agcoding.networkapp.cloud.presentation.CloudStatusViewModel
 import com.agcoding.networkapp.settings.domain.model.AppCurrency
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
@@ -81,11 +84,14 @@ fun SettingsScreen(
     onNavigateToExpenseAnalysis: () -> Unit,
     onNavigateToScenario: () -> Unit,
     onNavigateToCloud: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    cloudStatusViewModel: CloudStatusViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val cloudStatus by cloudStatusViewModel.status.collectAsStateWithLifecycle()
     SettingsContent(
         uiState = uiState,
+        cloudStatus = cloudStatus,
         onIntent = { intent ->
             when (intent) {
                 SettingsIntent.NavigateToFixedExpenses -> onNavigateToFixedExpenses()
@@ -106,7 +112,8 @@ fun SettingsScreen(
 @Composable
 private fun SettingsContent(
     uiState: SettingsUiState,
-    onIntent: (SettingsIntent) -> Unit
+    onIntent: (SettingsIntent) -> Unit,
+    cloudStatus: CloudConnectionStatus? = null,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -223,6 +230,15 @@ private fun SettingsContent(
                     since = uiState.trackingSince,
                     snapshots = uiState.snapshotCount,
                     onEditClick = { onIntent(SettingsIntent.NavigateToProfileEdit) }
+                )
+            }
+
+            // Online (synced with the household) or offline mode (only on this phone)
+            item {
+                CloudStatusCard(
+                    status = cloudStatus,
+                    onClick = { onIntent(SettingsIntent.NavigateToCloud) },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
 
@@ -409,21 +425,6 @@ private fun SettingsContent(
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 SettingsSectionHeader(title = stringResource(R.string.backup_section_title))
-            }
-
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                ) {
-                    NavigationRow(
-                        icon = "☁️",
-                        title = stringResource(R.string.cloud_title),
-                        description = stringResource(R.string.cloud_settings_subtitle),
-                        onClick = { onIntent(SettingsIntent.NavigateToCloud) },
-                    )
-                }
             }
 
             item {

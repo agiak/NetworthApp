@@ -6,6 +6,7 @@ import com.agcoding.networkapp.R
 import com.agcoding.networkapp.cloud.data.CloudRepository
 import com.agcoding.networkapp.cloud.domain.model.CloudError
 import com.agcoding.networkapp.cloud.domain.model.CloudException
+import com.agcoding.networkapp.cloud.domain.model.CloudState
 import com.agcoding.networkapp.cloud.domain.model.SignUpResult
 import com.agcoding.networkapp.cloud.domain.model.SyncStatus
 import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
@@ -85,8 +86,10 @@ class CloudViewModel @Inject constructor(
 
     private fun observeCloud() {
         viewModelScope.launch {
-            combine(repository.state, repository.syncStatus) { cloud, status -> cloud to status }
-                .collect { (cloud, status) ->
+            combine(repository.state, repository.syncStatus, repository.isOnline, repository.hasPendingChanges) { cloud, status, online, pending ->
+                CloudSnapshot(cloud, status, online, pending)
+            }
+                .collect { (cloud, status, online, pending) ->
                     val step = when {
                         cloud.session == null   -> CloudStep.SIGNED_OUT
                         cloud.household == null -> CloudStep.NO_HOUSEHOLD
@@ -102,6 +105,8 @@ class CloudViewModel @Inject constructor(
                             lastSyncAt    = cloud.lastSyncAt,
                             isSyncing     = status == SyncStatus.Syncing,
                             syncFailed    = status is SyncStatus.Failed,
+                            isOnline      = online,
+                            hasPendingChanges = pending,
                         )
                     }
                     val householdId = cloud.household?.id
@@ -112,6 +117,13 @@ class CloudViewModel @Inject constructor(
                 }
         }
     }
+
+    private data class CloudSnapshot(
+        val cloud: CloudState,
+        val status: SyncStatus,
+        val online: Boolean,
+        val pending: Boolean,
+    )
 
     private fun loadMembers() {
         viewModelScope.launch {

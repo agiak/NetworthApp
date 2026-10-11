@@ -25,6 +25,8 @@ data class CloudUiState(
     val lastSyncAt: Long? = null,
     val isSyncing: Boolean = false,
     val syncFailed: Boolean = false,
+    val isOnline: Boolean = true,
+    val hasPendingChanges: Boolean = false,
 
     val isBusy: Boolean = false,
     /** A new invite code to show and share. */

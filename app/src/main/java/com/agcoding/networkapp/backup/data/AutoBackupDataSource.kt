@@ -47,7 +47,7 @@ class AutoBackupDataSource @Inject constructor(
      * [requestSync] is false (when the change came from the sync itself).
      */
     suspend fun trigger(requestSync: Boolean = true) = withContext(ioDispatcher) {
-        if (requestSync) syncManager.get().requestSync()
+        if (requestSync) syncManager.get().requestSync(localChange = true)
         try {
             val entries = dao.getAllEntriesOnce().map { mapper.map(it) }
             val accounts = accountDao.getAllAccountsOnce().map { accountMapper.map(it) }

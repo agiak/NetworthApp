@@ -50,3 +50,46 @@ sealed interface SignUpResult {
     /** The project asks new users to confirm their email first. */
     data object ConfirmEmail : SignUpResult
 }
+
+/** How this phone stands with the cloud, for the Settings screen. */
+enum class CloudMode {
+    /** Not set up: the data lives only on this phone. */
+    OFFLINE_MODE,
+    /** Signed in but not in a household yet. */
+    SETUP_INCOMPLETE,
+    ONLINE,
+    SYNCING,
+    /** Set up, but the phone has no internet right now. */
+    NO_INTERNET,
+    SYNC_ERROR,
+}
+
+data class CloudConnectionStatus(
+    val mode: CloudMode,
+    val lastSyncAt: Long? = null,
+    /** Changes made here that haven't reached the cloud yet. */
+    val hasPendingChanges: Boolean = false,
+) {
+    val isConnected: Boolean get() = mode != CloudMode.OFFLINE_MODE && mode != CloudMode.SETUP_INCOMPLETE
+}
+
+fun cloudConnectionStatus(
+    state: CloudState,
+    syncStatus: SyncStatus,
+    isOnline: Boolean,
+    hasPendingChanges: Boolean,
+): CloudConnectionStatus {
+    val mode = when {
+        state.session == null      -> CloudMode.OFFLINE_MODE
+        state.household == null    -> CloudMode.SETUP_INCOMPLETE
+        !isOnline                  -> CloudMode.NO_INTERNET
+        syncStatus is SyncStatus.Syncing -> CloudMode.SYNCING
+        syncStatus is SyncStatus.Failed  -> CloudMode.SYNC_ERROR
+        else                       -> CloudMode.ONLINE
+    }
+    return CloudConnectionStatus(
+        mode              = mode,
+        lastSyncAt        = state.lastSyncAt,
+        hasPendingChanges = hasPendingChanges && state.isSyncing,
+    )
+}
