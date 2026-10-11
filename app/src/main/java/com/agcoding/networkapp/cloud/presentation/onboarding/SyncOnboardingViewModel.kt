@@ -7,7 +7,6 @@ import com.agcoding.networkapp.R
 import com.agcoding.networkapp.cloud.data.CloudRepository
 import com.agcoding.networkapp.cloud.domain.model.CloudError
 import com.agcoding.networkapp.cloud.domain.model.CloudException
-import com.agcoding.networkapp.cloud.domain.model.SignUpResult
 import com.agcoding.networkapp.cloud.domain.model.SyncStage
 import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -108,26 +107,12 @@ class SyncOnboardingViewModel @Inject constructor(
         if (!state.canSubmitAuth) return
         viewModelScope.launch {
             _uiState.update { it.copy(isBusy = true, message = null) }
-            if (state.isSignUp) {
-                repository.signUp(state.emailInput, state.passwordInput, state.nameInput, syncAfter = false).fold(
-                    onSuccess = { outcome ->
-                        if (outcome == SignUpResult.ConfirmEmail) {
-                            // Confirm by email, then sign in with the same details
-                            _uiState.update {
-                                it.copy(isBusy = false, isSignUp = false, message = R.string.cloud_msg_confirm_email, messageIsError = false)
-                            }
-                        } else {
-                            afterSignIn(hasHousehold = repository.state.first().household != null)
-                        }
-                    },
-                    onFailure = ::showError,
-                )
-            } else {
-                repository.signIn(state.emailInput, state.passwordInput, syncAfter = false).fold(
-                    onSuccess = { hasHousehold -> afterSignIn(hasHousehold) },
-                    onFailure = ::showError,
-                )
-            }
+            val result = if (state.isSignUp) repository.signUp(state.emailInput, state.passwordInput, state.nameInput, syncAfter = false)
+                         else repository.signIn(state.emailInput, state.passwordInput, syncAfter = false)
+            result.fold(
+                onSuccess = { hasHousehold -> afterSignIn(hasHousehold) },
+                onFailure = ::showError,
+            )
         }
     }
 

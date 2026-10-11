@@ -654,7 +654,6 @@
     <string name="cloud_msg_joined">You joined the household and its data is on this phone.</string>
     <string name="cloud_msg_synced">Everything is in sync.</string>
     <string name="cloud_msg_left">You left the household.</string>
-    <string name="cloud_msg_confirm_email">We sent you an email. Confirm your address and then sign in here.</string>
     <string name="cloud_msg_signed_in">Signed in.</string>
     <string name="cloud_error_no_connection">No internet connection.</string>
     <string name="cloud_error_invalid_credentials">Wrong email or password.</string>

@@ -40,14 +40,17 @@ class SupabaseClient @Inject constructor() {
 
     // ── Auth ────────────────────────────────────────────────────────────────
 
-    /** @return the session, or null when the email has to be confirmed first */
-    fun signUp(email: String, password: String, displayName: String): CloudSession? {
+    /**
+     * Creates the account through the `signup` edge function (no email verification, no email
+     * sent), then signs in with it.
+     */
+    fun signUp(email: String, password: String, displayName: String): CloudSession {
         val body = JSONObject()
             .put("email", email)
             .put("password", password)
-            .put("data", JSONObject().put("display_name", displayName))
-        val json = JSONObject(call("POST", "/auth/v1/signup", body.toString()))
-        return if (json.has("access_token")) parseSession(json) else null
+            .put("display_name", displayName)
+        call("POST", "/functions/v1/signup", body.toString())
+        return signIn(email, password)
     }
 
     fun signIn(email: String, password: String): CloudSession {

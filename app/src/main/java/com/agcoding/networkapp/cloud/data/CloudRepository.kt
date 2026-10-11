@@ -3,7 +3,6 @@ package com.agcoding.networkapp.cloud.data
 import com.agcoding.networkapp.cloud.data.local.SyncLinkDao
 import com.agcoding.networkapp.cloud.data.network.NetworkMonitor
 import com.agcoding.networkapp.cloud.data.remote.SupabaseClient
-import com.agcoding.networkapp.cloud.data.remote.SupabaseException
 import com.agcoding.networkapp.cloud.data.session.CloudSessionStore
 import com.agcoding.networkapp.cloud.data.sync.SyncManager
 import com.agcoding.networkapp.cloud.domain.model.CloudConnectionStatus
@@ -12,7 +11,6 @@ import com.agcoding.networkapp.cloud.domain.model.CloudException
 import com.agcoding.networkapp.cloud.domain.model.CloudSession
 import com.agcoding.networkapp.cloud.domain.model.CloudState
 import com.agcoding.networkapp.cloud.domain.model.HouseholdMember
-import com.agcoding.networkapp.cloud.domain.model.SignUpResult
 import com.agcoding.networkapp.cloud.domain.model.SyncProgress
 import com.agcoding.networkapp.cloud.domain.model.SyncStatus
 import com.agcoding.networkapp.cloud.domain.model.SyncSummary
@@ -72,17 +70,10 @@ class CloudRepository @Inject constructor(
         connect(session, syncAfter)
     }
 
-    suspend fun signUp(email: String, password: String, displayName: String, syncAfter: Boolean = true): Result<SignUpResult> = cloudCall {
-        // The backend confirms new emails itself, so sign in right away when sign-up gives no session
+    /** Creates the account (no email verification) and signs in; same result as [signIn]. */
+    suspend fun signUp(email: String, password: String, displayName: String, syncAfter: Boolean = true): Result<Boolean> = cloudCall {
         val session = client.signUp(email.trim(), password, displayName.trim())
-            ?: try {
-                client.signIn(email.trim(), password)
-            } catch (e: SupabaseException) {
-                if (e.code == "email_not_confirmed") return@cloudCall SignUpResult.ConfirmEmail
-                throw e
-            }
         connect(session, syncAfter)
-        SignUpResult.SignedIn
     }
 
     /** Creates a household and (unless [syncAfter] is false) uploads this device's data to it. */

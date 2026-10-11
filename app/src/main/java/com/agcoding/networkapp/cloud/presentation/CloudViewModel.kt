@@ -7,7 +7,6 @@ import com.agcoding.networkapp.cloud.data.CloudRepository
 import com.agcoding.networkapp.cloud.domain.model.CloudError
 import com.agcoding.networkapp.cloud.domain.model.CloudException
 import com.agcoding.networkapp.cloud.domain.model.CloudState
-import com.agcoding.networkapp.cloud.domain.model.SignUpResult
 import com.agcoding.networkapp.cloud.domain.model.SyncStatus
 import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -139,21 +138,14 @@ class CloudViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isBusy = true, message = null) }
             val result = if (state.isSignUp) {
-                repository.signUp(state.emailInput, state.passwordInput, state.nameInput).map { outcome ->
-                    if (outcome == SignUpResult.ConfirmEmail) R.string.cloud_msg_confirm_email else R.string.cloud_msg_signed_in
-                }
+                repository.signUp(state.emailInput, state.passwordInput, state.nameInput).map { R.string.cloud_msg_signed_in }
             } else {
                 repository.signIn(state.emailInput, state.passwordInput).map { R.string.cloud_msg_signed_in }
             }
             result.fold(
                 onSuccess = { message ->
                     _uiState.update {
-                        it.copy(
-                            isBusy = false, message = message, messageIsError = false,
-                            passwordInput = if (message == R.string.cloud_msg_confirm_email) it.passwordInput else "",
-                            // After confirming the email the user signs in with the same details
-                            isSignUp = if (message == R.string.cloud_msg_confirm_email) false else it.isSignUp,
-                        )
+                        it.copy(isBusy = false, message = message, messageIsError = false, passwordInput = "")
                     }
                 },
                 onFailure = { error -> showError(error) },

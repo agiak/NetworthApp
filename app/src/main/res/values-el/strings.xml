@@ -654,7 +654,6 @@
     <string name="cloud_msg_joined">Μπήκατε στο νοικοκυριό και τα δεδομένα του είναι σε αυτό το κινητό.</string>
     <string name="cloud_msg_synced">Όλα είναι συγχρονισμένα.</string>
     <string name="cloud_msg_left">Αποχωρήσατε από το νοικοκυριό.</string>
-    <string name="cloud_msg_confirm_email">Σας στείλαμε email. Επιβεβαιώστε τη διεύθυνση και μετά συνδεθείτε εδώ.</string>
     <string name="cloud_msg_signed_in">Συνδεθήκατε.</string>
     <string name="cloud_error_no_connection">Δεν υπάρχει σύνδεση στο internet.</string>
     <string name="cloud_error_invalid_credentials">Λάθος email ή κωδικός.</string>

@@ -45,12 +45,6 @@ sealed interface SyncStatus {
     data class Failed(val message: String) : SyncStatus
 }
 
-sealed interface SignUpResult {
-    data object SignedIn : SignUpResult
-    /** The project asks new users to confirm their email first. */
-    data object ConfirmEmail : SignUpResult
-}
-
 /** How this phone stands with the cloud, for the Settings screen. */
 enum class CloudMode {
     /** Not set up: the data lives only on this phone. */
