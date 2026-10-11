@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 
 @Dao
 interface SyncLinkDao {
@@ -17,12 +16,6 @@ interface SyncLinkDao {
 
     @Query("DELETE FROM sync_links WHERE entity = :entity")
     suspend fun deleteAll(entity: String)
-
-    @Transaction
-    suspend fun replaceAll(entity: String, links: List<SyncLinkEntity>) {
-        deleteAll(entity)
-        upsertAll(links)
-    }
 
     @Query("DELETE FROM sync_links")
     suspend fun clear()

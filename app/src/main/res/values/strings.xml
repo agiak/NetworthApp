@@ -606,7 +606,7 @@
     <string name="scenario_verdict_not_affordable">Can\'t afford it</string>
     <string name="scenario_verdict_unknown">Add salaries to judge</string>
     <string name="scenario_verdict_rate">%1$d%% of salaries still saved</string>
-    <string name="scenario_note">Nothing is saved or changed: your fixed expenses stay as they are. Comfortable means saving at least 20% of salaries.</string>
+    <string name="scenario_note" formatted="false">Nothing is saved or changed: your fixed expenses stay as they are. Comfortable means saving at least 20% of salaries.</string>
     <!-- Cloud sync -->
     <string name="cloud_title">Cloud &amp; Sync</string>
     <string name="cloud_settings_subtitle">Share your data across phones</string>
@@ -675,8 +675,43 @@
     <string name="cloud_detail_no_internet_pending">No internet. Your latest changes will go up once you\'re back online.</string>
     <string name="cloud_detail_pending">Uploading your latest changes…</string>
     <string name="cloud_detail_synced">Synced %1$s</string>
-    <string name="cloud_prompt_title">Sync your data</string>
-    <string name="cloud_prompt_body">Your data is only on this phone. Sign in to keep it safe in the cloud and share it with your household: every change you make will be synced.</string>
-    <string name="cloud_prompt_sync">Sync now</string>
-    <string name="cloud_prompt_later">Later</string>
+    <!-- Sync onboarding -->
+    <string name="sync_onboarding_title">Your data isn\'t synced yet</string>
+    <string name="sync_onboarding_body">Do you want to back it up safely to the cloud? It will be on all your phones and your household\'s, and every change will sync on its own.</string>
+    <string name="sync_onboarding_feature_private">Private: only you and your household can see it</string>
+    <string name="sync_onboarding_feature_devices">On every phone, even a new one</string>
+    <string name="sync_onboarding_feature_auto">Every change you make syncs automatically</string>
+    <string name="sync_onboarding_yes">Yes, sync my data</string>
+    <string name="sync_onboarding_skip">Skip</string>
+    <string name="sync_onboarding_account_title">Your cloud account</string>
+    <string name="sync_onboarding_account_body">Create an account, or sign in if you already have one.</string>
+    <string name="sync_onboarding_have_account">I have an account</string>
+    <string name="sync_onboarding_household_title">Your household</string>
+    <string name="sync_onboarding_household_body">Your data goes into a household that you can share with your family. Create one, or join with a code from someone who already has one.</string>
+    <string name="sync_onboarding_new_household">New household</string>
+    <string name="sync_onboarding_have_code">I have a code</string>
+    <string name="sync_onboarding_default_household">My household</string>
+    <string name="sync_onboarding_default_household_named">%1$s\'s household</string>
+    <string name="sync_onboarding_upload">Upload my data</string>
+    <string name="sync_stage_connecting">Connecting to the cloud…</string>
+    <string name="sync_stage_checking">Checking what\'s already there…</string>
+    <string name="sync_stage_accounts">Uploading your accounts…</string>
+    <string name="sync_stage_entries">Uploading your net worth history…</string>
+    <string name="sync_stage_expenses">Uploading your fixed expenses…</string>
+    <string name="sync_stage_categories">Uploading what Expense Analysis learned…</string>
+    <string name="sync_stage_finishing">Final checks…</string>
+    <string name="sync_stage_done">All done!</string>
+    <string name="sync_onboarding_keep_open">Keep the app open, it only takes a few seconds.</string>
+    <string name="sync_onboarding_success_title">Everything is uploaded! 🎉</string>
+    <string name="sync_onboarding_success_body">Your data is safe in the cloud, and from now on every change syncs on its own.</string>
+    <string name="sync_onboarding_summary_accounts">Accounts</string>
+    <string name="sync_onboarding_summary_entries">Snapshots</string>
+    <string name="sync_onboarding_summary_expenses">Fixed expenses</string>
+    <string name="sync_onboarding_summary_categories">Categories</string>
+    <string name="sync_onboarding_summary_received">Received from the household</string>
+    <string name="sync_onboarding_continue">Continue to the app</string>
+    <string name="sync_onboarding_error_title">Something went wrong</string>
+    <string name="sync_onboarding_error_body">Nothing was lost: your data is still on this phone. Try again, or skip and sync later from Settings.</string>
+    <string name="sync_onboarding_retry">Try again</string>
+    <string name="sync_onboarding_skip_for_now">Skip for now</string>
 </resources>

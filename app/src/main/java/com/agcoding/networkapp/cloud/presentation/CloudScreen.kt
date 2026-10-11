@@ -432,7 +432,7 @@ private fun MessageBanner(text: String, isError: Boolean, onDismiss: () -> Unit)
 }
 
 @Composable
-private fun PrimaryButton(text: String, enabled: Boolean, busy: Boolean, onClick: () -> Unit) {
+internal fun PrimaryButton(text: String, enabled: Boolean, busy: Boolean, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         enabled = enabled,
@@ -452,7 +452,7 @@ private fun PrimaryButton(text: String, enabled: Boolean, busy: Boolean, onClick
 }
 
 @Composable
-private fun CloudField(
+internal fun CloudField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,

@@ -12,7 +12,9 @@ import com.agcoding.networkapp.cloud.domain.model.CloudSession
 import com.agcoding.networkapp.cloud.domain.model.CloudState
 import com.agcoding.networkapp.cloud.domain.model.HouseholdMember
 import com.agcoding.networkapp.cloud.domain.model.SignUpResult
+import com.agcoding.networkapp.cloud.domain.model.SyncProgress
 import com.agcoding.networkapp.cloud.domain.model.SyncStatus
+import com.agcoding.networkapp.cloud.domain.model.SyncSummary
 import com.agcoding.networkapp.cloud.domain.model.cloudConnectionStatus
 import com.agcoding.networkapp.shared.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
@@ -42,7 +44,9 @@ class CloudRepository @Inject constructor(
     val hasPendingChanges: StateFlow<Boolean> = syncManager.hasPendingChanges
 
     val connectionStatus: Flow<CloudConnectionStatus> =
-        combine(store.state, syncManager.status, networkMonitor.isOnline, syncManager.hasPendingChanges, ::cloudConnectionStatus)
+        combine(store.state, syncManager.status, networkMonitor.isOnline, syncManager.hasPendingChanges) { state, status, online, pending ->
+            cloudConnectionStatus(state, status, online, pending)
+        }
 
     /** Remind to set up sync while the data lives only on this phone, unless snoozed. */
     val shouldPromptSync: Flow<Boolean> =
@@ -54,35 +58,46 @@ class CloudRepository @Inject constructor(
         store.snoozePrompt(System.currentTimeMillis() + forMillis)
     }
 
-    suspend fun signIn(email: String, password: String): Result<Unit> = cloudCall {
+    /** Progress of the running sync, for the upload screen. */
+    val syncProgress: StateFlow<SyncProgress?> = syncManager.progress
+
+    /**
+     * @param syncAfter sync right away if the user already has a household (the upload screen
+     *   passes false and syncs itself to show progress)
+     * @return whether the user already belongs to a household
+     */
+    suspend fun signIn(email: String, password: String, syncAfter: Boolean = true): Result<Boolean> = cloudCall {
         val session = client.signIn(email.trim(), password)
-        connect(session)
+        connect(session, syncAfter)
     }
 
-    suspend fun signUp(email: String, password: String, displayName: String): Result<SignUpResult> = cloudCall {
+    suspend fun signUp(email: String, password: String, displayName: String, syncAfter: Boolean = true): Result<SignUpResult> = cloudCall {
         val session = client.signUp(email.trim(), password, displayName.trim())
             ?: return@cloudCall SignUpResult.ConfirmEmail
-        connect(session)
+        connect(session, syncAfter)
         SignUpResult.SignedIn
     }
 
-    /** Creates a household and uploads this device's data to it. */
-    suspend fun createHousehold(name: String): Result<Unit> = cloudCall {
+    /** Creates a household and (unless [syncAfter] is false) uploads this device's data to it. */
+    suspend fun createHousehold(name: String, syncAfter: Boolean = true): Result<Unit> = cloudCall {
         val session = requireSession()
         val household = client.createHousehold(session, name.trim())
         syncManager.prepareFor(household.id)
         store.saveHousehold(household)
-        syncManager.syncNow().getOrThrow()
+        if (syncAfter) syncManager.syncNow().getOrThrow()
     }
 
-    /** Joins with an invite code; this device's data is replaced with the household's. */
-    suspend fun joinHousehold(code: String): Result<Unit> = cloudCall {
+    /** Joins with an invite code; this device's data is then replaced with the household's. */
+    suspend fun joinHousehold(code: String, syncAfter: Boolean = true): Result<Unit> = cloudCall {
         val session = requireSession()
         val household = client.joinHousehold(session, code.trim())
         syncManager.prepareFor(household.id)
         store.saveHousehold(household)
-        syncManager.syncNow(replaceLocal = true).getOrThrow()
+        if (syncAfter) syncManager.syncNow(replaceLocal = true).getOrThrow()
     }
+
+    /** Syncs now and tells what moved; [replaceLocal] takes the household's data (after joining). */
+    suspend fun syncWithSummary(replaceLocal: Boolean = false): Result<SyncSummary> = syncManager.syncNow(replaceLocal)
 
     suspend fun createInvite(): Result<String> = cloudCall {
         val household = store.current().household ?: throw CloudException(CloudError.UNKNOWN)
@@ -94,7 +109,7 @@ class CloudRepository @Inject constructor(
         client.members(requireSession(), household.id)
     }
 
-    suspend fun syncNow(): Result<Unit> = syncManager.syncNow()
+    suspend fun syncNow(): Result<Unit> = syncManager.syncNow().map { }
 
     /** Stops syncing; the data stays on this device. */
     suspend fun signOut() = withContext(ioDispatcher) {
@@ -111,15 +126,14 @@ class CloudRepository @Inject constructor(
         linkDao.clear()
     }
 
-    /** Saves the session and, if the user already belongs to a household, starts syncing it. */
-    private suspend fun connect(session: CloudSession) {
+    /** Saves the session and, if the user already belongs to a household, connects (and syncs) it. */
+    private suspend fun connect(session: CloudSession, syncAfter: Boolean): Boolean {
         store.saveSession(session)
-        val household = client.findMyHousehold(session)
-        if (household != null) {
-            syncManager.prepareFor(household.id)
-            store.saveHousehold(household)
-            syncManager.syncNow().getOrThrow()
-        }
+        val household = client.findMyHousehold(session) ?: return false
+        syncManager.prepareFor(household.id)
+        store.saveHousehold(household)
+        if (syncAfter) syncManager.syncNow().getOrThrow()
+        return true
     }
 
     private suspend fun requireSession(): CloudSession =

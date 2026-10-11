@@ -93,3 +93,24 @@ fun cloudConnectionStatus(
         hasPendingChanges = hasPendingChanges && state.isSyncing,
     )
 }
+
+/** The steps of a sync, in order, for the progress screen. */
+enum class SyncStage { CONNECTING, CHECKING, ACCOUNTS, ENTRIES, EXPENSES, CATEGORIES, FINISHING, DONE }
+
+data class SyncProgress(
+    val stage: SyncStage,
+    /** 0.0–1.0 for the whole sync. */
+    val fraction: Float,
+)
+
+/** What a sync moved, per table. */
+data class SyncSummary(
+    val accountsUploaded: Int = 0,
+    val entriesUploaded: Int = 0,
+    val expensesUploaded: Int = 0,
+    val categoriesUploaded: Int = 0,
+    /** Rows added, changed or deleted on this phone from other phones. */
+    val received: Int = 0,
+) {
+    val uploaded: Int get() = accountsUploaded + entriesUploaded + expensesUploaded + categoriesUploaded
+}

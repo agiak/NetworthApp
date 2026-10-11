@@ -606,7 +606,7 @@
     <string name="scenario_verdict_not_affordable">Δεν βγαίνει</string>
     <string name="scenario_verdict_unknown">Χρειάζονται μισθοί</string>
     <string name="scenario_verdict_rate">Αποταμιεύεται ακόμα το %1$d%% των μισθών</string>
-    <string name="scenario_note">Τίποτα δεν αποθηκεύεται ούτε αλλάζει: τα πάγια έξοδα μένουν όπως είναι. «Το αντέχετε» σημαίνει αποταμίευση τουλάχιστον 20% των μισθών.</string>
+    <string name="scenario_note" formatted="false">Τίποτα δεν αποθηκεύεται ούτε αλλάζει: τα πάγια έξοδα μένουν όπως είναι. «Το αντέχετε» σημαίνει αποταμίευση τουλάχιστον 20% των μισθών.</string>
     <!-- Cloud sync -->
     <string name="cloud_title">Cloud &amp; Συγχρονισμός</string>
     <string name="cloud_settings_subtitle">Κοινά δεδομένα σε όλα τα κινητά</string>
@@ -675,8 +675,43 @@
     <string name="cloud_detail_no_internet_pending">Χωρίς internet. Οι τελευταίες αλλαγές σας θα ανέβουν μόλις συνδεθείτε.</string>
     <string name="cloud_detail_pending">Ανεβαίνουν οι τελευταίες αλλαγές σας…</string>
     <string name="cloud_detail_synced">Συγχρονισμένο %1$s</string>
-    <string name="cloud_prompt_title">Συγχρονίστε τα δεδομένα σας</string>
-    <string name="cloud_prompt_body">Τα δεδομένα σας είναι μόνο σε αυτό το κινητό. Συνδεθείτε για να τα κρατάτε με ασφάλεια στο cloud και να τα μοιράζεστε με το νοικοκυριό σας: κάθε αλλαγή που κάνετε θα συγχρονίζεται.</string>
-    <string name="cloud_prompt_sync">Συγχρονισμός</string>
-    <string name="cloud_prompt_later">Αργότερα</string>
+    <!-- Sync onboarding -->
+    <string name="sync_onboarding_title">Δεν έχεις κάνει sync τα δεδομένα σου</string>
+    <string name="sync_onboarding_body">Θέλεις να τα ανεβάσουμε με ασφάλεια στο cloud; Θα είναι σε όλα τα κινητά σου και του νοικοκυριού σου, και κάθε αλλαγή θα συγχρονίζεται μόνη της.</string>
+    <string name="sync_onboarding_feature_private">Ιδιωτικά: τα βλέπεις μόνο εσύ και το νοικοκυριό σου</string>
+    <string name="sync_onboarding_feature_devices">Σε κάθε κινητό, ακόμα και σε καινούριο</string>
+    <string name="sync_onboarding_feature_auto">Κάθε αλλαγή συγχρονίζεται αυτόματα</string>
+    <string name="sync_onboarding_yes">Ναι, κάνε sync</string>
+    <string name="sync_onboarding_skip">Skip</string>
+    <string name="sync_onboarding_account_title">Ο λογαριασμός σου στο cloud</string>
+    <string name="sync_onboarding_account_body">Φτιάξε λογαριασμό ή συνδέσου αν έχεις ήδη.</string>
+    <string name="sync_onboarding_have_account">Έχω λογαριασμό</string>
+    <string name="sync_onboarding_household_title">Το νοικοκυριό σου</string>
+    <string name="sync_onboarding_household_body">Τα δεδομένα σου μπαίνουν σε ένα νοικοκυριό που μπορείς να μοιραστείς με την οικογένειά σου. Φτιάξε νέο ή μπες με κωδικό από κάποιον που έχει ήδη.</string>
+    <string name="sync_onboarding_new_household">Νέο νοικοκυριό</string>
+    <string name="sync_onboarding_have_code">Έχω κωδικό</string>
+    <string name="sync_onboarding_default_household">Το νοικοκυριό μου</string>
+    <string name="sync_onboarding_default_household_named">Νοικοκυριό %1$s</string>
+    <string name="sync_onboarding_upload">Ανέβασε τα δεδομένα μου</string>
+    <string name="sync_stage_connecting">Συνδεόμαστε με το cloud…</string>
+    <string name="sync_stage_checking">Ελέγχουμε τι υπάρχει ήδη…</string>
+    <string name="sync_stage_accounts">Ανεβάζουμε τους λογαριασμούς σου…</string>
+    <string name="sync_stage_entries">Ανεβάζουμε το ιστορικό της καθαρής σου αξίας…</string>
+    <string name="sync_stage_expenses">Ανεβάζουμε τα πάγια έξοδά σου…</string>
+    <string name="sync_stage_categories">Ανεβάζουμε όσα έμαθε η Ανάλυση Εξόδων…</string>
+    <string name="sync_stage_finishing">Τελευταίοι έλεγχοι…</string>
+    <string name="sync_stage_done">Έτοιμο!</string>
+    <string name="sync_onboarding_keep_open">Κράτα την εφαρμογή ανοιχτή, θα πάρει λίγα δευτερόλεπτα.</string>
+    <string name="sync_onboarding_success_title">Όλα ανέβηκαν! 🎉</string>
+    <string name="sync_onboarding_success_body">Τα δεδομένα σου είναι ασφαλή στο cloud και από εδώ και πέρα κάθε αλλαγή συγχρονίζεται μόνη της.</string>
+    <string name="sync_onboarding_summary_accounts">Λογαριασμοί</string>
+    <string name="sync_onboarding_summary_entries">Καταγραφές</string>
+    <string name="sync_onboarding_summary_expenses">Πάγια έξοδα</string>
+    <string name="sync_onboarding_summary_categories">Κατηγορίες</string>
+    <string name="sync_onboarding_summary_received">Ήρθαν από το νοικοκυριό</string>
+    <string name="sync_onboarding_continue">Συνέχεια στην εφαρμογή</string>
+    <string name="sync_onboarding_error_title">Κάτι δεν πήγε καλά</string>
+    <string name="sync_onboarding_error_body">Δεν χάθηκε τίποτα: τα δεδομένα σου είναι ακόμα σε αυτό το κινητό. Δοκίμασε ξανά ή κάνε skip και συγχρόνισε αργότερα από τα Settings.</string>
+    <string name="sync_onboarding_retry">Δοκίμασε ξανά</string>
+    <string name="sync_onboarding_skip_for_now">Skip για τώρα</string>
 </resources>

@@ -158,12 +158,21 @@ class SupabaseClient @Inject constructor() {
     }
 
     /** Inserts or updates [rows] (all with the same keys), matching on [onConflict]. */
-    fun upsert(session: CloudSession, table: String, rows: List<JSONObject>, onConflict: String) {
+    fun upsert(
+        session: CloudSession,
+        table: String,
+        rows: List<JSONObject>,
+        onConflict: String,
+        onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
+    ) {
+        var done = 0
         rows.chunked(UPSERT_BATCH).forEach { batch ->
             call(
                 "POST", "/rest/v1/$table?on_conflict=$onConflict", JSONArray(batch).toString(), session.accessToken,
                 prefer = "resolution=merge-duplicates,return=minimal",
             )
+            done += batch.size
+            onProgress(done, rows.size)
         }
     }
 
@@ -224,7 +233,7 @@ class SupabaseClient @Inject constructor() {
     companion object {
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
         private const val PAGE_SIZE = 1000
-        private const val UPSERT_BATCH = 500
+        private const val UPSERT_BATCH = 200
         private const val FILTER_BATCH = 100
 
         /** Auth answers {msg, error_code} or {error, error_description}; the database {message, code}. */

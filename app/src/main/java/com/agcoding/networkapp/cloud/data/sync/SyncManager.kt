@@ -17,7 +17,10 @@ import com.agcoding.networkapp.cloud.data.session.CloudSessionStore
 import com.agcoding.networkapp.cloud.domain.model.CloudError
 import com.agcoding.networkapp.cloud.domain.model.CloudException
 import com.agcoding.networkapp.cloud.domain.model.CloudSession
+import com.agcoding.networkapp.cloud.domain.model.SyncProgress
+import com.agcoding.networkapp.cloud.domain.model.SyncStage
 import com.agcoding.networkapp.cloud.domain.model.SyncStatus
+import com.agcoding.networkapp.cloud.domain.model.SyncSummary
 import com.agcoding.networkapp.cloud.domain.sync.LocalItem
 import com.agcoding.networkapp.cloud.domain.sync.RemoteItem
 import com.agcoding.networkapp.cloud.domain.sync.SyncFields
@@ -93,6 +96,10 @@ class SyncManager @Inject constructor(
     private val _status = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
     val status: StateFlow<SyncStatus> = _status.asStateFlow()
 
+    /** Progress of the running (or last) sync. */
+    private val _progress = MutableStateFlow<SyncProgress?>(null)
+    val progress: StateFlow<SyncProgress?> = _progress.asStateFlow()
+
     /** Local changes not uploaded yet (e.g. made while offline); survives restarts. */
     private val _hasPendingChanges = MutableStateFlow(false)
     val hasPendingChanges: StateFlow<Boolean> = _hasPendingChanges.asStateFlow()
@@ -132,7 +139,7 @@ class SyncManager @Inject constructor(
     /**
      * @param replaceLocal drop this device's data and take the household's (when joining)
      */
-    suspend fun syncNow(replaceLocal: Boolean = false): Result<Unit> = withContext(ioDispatcher) {
+    suspend fun syncNow(replaceLocal: Boolean = false): Result<SyncSummary> = withContext(ioDispatcher) {
         mutex.withLock {
             _status.value = SyncStatus.Syncing
             val version = changeVersion.get()
@@ -151,7 +158,6 @@ class SyncManager @Inject constructor(
                     Timber.e(error, "Sync failed")
                     _status.value = SyncStatus.Failed(error.message ?: error.javaClass.simpleName)
                 }
-                .map { }
                 .recoverCatching { throw toCloudException(it) }
         }
     }
@@ -182,13 +188,15 @@ class SyncManager @Inject constructor(
 
     // ── Sync ────────────────────────────────────────────────────────────────
 
-    private suspend fun sync(replaceLocal: Boolean) {
-        val session = validSession() ?: return
-        val household = store.current().household ?: return
+    private suspend fun sync(replaceLocal: Boolean): SyncSummary {
+        report(SyncStage.CONNECTING, 0.02f)
+        val session = validSession() ?: return SyncSummary()
+        val household = store.current().household ?: return SyncSummary()
         val hid = household.id
         prepareFor(hid)
 
         // Pull first: if the network fails nothing local has changed
+        report(SyncStage.CHECKING, 0.08f)
         val remote = RemoteTable.entries.associateWith { table ->
             client.selectAll(session, table.tableName, hid, orderBy = table.keyColumn)
                 .map { RemoteRows.parse(table, it) }
@@ -204,10 +212,8 @@ class SyncManager @Inject constructor(
             }
         }
 
-        var changedLocally = false
-
         // Accounts
-        changedLocally = syncTable(
+        val accounts = syncTable(
             table = RemoteTable.ACCOUNTS, session = session, householdId = hid,
             remote = remote.getValue(RemoteTable.ACCOUNTS),
             local = accountDao.getAllAccountsOnce().map { it.toLocalItem() },
@@ -215,14 +221,15 @@ class SyncManager @Inject constructor(
             insert = { r -> accountDao.insertAccount(r.toAccount(id = 0)).toString() },
             update = { key, r -> accountDao.updateAccount(r.toAccount(id = key.toLong())); true },
             delete = { key -> accountDao.deleteAccount(key.toLong()) },
-        ) || changedLocally
+            stage = SyncStage.ACCOUNTS, from = 0.15f, to = 0.30f,
+        )
 
         val accountLinks = linkDao.getAll(RemoteTable.ACCOUNTS.name)
         val localToRemoteAccount = accountLinks.associate { it.localKey.toLong() to it.remoteId }
         val remoteToLocalAccount = accountLinks.associate { it.remoteId to it.localKey.toLong() }
 
         // Net worth entries (only those whose account is synced)
-        changedLocally = syncTable(
+        val entries = syncTable(
             table = RemoteTable.ENTRIES, session = session, householdId = hid,
             remote = remote.getValue(RemoteTable.ENTRIES),
             local = netWorthDao.getAllEntriesOnce().mapNotNull { it.toLocalItem(localToRemoteAccount) },
@@ -234,10 +241,11 @@ class SyncManager @Inject constructor(
                 entry != null
             },
             delete = { key -> netWorthDao.deleteEntry(key.toLong()) },
-        ) || changedLocally
+            stage = SyncStage.ENTRIES, from = 0.30f, to = 0.75f,
+        )
 
         // Fixed expenses
-        changedLocally = syncTable(
+        val expenses = syncTable(
             table = RemoteTable.EXPENSES, session = session, householdId = hid,
             remote = remote.getValue(RemoteTable.EXPENSES),
             local = fixedExpenseDao.getAllOnce().map { it.toLocalItem(localToRemoteAccount) },
@@ -245,10 +253,11 @@ class SyncManager @Inject constructor(
             insert = { r -> fixedExpenseDao.insertReturningId(r.toExpense(id = 0, remoteToLocalAccount)).toString() },
             update = { key, r -> fixedExpenseDao.update(r.toExpense(id = key.toLong(), remoteToLocalAccount)); true },
             delete = { key -> fixedExpenseDao.deleteById(key.toLong()) },
-        ) || changedLocally
+            stage = SyncStage.EXPENSES, from = 0.75f, to = 0.88f,
+        )
 
         // Categories chosen in Expense Analysis (keyed by name on both sides)
-        changedLocally = syncTable(
+        val categories = syncTable(
             table = RemoteTable.FEEDBACK, session = session, householdId = hid,
             remote = remote.getValue(RemoteTable.FEEDBACK),
             local = categoryFeedbackDao.getAllOnce().map { LocalItem(it.nameKey, mapOf(Feedback.CATEGORY to it.category)) },
@@ -256,17 +265,35 @@ class SyncManager @Inject constructor(
             insert = { r -> r.toFeedback()?.let { categoryFeedbackDao.upsert(it); it.nameKey } },
             update = { _, r -> r.toFeedback()?.let { categoryFeedbackDao.upsert(it) } != null },
             delete = { key -> categoryFeedbackDao.delete(key) },
-        ) || changedLocally
+            stage = SyncStage.CATEGORIES, from = 0.88f, to = 0.95f,
+        )
 
+        report(SyncStage.FINISHING, 0.97f)
+        val received = accounts.received + entries.received + expenses.received + categories.received
         // Keep the backup file and the home screen widgets up to date with the other phones' changes
-        if (changedLocally || replaceLocal) {
+        if (received > 0 || replaceLocal) {
             autoBackup.trigger(requestSync = false)
             refreshWidgets()
         }
         store.saveLastSync(System.currentTimeMillis())
+        report(SyncStage.DONE, 1f)
+
+        return SyncSummary(
+            accountsUploaded   = accounts.pushed,
+            entriesUploaded    = entries.pushed,
+            expensesUploaded   = expenses.pushed,
+            categoriesUploaded = categories.pushed,
+            received           = received,
+        )
     }
 
-    /** Merges one table. @return whether local rows were changed */
+    private class TableResult(val pushed: Int, val received: Int)
+
+    private fun report(stage: SyncStage, fraction: Float) {
+        _progress.value = SyncProgress(stage, fraction.coerceIn(0f, 1f))
+    }
+
+    /** Merges one table, reporting progress between [from] and [to]. */
     private suspend fun syncTable(
         table: RemoteTable,
         session: CloudSession,
@@ -277,7 +304,11 @@ class SyncManager @Inject constructor(
         insert: suspend (RemoteItem) -> String?,
         update: suspend (String, RemoteItem) -> Boolean,
         delete: suspend (String) -> Unit,
-    ): Boolean {
+        stage: SyncStage,
+        from: Float,
+        to: Float,
+    ): TableResult {
+        report(stage, from)
         val oldLinks = linkDao.getAll(table.name).map { SyncLink(it.localKey, it.remoteId, it.hash) }
         val plan = planSync(local, remote, oldLinks, newRemoteId)
 
@@ -286,11 +317,14 @@ class SyncManager @Inject constructor(
         val newRows = plan.links.filter { it.localKey !in oldKeys }
         if (newRows.isNotEmpty()) linkDao.upsertAll(newRows.map { it.toEntity(table, hash = "") })
 
+        // Uploading takes most of the time: it moves the bar up to 90% of this table's share
+        val uploadSpan = (to - from) * 0.9f
         if (plan.push.isNotEmpty()) {
             client.upsert(
                 session, table.tableName,
                 plan.push.map { (remoteId, fields) -> RemoteRows.toJson(table, householdId, remoteId, fields) },
                 table.conflictColumns,
+                onProgress = { done, total -> report(stage, from + uploadSpan * done / total) },
             )
         }
         if (plan.softDelete.isNotEmpty()) {
@@ -307,9 +341,14 @@ class SyncManager @Inject constructor(
             plan.insertLocal.forEach { row ->
                 insert(row)?.let { key -> finalLinks[key] = SyncLink(key, row.remoteId, hashOf(row.fields)) }
             }
-            linkDao.replaceAll(table.name, finalLinks.values.map { it.toEntity(table, it.hash) })
+            linkDao.deleteAll(table.name)
+            linkDao.upsertAll(finalLinks.values.map { it.toEntity(table, it.hash) })
         }
-        return plan.deleteLocal.isNotEmpty() || plan.updateLocal.isNotEmpty() || plan.insertLocal.isNotEmpty()
+        report(stage, to)
+        return TableResult(
+            pushed   = plan.push.size,
+            received = plan.deleteLocal.size + plan.updateLocal.size + plan.insertLocal.size,
+        )
     }
 
     private suspend fun refreshWidgets() {

@@ -2,7 +2,10 @@ package com.agcoding.networkapp
 
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -17,8 +20,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.agcoding.networkapp.biometric.presentation.lock.LockScreen
 import com.agcoding.networkapp.biometric.presentation.lock.LockViewModel
-import com.agcoding.networkapp.cloud.presentation.CloudStatusViewModel
-import com.agcoding.networkapp.cloud.presentation.SyncPromptDialog
+import com.agcoding.networkapp.cloud.presentation.onboarding.SyncOnboardingScreen
+import com.agcoding.networkapp.cloud.presentation.onboarding.SyncOnboardingViewModel
 import com.agcoding.networkapp.navigation.NavGraph
 import com.agcoding.networkapp.settings.domain.model.AppLanguage
 import com.agcoding.networkapp.settings.domain.model.AppTheme
@@ -84,10 +87,20 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
                           isSecurityEnabled &&
                           !isAuthenticated
 
+        // "Your data isn't synced yet" pages, over the app, once past the lock screen and setup
+        val setupFinished = isProfileCreated == true && hasSeenSecuritySetup && hasSeenOnboarding
+        val syncOnboardingVm = if (!requireLock && setupFinished) hiltViewModel<SyncOnboardingViewModel>() else null
+        val syncOnboarding = syncOnboardingVm?.uiState?.collectAsStateWithLifecycle()?.value
+
         if (requireLock) {
             val lockVm: LockViewModel = hiltViewModel()
             val lockState by lockVm.uiState.collectAsStateWithLifecycle()
             LockScreen(state = lockState, onIntent = lockVm::onIntent)
+        } else if (syncOnboardingVm != null && syncOnboarding?.visible == true) {
+            SyncOnboardingScreen(state = syncOnboarding, onIntent = syncOnboardingVm::onIntent)
+        } else if (syncOnboardingVm != null && syncOnboarding?.decided == false) {
+            // A moment while it checks whether the data is synced, so the app doesn't flash first
+            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
         } else {
             val navController = rememberNavController()
             val currentDest = navController.currentBackStackEntryAsState().value?.destination
@@ -138,21 +151,6 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
                         hasSeenSecuritySetup = hasSeenSecuritySetup,
                     )
                 }
-            }
-
-            // Data only on this phone: offer to set up cloud sync (once set up, it syncs on its own)
-            val cloudStatusVm: CloudStatusViewModel = hiltViewModel()
-            val showSyncPrompt by cloudStatusVm.showSyncPrompt.collectAsStateWithLifecycle()
-            val setupFinished = isProfileCreated == true && hasSeenSecuritySetup && hasSeenOnboarding
-            val onCloudScreen = currentDest?.hasRoute<CloudRoute>() == true
-            if (showSyncPrompt && setupFinished && currentDest != null && !onCloudScreen) {
-                SyncPromptDialog(
-                    onSync  = {
-                        cloudStatusVm.startSetup()
-                        navController.navigate(CloudRoute)
-                    },
-                    onLater = cloudStatusVm::remindLater,
-                )
             }
         }
     }
