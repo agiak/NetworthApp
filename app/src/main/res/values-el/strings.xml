@@ -304,7 +304,7 @@
     <string name="label_monthly_reminder">Μηνιαία υπενθύμιση</string>
     <string name="desc_monthly_reminder">Υπενθύμιση την 1η του μήνα</string>
     <string name="label_biometric_lock">Βιομετρικό κλείδωμα</string>
-    <string name="desc_biometric_lock">Απαίτηση δακτυλικού αποτυπώματος</string>
+    <string name="desc_biometric_lock">Απαίτηση δακτυλικού αποτυπώματος ή προσώπου</string>
 
     <!-- Profile -->
     <string name="btn_continue">Συνέχεια</string>
@@ -333,7 +333,7 @@
 
     <!-- Biometric Setup Step -->
     <string name="biometric_setup_title">Χρήση βιομετρικών;</string>
-    <string name="biometric_setup_body">Επιταχύνετε τη σύνδεση με δακτυλικό αποτύπωμα ή Face ID</string>
+    <string name="biometric_setup_body">Επιταχύνετε τη σύνδεση με δακτυλικό αποτύπωμα ή αναγνώριση προσώπου</string>
     <string name="biometric_setup_btn_yes">Ναι, χρήση βιομετρικών</string>
     <string name="biometric_setup_btn_no">Όχι, μόνο PIN</string>
 

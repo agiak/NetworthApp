@@ -314,7 +314,7 @@
     <string name="label_monthly_reminder">Monthly reminder</string>
     <string name="desc_monthly_reminder">Nudge me on the 1st to log a snapshot</string>
     <string name="label_biometric_lock">Biometric lock</string>
-    <string name="desc_biometric_lock">Require fingerprint to open</string>
+    <string name="desc_biometric_lock">Require fingerprint or face to open</string>
 
     <!-- Security Setup Prompt -->
     <string name="security_setup_title">Secure your app</string>
@@ -329,7 +329,7 @@
 
     <!-- Biometric Setup Step -->
     <string name="biometric_setup_title">Use biometrics?</string>
-    <string name="biometric_setup_body">Speed up login with your fingerprint or face ID</string>
+    <string name="biometric_setup_body">Speed up login with your fingerprint or face unlock</string>
     <string name="biometric_setup_btn_yes">Yes, use biometrics</string>
     <string name="biometric_setup_btn_no">No, PIN only</string>
 

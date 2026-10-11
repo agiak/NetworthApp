@@ -1,12 +1,12 @@
 package com.agcoding.networkapp.biometric.presentation.setup
 
 import android.content.Context
-import androidx.biometric.BiometricManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.agcoding.networkapp.biometric.domain.auth.AuthStateManager
+import com.agcoding.networkapp.biometric.presentation.BiometricAuth
 import com.agcoding.networkapp.biometric.domain.usecase.MarkSecuritySetupSeenUseCase
 import com.agcoding.networkapp.biometric.domain.usecase.SetBiometricEnabledUseCase
 import com.agcoding.networkapp.biometric.domain.usecase.SetPinUseCase
@@ -140,10 +140,7 @@ class SecuritySetupViewModel @Inject constructor(
         }
     }
 
-    private fun canUseBiometric(): Boolean =
-        BiometricManager.from(context)
-            .canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) ==
-                BiometricManager.BIOMETRIC_SUCCESS
+    private fun canUseBiometric(): Boolean = BiometricAuth.isAvailable(context)
 
     companion object {
         const val PIN_LENGTH = 4

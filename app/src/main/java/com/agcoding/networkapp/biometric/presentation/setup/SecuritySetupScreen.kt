@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.biometric.presentation.BiometricAuth
 import com.agcoding.networkapp.biometric.presentation.PinDotsRow
 import com.agcoding.networkapp.biometric.presentation.PinKeypad
 import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
@@ -53,11 +54,11 @@ fun SecuritySetupScreen(
                 onIntent(SecuritySetupIntent.BiometricFailed)
             }
         })
-        val info = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(context.getString(R.string.biometric_prompt_title))
-            .setSubtitle(context.getString(R.string.biometric_prompt_subtitle))
-            .setNegativeButtonText(context.getString(R.string.biometric_setup_btn_no))
-            .build()
+        val info = BiometricAuth.promptInfo(
+            title              = context.getString(R.string.biometric_prompt_title),
+            subtitle           = context.getString(R.string.biometric_prompt_subtitle),
+            negativeButtonText = context.getString(R.string.biometric_setup_btn_no),
+        )
         prompt.authenticate(info)
         onIntent(SecuritySetupIntent.BiometricPromptShown)
     }
