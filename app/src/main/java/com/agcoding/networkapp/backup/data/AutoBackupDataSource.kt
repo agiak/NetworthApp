@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import com.agcoding.networkapp.account.data.local.AccountDao
 import com.agcoding.networkapp.account.data.mapper.AccountEntityToDomainMapper
+import com.agcoding.networkapp.cloud.data.sync.SyncManager
 import com.agcoding.networkapp.expenseanalysis.data.local.CategoryFeedbackDao
 import com.agcoding.networkapp.expenseanalysis.data.local.toDomain
 import com.agcoding.networkapp.fixedexpenses.data.local.FixedExpenseDao
@@ -38,8 +39,15 @@ class AutoBackupDataSource @Inject constructor(
     private val serializer: BackupSerializer,
     private val settingsRepository: SettingsRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    // Lazy: SyncManager itself writes the backup after applying changes from other devices
+    private val syncManager: dagger.Lazy<SyncManager>,
 ) {
-    suspend fun trigger() = withContext(ioDispatcher) {
+    /**
+     * Writes the backup file after a change, and asks for a cloud sync of it unless
+     * [requestSync] is false (when the change came from the sync itself).
+     */
+    suspend fun trigger(requestSync: Boolean = true) = withContext(ioDispatcher) {
+        if (requestSync) syncManager.get().requestSync()
         try {
             val entries = dao.getAllEntriesOnce().map { mapper.map(it) }
             val accounts = accountDao.getAllAccountsOnce().map { accountMapper.map(it) }

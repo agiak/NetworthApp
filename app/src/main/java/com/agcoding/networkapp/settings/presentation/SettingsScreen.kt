@@ -80,6 +80,7 @@ fun SettingsScreen(
     onNavigateToSavingsCalculator: () -> Unit,
     onNavigateToExpenseAnalysis: () -> Unit,
     onNavigateToScenario: () -> Unit,
+    onNavigateToCloud: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -92,6 +93,7 @@ fun SettingsScreen(
                 SettingsIntent.NavigateToSavingsCalculator -> onNavigateToSavingsCalculator()
                 SettingsIntent.NavigateToExpenseAnalysis -> onNavigateToExpenseAnalysis()
                 SettingsIntent.NavigateToScenario -> onNavigateToScenario()
+                SettingsIntent.NavigateToCloud -> onNavigateToCloud()
                 SettingsIntent.NavigateToOnboarding    -> onNavigateToOnboarding()
                 SettingsIntent.NavigateToProfileEdit   -> onNavigateToProfileEdit()
                 SettingsIntent.NavigateToSetupPin      -> onNavigateToSetupPin()
@@ -407,6 +409,21 @@ private fun SettingsContent(
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 SettingsSectionHeader(title = stringResource(R.string.backup_section_title))
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                ) {
+                    NavigationRow(
+                        icon = "☁️",
+                        title = stringResource(R.string.cloud_title),
+                        description = stringResource(R.string.cloud_settings_subtitle),
+                        onClick = { onIntent(SettingsIntent.NavigateToCloud) },
+                    )
+                }
             }
 
             item {

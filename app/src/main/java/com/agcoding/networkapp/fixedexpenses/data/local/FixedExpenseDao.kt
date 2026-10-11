@@ -22,6 +22,10 @@ interface FixedExpenseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<FixedExpenseEntity>)
 
+    /** Insert that returns the new id (used by cloud sync). */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertReturningId(entity: FixedExpenseEntity): Long
+
     @Update
     suspend fun update(entity: FixedExpenseEntity)
 

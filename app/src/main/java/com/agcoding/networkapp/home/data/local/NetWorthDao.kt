@@ -24,6 +24,10 @@ interface NetWorthDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entries: List<NetWorthEntity>)
 
+    /** Insert that returns the new id (used by cloud sync). */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertReturningId(entry: NetWorthEntity): Long
+
     @Update
     suspend fun updateEntry(entry: NetWorthEntity)
 
