@@ -20,6 +20,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object PredictionRoute
 @Serializable data object ProfileEditRoute
 @Serializable data object ProfileSetupRoute
+/** First launch: sign in, register, or continue without an account. */
+@Serializable data object WelcomeRoute
 @Serializable data object ProfileTargetSetupRoute
 @Serializable data object RecapRoute
 @Serializable data object SavingsPlannerRoute

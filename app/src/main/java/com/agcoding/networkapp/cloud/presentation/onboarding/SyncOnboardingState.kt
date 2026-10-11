@@ -4,7 +4,17 @@ import androidx.annotation.StringRes
 import com.agcoding.networkapp.cloud.domain.model.SyncStage
 import com.agcoding.networkapp.cloud.domain.model.SyncSummary
 
-enum class SyncOnboardingStep { INTRO, ACCOUNT, HOUSEHOLD, SYNCING, SUCCESS, ERROR }
+enum class SyncOnboardingStep { WELCOME, INTRO, ACCOUNT, HOUSEHOLD, SYNCING, SUCCESS, ERROR }
+
+/** Where the first-launch welcome flow hands over to the rest of the setup. */
+enum class WelcomeResult {
+    /** Signed in to a household that has data: it's on the phone now, only security is left. */
+    HOUSEHOLD_DATA,
+    /** New account with a new household: continue with the target and the first accounts. */
+    NEW_HOUSEHOLD,
+    /** Use the app on this phone only: the usual profile setup. */
+    NO_ACCOUNT,
+}
 
 data class SyncOnboardingUiState(
     /** Whether the flow covers the app; decided once per launch. */
@@ -12,6 +22,10 @@ data class SyncOnboardingUiState(
     /** False until it's known whether the data is synced. */
     val decided: Boolean = false,
     val step: SyncOnboardingStep = SyncOnboardingStep.INTRO,
+    /** First launch: sign in or register before setting anything up. */
+    val welcome: Boolean = false,
+    /** Set once the welcome flow is done; tells the setup where to go next. */
+    val welcomeResult: WelcomeResult? = null,
 
     // Account
     val isSignUp: Boolean = true,
@@ -24,7 +38,8 @@ data class SyncOnboardingUiState(
     val householdNameInput: String = "",
     val inviteCodeInput: String = "",
 
-    // Upload
+    // Upload (or, when [downloading], fetching the household's data)
+    val downloading: Boolean = false,
     val stage: SyncStage = SyncStage.CONNECTING,
     val progress: Float = 0f,
     val summary: SyncSummary? = null,
@@ -47,6 +62,11 @@ data class SyncOnboardingUiState(
 }
 
 sealed interface SyncOnboardingIntent {
+    data object BeginWelcome : SyncOnboardingIntent
+    data object ChooseSignIn : SyncOnboardingIntent
+    data object ChooseRegister : SyncOnboardingIntent
+    data object ContinueWithoutAccount : SyncOnboardingIntent
+
     data object Start : SyncOnboardingIntent
     data object Skip : SyncOnboardingIntent
     data object Back : SyncOnboardingIntent

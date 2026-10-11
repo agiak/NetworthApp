@@ -39,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -72,20 +73,26 @@ import kotlin.math.roundToInt
 fun SyncOnboardingScreen(
     state: SyncOnboardingUiState,
     onIntent: (SyncOnboardingIntent) -> Unit,
+    /** False inside the app's Scaffold, which already keeps clear of the system bars. */
+    applySystemBarsPadding: Boolean = true,
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         AnimatedContent(
             targetState = state.step,
             transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(200)) },
             label = "sync-onboarding-step",
-            modifier = Modifier.fillMaxSize().systemBarsPadding().imePadding(),
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (applySystemBarsPadding) Modifier.systemBarsPadding() else Modifier)
+                .imePadding(),
         ) { step ->
             when (step) {
+                SyncOnboardingStep.WELCOME   -> WelcomePage(onIntent)
                 SyncOnboardingStep.INTRO     -> IntroPage(onIntent)
                 SyncOnboardingStep.ACCOUNT   -> AccountPage(state, onIntent)
                 SyncOnboardingStep.HOUSEHOLD -> HouseholdPage(state, onIntent)
                 SyncOnboardingStep.SYNCING   -> SyncingPage(state)
-                SyncOnboardingStep.SUCCESS   -> SuccessPage(state.summary, onIntent)
+                SyncOnboardingStep.SUCCESS   -> SuccessPage(state, onIntent)
                 SyncOnboardingStep.ERROR     -> ErrorPage(state, onIntent)
             }
         }
@@ -93,6 +100,50 @@ fun SyncOnboardingScreen(
 }
 
 // ── Pages ───────────────────────────────────────────────────────────────────
+
+/** First launch: sign in, register, or use the app on this phone only. */
+@Composable
+private fun WelcomePage(onIntent: (SyncOnboardingIntent) -> Unit) {
+    PageColumn(
+        bottom = {
+            PrimaryButton(
+                text = stringResource(R.string.cloud_sign_in),
+                enabled = true,
+                busy = false,
+                onClick = { onIntent(SyncOnboardingIntent.ChooseSignIn) },
+            )
+            Spacer(Modifier.height(4.dp))
+            OutlinedButton(
+                onClick = { onIntent(SyncOnboardingIntent.ChooseRegister) },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(14.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.welcome_register),
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            TextButton(onClick = { onIntent(SyncOnboardingIntent.ContinueWithoutAccount) }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.welcome_without_account), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+    ) {
+        Spacer(Modifier.height(40.dp))
+        Box(modifier = Modifier.size(132.dp), contentAlignment = Alignment.Center) {
+            Surface(modifier = Modifier.fillMaxSize(), shape = CircleShape, color = PositiveGreen.copy(alpha = 0.12f)) {}
+            Text("💰", fontSize = 64.sp)
+        }
+        Spacer(Modifier.height(32.dp))
+        Title(stringResource(R.string.welcome_title))
+        Spacer(Modifier.height(12.dp))
+        Body(stringResource(R.string.welcome_body))
+        Spacer(Modifier.height(28.dp))
+        Feature("🏡", stringResource(R.string.welcome_feature_household))
+        Feature("📱", stringResource(R.string.sync_onboarding_feature_devices))
+        Feature("🔒", stringResource(R.string.sync_onboarding_feature_private))
+    }
+}
 
 @Composable
 private fun IntroPage(onIntent: (SyncOnboardingIntent) -> Unit) {
@@ -149,9 +200,25 @@ private fun AccountPage(state: SyncOnboardingUiState, onIntent: (SyncOnboardingI
         },
     ) {
         PageEmoji("👤")
-        Title(stringResource(R.string.sync_onboarding_account_title))
+        Title(
+            stringResource(
+                when {
+                    !state.welcome   -> R.string.sync_onboarding_account_title
+                    state.isSignUp   -> R.string.welcome_register
+                    else             -> R.string.cloud_sign_in
+                }
+            )
+        )
         Spacer(Modifier.height(8.dp))
-        Body(stringResource(R.string.sync_onboarding_account_body))
+        Body(
+            stringResource(
+                when {
+                    !state.welcome   -> R.string.sync_onboarding_account_body
+                    state.isSignUp   -> R.string.welcome_register_body
+                    else             -> R.string.welcome_sign_in_body
+                }
+            )
+        )
         Spacer(Modifier.height(20.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
@@ -202,7 +269,13 @@ private fun HouseholdPage(state: SyncOnboardingUiState, onIntent: (SyncOnboardin
         onBack = { onIntent(SyncOnboardingIntent.Back) },
         bottom = {
             PrimaryButton(
-                text = stringResource(if (state.joinWithCode) R.string.cloud_join_button else R.string.sync_onboarding_upload),
+                text = stringResource(
+                    when {
+                        state.joinWithCode -> R.string.cloud_join_button
+                        state.welcome      -> R.string.welcome_create_household
+                        else               -> R.string.sync_onboarding_upload
+                    }
+                ),
                 enabled = state.canSubmitHousehold,
                 busy = state.isBusy,
                 onClick = { onIntent(SyncOnboardingIntent.SubmitHousehold) },
@@ -237,12 +310,15 @@ private fun HouseholdPage(state: SyncOnboardingUiState, onIntent: (SyncOnboardin
                 capitalization = KeyboardCapitalization.Characters,
                 monospace = true,
             )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.cloud_join_warning),
-                style = MaterialTheme.typography.labelSmall,
-                color = LocalAppColorScheme.current.statusError,
-            )
+            // Nothing to lose on first launch
+            if (!state.welcome) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.cloud_join_warning),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = LocalAppColorScheme.current.statusError,
+                )
+            }
         } else {
             CloudField(
                 value = state.householdNameInput,
@@ -293,7 +369,7 @@ private fun SyncingPage(state: SyncOnboardingUiState) {
                 Text(stage.emoji, fontSize = 36.sp)
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = stringResource(stage.messageRes),
+                    text = stringResource(if (state.downloading) stage.downloadMessageRes else stage.messageRes),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
@@ -312,7 +388,8 @@ private fun SyncingPage(state: SyncOnboardingUiState) {
 }
 
 @Composable
-private fun SuccessPage(summary: SyncSummary?, onIntent: (SyncOnboardingIntent) -> Unit) {
+private fun SuccessPage(state: SyncOnboardingUiState, onIntent: (SyncOnboardingIntent) -> Unit) {
+    val summary = state.summary
     PageColumn(
         bottom = {
             PrimaryButton(
@@ -326,10 +403,20 @@ private fun SuccessPage(summary: SyncSummary?, onIntent: (SyncOnboardingIntent) 
         Spacer(Modifier.height(24.dp))
         SuccessAnimation(color = PositiveGreen, size = 180.dp)
         Spacer(Modifier.height(16.dp))
-        Title(stringResource(R.string.sync_onboarding_success_title))
+        Title(stringResource(if (state.downloading) R.string.welcome_success_title else R.string.sync_onboarding_success_title))
         Spacer(Modifier.height(12.dp))
-        Body(stringResource(R.string.sync_onboarding_success_body))
-        if (summary != null && summary.uploaded + summary.received > 0) {
+        Body(stringResource(if (state.downloading) R.string.welcome_success_body else R.string.sync_onboarding_success_body))
+        if (state.downloading && summary != null && summary.received > 0) {
+            Spacer(Modifier.height(24.dp))
+            Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SummaryLine("👤", stringResource(R.string.sync_onboarding_summary_accounts), summary.accountsReceived)
+                    SummaryLine("📈", stringResource(R.string.sync_onboarding_summary_entries), summary.entriesReceived)
+                    SummaryLine("💸", stringResource(R.string.sync_onboarding_summary_expenses), summary.expensesReceived)
+                    SummaryLine("🧠", stringResource(R.string.sync_onboarding_summary_categories), summary.categoriesReceived)
+                }
+            }
+        } else if (!state.downloading && summary != null && summary.uploaded + summary.received > 0) {
             Spacer(Modifier.height(24.dp))
             Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -366,7 +453,7 @@ private fun ErrorPage(state: SyncOnboardingUiState, onIntent: (SyncOnboardingInt
         Spacer(Modifier.height(12.dp))
         Body(state.message?.let { stringResource(it) } ?: stringResource(R.string.cloud_error_unknown))
         Spacer(Modifier.height(8.dp))
-        Body(stringResource(R.string.sync_onboarding_error_body))
+        Body(stringResource(if (state.downloading) R.string.welcome_error_body else R.string.sync_onboarding_error_body))
     }
 }
 
@@ -498,6 +585,26 @@ private val SyncStage.messageRes: Int
         SyncStage.FINISHING  -> R.string.sync_stage_finishing
         SyncStage.DONE       -> R.string.sync_stage_done
     }
+
+private val SyncStage.downloadMessageRes: Int
+    get() = when (this) {
+        SyncStage.CONNECTING -> R.string.sync_stage_connecting
+        SyncStage.CHECKING   -> R.string.sync_stage_download_checking
+        SyncStage.ACCOUNTS   -> R.string.sync_stage_download_accounts
+        SyncStage.ENTRIES    -> R.string.sync_stage_download_entries
+        SyncStage.EXPENSES   -> R.string.sync_stage_download_expenses
+        SyncStage.CATEGORIES -> R.string.sync_stage_download_categories
+        SyncStage.FINISHING  -> R.string.sync_stage_finishing
+        SyncStage.DONE       -> R.string.sync_stage_done
+    }
+
+@Preview(showBackground = true)
+@Composable
+private fun WelcomePreview() {
+    NetWorthTheme {
+        SyncOnboardingScreen(state = SyncOnboardingUiState(welcome = true, step = SyncOnboardingStep.WELCOME), onIntent = {})
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

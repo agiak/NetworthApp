@@ -33,6 +33,10 @@ import com.agcoding.networkapp.expenseanalysis.presentation.ExpenseAnalysisScree
 import com.agcoding.networkapp.savings.presentation.SavingsPlannerScreen
 import com.agcoding.networkapp.scenario.presentation.ScenarioScreen
 import com.agcoding.networkapp.cloud.presentation.CloudScreen
+import com.agcoding.networkapp.cloud.presentation.onboarding.SyncOnboardingIntent
+import com.agcoding.networkapp.cloud.presentation.onboarding.SyncOnboardingScreen
+import com.agcoding.networkapp.cloud.presentation.onboarding.SyncOnboardingViewModel
+import com.agcoding.networkapp.cloud.presentation.onboarding.WelcomeResult
 import com.agcoding.networkapp.savings.presentation.calculator.SavingsCalculatorScreen
 import com.agcoding.networkapp.settings.presentation.ProfileScreen
 import com.agcoding.networkapp.settings.presentation.ProfileTargetSetupScreen
@@ -64,6 +68,7 @@ import com.agcoding.networkapp.shared.navigation.CloudRoute
 import com.agcoding.networkapp.shared.navigation.SavingsPlannerRoute
 import com.agcoding.networkapp.shared.navigation.SecuritySetupRoute
 import com.agcoding.networkapp.shared.navigation.SettingsRoute
+import com.agcoding.networkapp.shared.navigation.WelcomeRoute
 import com.agcoding.networkapp.snapshot.AddSnapshotScreen
 
 @Composable
@@ -77,13 +82,36 @@ fun NavGraph(
     val startDestination = remember {
         when {
             !hasSeenOnboarding    -> OnboardingRoute()
-            !isProfileCreated     -> ProfileSetupRoute
+            !isProfileCreated     -> WelcomeRoute
             !hasSeenSecuritySetup -> SecuritySetupRoute()
             else                  -> HomeRoute
         }
     }
 
     NavHost(navController = navController, startDestination = startDestination) {
+
+        // ── Welcome: sign in / register ────────────────────────────────────────
+        composable<WelcomeRoute> {
+            val vm: SyncOnboardingViewModel = hiltViewModel()
+            val state by vm.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(Unit) { vm.onIntent(SyncOnboardingIntent.BeginWelcome) }
+            LaunchedEffect(state.welcomeResult) {
+                val next: Any = when (state.welcomeResult) {
+                    // The household's data is on the phone: only security is left
+                    WelcomeResult.HOUSEHOLD_DATA -> SecuritySetupRoute()
+                    // Name and email come from the account: on to the target and first accounts
+                    WelcomeResult.NEW_HOUSEHOLD  -> ProfileTargetSetupRoute
+                    WelcomeResult.NO_ACCOUNT     -> ProfileSetupRoute
+                    null                         -> return@LaunchedEffect
+                }
+                navController.navigate(next) {
+                    popUpTo<WelcomeRoute> { inclusive = true }
+                }
+            }
+            if (state.welcome) {
+                SyncOnboardingScreen(state = state, onIntent = vm::onIntent, applySystemBarsPadding = false)
+            }
+        }
 
         // ── Profile Setup ──────────────────────────────────────────────────────
         composable<ProfileSetupRoute> {
@@ -126,7 +154,7 @@ fun NavGraph(
                     if (route.fromSettings) {
                         navController.navigateUp()
                     } else {
-                        navController.navigate(ProfileSetupRoute) {
+                        navController.navigate(WelcomeRoute) {
                             popUpTo<OnboardingRoute> { inclusive = true }
                         }
                     }

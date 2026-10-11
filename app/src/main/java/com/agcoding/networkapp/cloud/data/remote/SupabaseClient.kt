@@ -63,6 +63,16 @@ class SupabaseClient @Inject constructor() {
         return parseSession(JSONObject(call("POST", "/auth/v1/token?grant_type=refresh_token", body.toString())))
     }
 
+    /** The name the user signed up with, or null. */
+    fun displayName(session: CloudSession): String? {
+        val rows = JSONArray(call(
+            "GET", "/rest/v1/profiles?user_id=eq.${session.userId}&select=display_name&limit=1",
+            token = session.accessToken,
+        ))
+        if (rows.length() == 0) return null
+        return rows.getJSONObject(0).optString("display_name").takeIf { it.isNotBlank() && it != "null" }
+    }
+
     /** Best effort: the local session is dropped either way. */
     fun signOut(accessToken: String) {
         runCatching { call("POST", "/auth/v1/logout", "{}", accessToken) }

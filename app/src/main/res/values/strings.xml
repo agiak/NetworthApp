@@ -713,6 +713,22 @@
     <string name="sync_onboarding_continue">Continue to the app</string>
     <string name="sync_onboarding_error_title">Something went wrong</string>
     <string name="sync_onboarding_error_body">Nothing was lost: your data is still on this phone. Try again, or skip and sync later from Settings.</string>
+    <string name="welcome_title">Welcome to NetWorth</string>
+    <string name="welcome_body">Sign in to bring your household\'s data to this phone, or create an account to keep it in sync everywhere.</string>
+    <string name="welcome_feature_household">Share one household with your family</string>
+    <string name="welcome_register">Create account</string>
+    <string name="welcome_without_account">Continue without an account</string>
+    <string name="welcome_sign_in_body">Sign in and we\'ll bring your household\'s data to this phone.</string>
+    <string name="welcome_register_body">Create an account to have your data on all your phones.</string>
+    <string name="welcome_create_household">Create household</string>
+    <string name="welcome_success_title">Everything is here! 🎉</string>
+    <string name="welcome_success_body">Your household\'s data is on this phone, and every change keeps syncing on its own.</string>
+    <string name="welcome_error_body">You\'re signed in: your household\'s data will arrive with the next sync. Try again, or skip and continue for now.</string>
+    <string name="sync_stage_download_checking">Finding your household\'s data…</string>
+    <string name="sync_stage_download_accounts">Bringing your accounts…</string>
+    <string name="sync_stage_download_entries">Bringing your net worth history…</string>
+    <string name="sync_stage_download_expenses">Bringing your fixed expenses…</string>
+    <string name="sync_stage_download_categories">Bringing what Expense Analysis has learned…</string>
     <string name="sync_onboarding_retry">Try again</string>
     <string name="sync_onboarding_skip_for_now">Skip for now</string>
 </resources>

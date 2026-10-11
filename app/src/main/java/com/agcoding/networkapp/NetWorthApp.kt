@@ -48,6 +48,7 @@ import com.agcoding.networkapp.shared.navigation.ScenarioRoute
 import com.agcoding.networkapp.shared.navigation.CloudRoute
 import com.agcoding.networkapp.shared.navigation.SavingsPlannerRoute
 import com.agcoding.networkapp.shared.navigation.SecuritySetupRoute
+import com.agcoding.networkapp.shared.navigation.WelcomeRoute
 import com.agcoding.networkapp.shared.shortcut.ShortcutEvent
 import com.agcoding.networkapp.shared.shortcut.ShortcutEventBus
 import com.agcoding.networkapp.shared.ui.components.BottomNavigationBar
@@ -137,7 +138,8 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
                 !d.hasRoute<ExpenseAnalysisRoute>() &&
                 !d.hasRoute<ScenarioRoute>() &&
                 !d.hasRoute<CloudRoute>() &&
-                !d.hasRoute<SecuritySetupRoute>()
+                !d.hasRoute<SecuritySetupRoute>() &&
+                !d.hasRoute<WelcomeRoute>()
             } ?: true
 
             Scaffold(

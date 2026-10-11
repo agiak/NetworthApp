@@ -8,7 +8,10 @@ import com.agcoding.networkapp.cloud.data.CloudRepository
 import com.agcoding.networkapp.cloud.domain.model.CloudError
 import com.agcoding.networkapp.cloud.domain.model.CloudException
 import com.agcoding.networkapp.cloud.domain.model.SyncStage
+import com.agcoding.networkapp.settings.domain.model.UserProfile
 import com.agcoding.networkapp.settings.domain.usecase.GetUserProfileUseCase
+import com.agcoding.networkapp.settings.domain.usecase.SetProfileCreatedUseCase
+import com.agcoding.networkapp.settings.domain.usecase.SetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -22,17 +25,23 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.LocalDate
 import javax.inject.Inject
 
 /**
  * "Your data isn't synced yet" flow shown over the app at launch: intro → account →
  * household → upload with progress → success. Skipping asks again in a week.
+ *
+ * On first launch it's the welcome flow instead ([SyncOnboardingIntent.BeginWelcome]): sign in
+ * (and bring the household's data to this phone) or register, before the rest of the setup.
  */
 @HiltViewModel
 class SyncOnboardingViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: CloudRepository,
     private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val setUserProfileUseCase: SetUserProfileUseCase,
+    private val setProfileCreatedUseCase: SetProfileCreatedUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SyncOnboardingUiState())
@@ -52,12 +61,29 @@ class SyncOnboardingViewModel @Inject constructor(
 
     fun onIntent(intent: SyncOnboardingIntent) {
         when (intent) {
+            SyncOnboardingIntent.BeginWelcome -> _uiState.update {
+                if (it.welcome) it else it.copy(welcome = true, step = SyncOnboardingStep.WELCOME)
+            }
+            SyncOnboardingIntent.ChooseSignIn   -> _uiState.update { it.copy(step = SyncOnboardingStep.ACCOUNT, isSignUp = false, message = null) }
+            SyncOnboardingIntent.ChooseRegister -> _uiState.update { it.copy(step = SyncOnboardingStep.ACCOUNT, isSignUp = true, message = null) }
+            SyncOnboardingIntent.ContinueWithoutAccount -> {
+                viewModelScope.launch { repository.snoozeSyncPrompt(SKIP_FOR_MILLIS) }
+                _uiState.update { it.copy(welcomeResult = WelcomeResult.NO_ACCOUNT) }
+            }
+
             SyncOnboardingIntent.Start  -> start()
             SyncOnboardingIntent.Skip   -> {
-                viewModelScope.launch { repository.snoozeSyncPrompt(SKIP_FOR_MILLIS) }
-                _uiState.update { it.copy(visible = false) }
+                if (_uiState.value.welcome) {
+                    // Signed in already: the household's data comes with the next sync
+                    finishWelcome(WelcomeResult.HOUSEHOLD_DATA)
+                } else {
+                    viewModelScope.launch { repository.snoozeSyncPrompt(SKIP_FOR_MILLIS) }
+                    _uiState.update { it.copy(visible = false) }
+                }
             }
-            SyncOnboardingIntent.Back   -> _uiState.update { it.copy(step = SyncOnboardingStep.INTRO, message = null) }
+            SyncOnboardingIntent.Back   -> _uiState.update {
+                it.copy(step = if (it.welcome) SyncOnboardingStep.WELCOME else SyncOnboardingStep.INTRO, message = null)
+            }
 
             is SyncOnboardingIntent.SetSignUp      -> _uiState.update { it.copy(isSignUp = intent.signUp, message = null) }
             is SyncOnboardingIntent.UpdateName     -> _uiState.update { it.copy(nameInput = intent.value.take(100)) }
@@ -73,7 +99,10 @@ class SyncOnboardingViewModel @Inject constructor(
             SyncOnboardingIntent.SubmitHousehold -> submitHousehold()
 
             SyncOnboardingIntent.Retry    -> upload(replaceLocal = lastSyncReplacedLocal)
-            SyncOnboardingIntent.Continue -> _uiState.update { it.copy(visible = false) }
+            SyncOnboardingIntent.Continue -> {
+                if (_uiState.value.welcome) finishWelcome(WelcomeResult.HOUSEHOLD_DATA)
+                else _uiState.update { it.copy(visible = false) }
+            }
         }
     }
 
@@ -117,10 +146,23 @@ class SyncOnboardingViewModel @Inject constructor(
     }
 
     private fun afterSignIn(hasHousehold: Boolean) {
-        _uiState.update { it.copy(isBusy = false, passwordInput = "", message = null) }
-        // Already in a household (e.g. set up on another phone): merge this phone's data into it
-        if (hasHousehold) upload(replaceLocal = false)
-        else _uiState.update { it.copy(step = SyncOnboardingStep.HOUSEHOLD) }
+        _uiState.update {
+            val defaultName = context.getString(R.string.sync_onboarding_default_household)
+            it.copy(
+                isBusy = false, passwordInput = "", message = null,
+                // Name the new household after the person who just registered
+                householdNameInput = if (it.isSignUp && it.nameInput.isNotBlank() && it.householdNameInput.let { n -> n.isBlank() || n == defaultName })
+                    context.getString(R.string.sync_onboarding_default_household_named, it.nameInput.trim())
+                else it.householdNameInput,
+            )
+        }
+        when {
+            // First launch: nothing on this phone yet, so take the household's data
+            hasHousehold && _uiState.value.welcome -> upload(replaceLocal = true)
+            // Already in a household (e.g. set up on another phone): merge this phone's data into it
+            hasHousehold -> upload(replaceLocal = false)
+            else -> _uiState.update { it.copy(step = SyncOnboardingStep.HOUSEHOLD) }
+        }
     }
 
     private fun submitHousehold() {
@@ -133,7 +175,9 @@ class SyncOnboardingViewModel @Inject constructor(
             result.fold(
                 onSuccess = {
                     _uiState.update { it.copy(isBusy = false) }
-                    upload(replaceLocal = state.joinWithCode)
+                    // A new household on first launch has nothing to upload yet: go on with the setup
+                    if (state.welcome && !state.joinWithCode) finishWelcome(WelcomeResult.NEW_HOUSEHOLD)
+                    else upload(replaceLocal = state.joinWithCode)
                 },
                 onFailure = ::showError,
             )
@@ -143,7 +187,12 @@ class SyncOnboardingViewModel @Inject constructor(
     /** The upload screen: real progress from the sync, shown for at least a moment. */
     private fun upload(replaceLocal: Boolean) {
         lastSyncReplacedLocal = replaceLocal
-        _uiState.update { it.copy(step = SyncOnboardingStep.SYNCING, stage = SyncStage.CONNECTING, progress = 0f, message = null) }
+        _uiState.update {
+            it.copy(
+                step = SyncOnboardingStep.SYNCING, stage = SyncStage.CONNECTING, progress = 0f, message = null,
+                downloading = replaceLocal,
+            )
+        }
 
         val startedAt = System.currentTimeMillis()
         var realProgress = 0f
@@ -183,6 +232,37 @@ class SyncOnboardingViewModel @Inject constructor(
                     }
                 },
             )
+        }
+    }
+
+    /**
+     * Ends the welcome flow: this phone's profile takes the account's name and email, so the
+     * profile step can be skipped.
+     */
+    private fun finishWelcome(result: WelcomeResult) {
+        val state = _uiState.value
+        if (state.isBusy || state.welcomeResult != null) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isBusy = true) }
+            val cloudEmail = repository.state.first().session?.email.orEmpty()
+            val email = cloudEmail.ifBlank { state.emailInput }
+            val name = state.nameInput.takeIf { state.isSignUp && it.isNotBlank() }
+                ?: repository.displayName()
+                ?: email.substringBefore('@')
+            runCatching {
+                val current = getUserProfileUseCase().first()
+                setUserProfileUseCase(
+                    UserProfile(
+                        name         = name.trim(),
+                        email        = email,
+                        targetAmount = current.targetAmount,
+                        createdAt    = current.createdAt ?: LocalDate.now(),
+                    )
+                )
+                // A new household still sets its target and accounts; that step marks the profile done
+                if (result == WelcomeResult.HOUSEHOLD_DATA) setProfileCreatedUseCase(true)
+            }.onFailure { Timber.e(it, "Could not save the profile after signing in") }
+            _uiState.update { it.copy(isBusy = false, welcomeResult = result) }
         }
     }
 

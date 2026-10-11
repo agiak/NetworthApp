@@ -109,6 +109,9 @@ class CloudRepository @Inject constructor(
 
     suspend fun syncNow(): Result<Unit> = syncManager.syncNow().map { }
 
+    /** The signed-in user's name from their cloud profile, or null. */
+    suspend fun displayName(): String? = cloudCall { client.displayName(requireSession()) }.getOrNull()
+
     /** Stops syncing; the data stays on this device. */
     suspend fun signOut() = withContext(ioDispatcher) {
         store.current().session?.let { client.signOut(it.accessToken) }

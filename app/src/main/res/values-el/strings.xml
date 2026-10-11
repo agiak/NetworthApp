@@ -713,6 +713,22 @@
     <string name="sync_onboarding_continue">Συνέχεια στην εφαρμογή</string>
     <string name="sync_onboarding_error_title">Κάτι δεν πήγε καλά</string>
     <string name="sync_onboarding_error_body">Δεν χάθηκε τίποτα: τα δεδομένα σου είναι ακόμα σε αυτό το κινητό. Δοκίμασε ξανά ή κάνε skip και συγχρόνισε αργότερα από τα Settings.</string>
+    <string name="welcome_title">Καλώς ήρθες στο NetWorth</string>
+    <string name="welcome_body">Συνδέσου για να φέρεις τα δεδομένα του νοικοκυριού σου σε αυτό το κινητό, ή φτιάξε λογαριασμό για να συγχρονίζονται παντού.</string>
+    <string name="welcome_feature_household">Ένα κοινό νοικοκυριό με την οικογένειά σου</string>
+    <string name="welcome_register">Δημιουργία λογαριασμού</string>
+    <string name="welcome_without_account">Συνέχεια χωρίς λογαριασμό</string>
+    <string name="welcome_sign_in_body">Συνδέσου και θα φέρουμε τα δεδομένα του νοικοκυριού σου σε αυτό το κινητό.</string>
+    <string name="welcome_register_body">Φτιάξε λογαριασμό για να έχεις τα δεδομένα σου σε όλα σου τα κινητά.</string>
+    <string name="welcome_create_household">Δημιουργία νοικοκυριού</string>
+    <string name="welcome_success_title">Όλα είναι εδώ! 🎉</string>
+    <string name="welcome_success_body">Τα δεδομένα του νοικοκυριού σου είναι σε αυτό το κινητό, και κάθε αλλαγή συνεχίζει να συγχρονίζεται μόνη της.</string>
+    <string name="welcome_error_body">Είσαι συνδεδεμένος: τα δεδομένα του νοικοκυριού θα έρθουν με τον επόμενο συγχρονισμό. Δοκίμασε ξανά ή κάνε skip για τώρα.</string>
+    <string name="sync_stage_download_checking">Βρίσκουμε τα δεδομένα του νοικοκυριού σου…</string>
+    <string name="sync_stage_download_accounts">Φέρνουμε τους λογαριασμούς σου…</string>
+    <string name="sync_stage_download_entries">Φέρνουμε το ιστορικό της καθαρής σου αξίας…</string>
+    <string name="sync_stage_download_expenses">Φέρνουμε τα πάγια έξοδά σου…</string>
+    <string name="sync_stage_download_categories">Φέρνουμε όσα έμαθε η Ανάλυση Εξόδων…</string>
     <string name="sync_onboarding_retry">Δοκίμασε ξανά</string>
     <string name="sync_onboarding_skip_for_now">Skip για τώρα</string>
 </resources>

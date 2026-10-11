@@ -103,8 +103,12 @@ data class SyncSummary(
     val entriesUploaded: Int = 0,
     val expensesUploaded: Int = 0,
     val categoriesUploaded: Int = 0,
-    /** Rows added, changed or deleted on this phone from other phones. */
-    val received: Int = 0,
+    // Rows added, changed or deleted on this phone from the household
+    val accountsReceived: Int = 0,
+    val entriesReceived: Int = 0,
+    val expensesReceived: Int = 0,
+    val categoriesReceived: Int = 0,
 ) {
     val uploaded: Int get() = accountsUploaded + entriesUploaded + expensesUploaded + categoriesUploaded
+    val received: Int get() = accountsReceived + entriesReceived + expensesReceived + categoriesReceived
 }

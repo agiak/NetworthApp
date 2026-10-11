@@ -283,7 +283,10 @@ class SyncManager @Inject constructor(
             entriesUploaded    = entries.pushed,
             expensesUploaded   = expenses.pushed,
             categoriesUploaded = categories.pushed,
-            received           = received,
+            accountsReceived   = accounts.received,
+            entriesReceived    = entries.received,
+            expensesReceived   = expenses.received,
+            categoriesReceived = categories.received,
         )
     }
 
