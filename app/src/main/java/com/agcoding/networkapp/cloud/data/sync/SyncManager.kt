@@ -368,7 +368,7 @@ class SyncManager @Inject constructor(
         fields = mapOf(
             Account.NAME             to name.trim().ifBlank { DEFAULT_ACCOUNT_NAME }.take(100),
             Account.STARTING_BALANCE to SyncFields.money(startingBalance),
-            Account.COLOR_HEX        to colorHex.takeIf { HEX_COLOR.matches(it) } ?: DEFAULT_COLOR,
+            Account.COLOR_HEX        to (colorHex.takeIf { HEX_COLOR.matches(it) } ?: DEFAULT_COLOR),
             Account.MONTHLY_SALARY   to SyncFields.money(monthlySalary.coerceAtLeast(0.0)),
         ),
     )
