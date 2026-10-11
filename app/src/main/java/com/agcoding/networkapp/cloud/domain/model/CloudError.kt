@@ -15,6 +15,8 @@ enum class CloudError {
     SESSION_EXPIRED,
     /** The temporary password email couldn't be sent. */
     EMAIL_SEND_FAILED,
+    /** Signing out would lose changes that couldn't be uploaded (e.g. offline). */
+    UNSYNCED_CHANGES,
     UNKNOWN,
 }
 

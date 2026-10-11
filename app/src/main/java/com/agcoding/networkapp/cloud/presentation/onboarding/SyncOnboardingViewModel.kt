@@ -56,6 +56,19 @@ class SyncOnboardingViewModel @Inject constructor(
             if (show) prefill()
             _uiState.update { it.copy(visible = show, decided = true) }
         }
+        // Signed out midway (e.g. from the "choose a new password" screen): back to the first page
+        viewModelScope.launch {
+            repository.state.collect { cloud ->
+                _uiState.update {
+                    if (it.welcome && cloud.session == null && it.welcomeResult == null &&
+                        it.step != SyncOnboardingStep.WELCOME && it.step != SyncOnboardingStep.ACCOUNT
+                    ) {
+                        progressJob?.cancel()
+                        it.copy(step = SyncOnboardingStep.WELCOME, isBusy = false, message = null)
+                    } else it
+                }
+            }
+        }
     }
 
     fun onIntent(intent: SyncOnboardingIntent) {
@@ -218,6 +231,8 @@ class SyncOnboardingViewModel @Inject constructor(
             // Let the bar and the messages play out even when the sync is instant
             delay((MIN_UPLOAD_SCREEN_MILLIS - (System.currentTimeMillis() - startedAt)).coerceAtLeast(0))
             progressJob?.cancel()
+            // Left the upload page meanwhile (signed out)
+            if (_uiState.value.step != SyncOnboardingStep.SYNCING) return@launch
             result.fold(
                 onSuccess = { summary ->
                     _uiState.update { it.copy(stage = SyncStage.DONE, progress = 1f) }

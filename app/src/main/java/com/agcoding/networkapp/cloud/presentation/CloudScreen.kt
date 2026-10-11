@@ -69,6 +69,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
 import com.agcoding.networkapp.cloud.domain.model.HouseholdMember
 import com.agcoding.networkapp.cloud.presentation.account.ForgotPasswordLink
+import com.agcoding.networkapp.cloud.presentation.account.SignOutButton
 import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
@@ -123,14 +124,14 @@ private fun CloudContent(
                     item { AuthCard(uiState, onIntent) }
                 }
                 CloudStep.NO_HOUSEHOLD -> {
-                    item { SignedInAs(uiState.email, onSignOut = { onIntent(CloudIntent.SignOut) }) }
+                    item { SignedInAs(uiState.email) }
                     item { CreateHouseholdCard(uiState, onIntent) }
                     item { JoinHouseholdCard(uiState, onIntent) }
                 }
                 CloudStep.CONNECTED -> {
                     item { SyncCard(uiState, onIntent) }
                     item { MembersCard(uiState, onIntent) }
-                    item { SignedInAs(uiState.email, onSignOut = { onIntent(CloudIntent.SignOut) }) }
+                    item { SignedInAs(uiState.email) }
                     item {
                         TextButton(onClick = { onIntent(CloudIntent.RequestLeave) }, enabled = !uiState.isBusy) {
                             Text(stringResource(R.string.cloud_leave), color = LocalAppColorScheme.current.statusError)
@@ -250,7 +251,7 @@ private fun AuthCard(uiState: CloudUiState, onIntent: (CloudIntent) -> Unit) {
 }
 
 @Composable
-private fun SignedInAs(email: String, onSignOut: () -> Unit) {
+private fun SignedInAs(email: String) {
     Row(modifier = Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = stringResource(R.string.cloud_signed_in_as, email),
@@ -258,7 +259,7 @@ private fun SignedInAs(email: String, onSignOut: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f),
         )
-        TextButton(onClick = onSignOut) { Text(stringResource(R.string.cloud_sign_out)) }
+        SignOutButton()
     }
 }
 

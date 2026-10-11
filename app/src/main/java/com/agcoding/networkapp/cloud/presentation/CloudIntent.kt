@@ -18,6 +18,5 @@ sealed interface CloudIntent {
     data object RequestLeave : CloudIntent
     data object ConfirmLeave : CloudIntent
     data object DismissLeave : CloudIntent
-    data object SignOut : CloudIntent
     data object ClearMessage : CloudIntent
 }

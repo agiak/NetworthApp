@@ -150,6 +150,20 @@ private fun AccountRow(
     }
 }
 
+// ── Sign out (Cloud screen) ─────────────────────────────────────────────────
+
+/** "Sign out" button with its confirmation. */
+@Composable
+fun SignOutButton(viewModel: AccountSecurityViewModel = hiltViewModel()) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    TextButton(onClick = { viewModel.onIntent(AccountSecurityIntent.Open(AccountDialog.SIGN_OUT)) }) {
+        Text(stringResource(R.string.cloud_sign_out))
+    }
+    if (state.dialog == AccountDialog.SIGN_OUT) {
+        SignOutDialog(state, viewModel::onIntent)
+    }
+}
+
 // ── Forgot password link (sign-in forms) ────────────────────────────────────
 
 /** "Forgot password?" under a sign-in form; opens the temporary password dialog. */
@@ -260,12 +274,18 @@ private fun SignOutDialog(state: AccountSecurityUiState, onIntent: (AccountSecur
     AlertDialog(
         onDismissRequest = { onIntent(AccountSecurityIntent.Dismiss) },
         title = { Text(stringResource(R.string.account_sign_out_title)) },
-        text = { Text(stringResource(R.string.account_sign_out_body), style = MaterialTheme.typography.bodyMedium) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(stringResource(R.string.account_sign_out_body), style = MaterialTheme.typography.bodyMedium)
+                DialogMessage(state)
+            }
+        },
         confirmButton = {
             DialogButton(
-                text = stringResource(R.string.cloud_sign_out),
+                text = stringResource(if (state.signOutNeedsForce) R.string.account_sign_out_anyway else R.string.cloud_sign_out),
                 enabled = !state.isBusy,
                 busy = state.isBusy,
+                color = if (state.signOutNeedsForce) LocalAppColorScheme.current.statusError else PositiveGreen,
                 onClick = { onIntent(AccountSecurityIntent.ConfirmSignOut) },
             )
         },

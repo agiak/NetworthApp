@@ -60,11 +60,6 @@ class CloudViewModel @Inject constructor(
                 _uiState.update { it.copy(confirmLeave = false) }
                 busy { repository.leaveHousehold().map { R.string.cloud_msg_left } }
             }
-            CloudIntent.SignOut               -> viewModelScope.launch {
-                repository.signOut()
-                _uiState.update { it.copy(passwordInput = "", members = emptyList()) }
-                loadedMembersFor = null
-            }
             CloudIntent.ClearMessage          -> _uiState.update { it.copy(message = null) }
         }
     }

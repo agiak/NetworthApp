@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.agcoding.networkapp.R
 import com.agcoding.networkapp.cloud.data.CloudRepository
+import com.agcoding.networkapp.cloud.domain.model.CloudError
+import com.agcoding.networkapp.cloud.domain.model.CloudException
+import com.agcoding.networkapp.cloud.domain.usecase.SignOutUseCase
 import com.agcoding.networkapp.cloud.presentation.cloudMessageRes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AccountSecurityViewModel @Inject constructor(
     private val repository: CloudRepository,
+    private val signOutUseCase: SignOutUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AccountSecurityUiState())
@@ -42,7 +46,7 @@ class AccountSecurityViewModel @Inject constructor(
                     dialog = intent.dialog,
                     currentPasswordInput = "", newPasswordInput = "", confirmPasswordInput = "",
                     forgotEmailInput = intent.email.ifBlank { it.email.orEmpty() },
-                    forgotSent = false, message = null,
+                    forgotSent = false, signOutNeedsForce = false, message = null,
                 )
             }
             AccountSecurityIntent.Dismiss -> _uiState.update {
@@ -95,9 +99,22 @@ class AccountSecurityViewModel @Inject constructor(
     }
 
     private fun signOut() {
+        // Asked again after a failed upload: sign out anyway
+        val force = _uiState.value.signOutNeedsForce
         busy {
-            repository.signOut()
-            _uiState.update { it.copy(isBusy = false, dialog = null, message = R.string.account_signed_out, messageIsError = false) }
+            signOutUseCase(force).fold(
+                onSuccess = {
+                    _uiState.update {
+                        it.copy(isBusy = false, dialog = null, signOutNeedsForce = false, message = R.string.account_signed_out, messageIsError = false)
+                    }
+                },
+                onFailure = { error ->
+                    showError(error)
+                    if ((error as? CloudException)?.error == CloudError.UNSYNCED_CHANGES) {
+                        _uiState.update { it.copy(signOutNeedsForce = true) }
+                    }
+                },
+            )
         }
     }
 

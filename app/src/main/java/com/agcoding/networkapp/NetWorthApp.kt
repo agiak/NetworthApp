@@ -11,6 +11,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -113,6 +116,17 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
             } else {
                 val navController = rememberNavController()
                 val currentDest = navController.currentBackStackEntryAsState().value?.destination
+
+                // Signed out: the profile was reset, so start over from the sign in / register page
+                var wasProfileCreated by remember { mutableStateOf(isProfileCreated) }
+                LaunchedEffect(isProfileCreated) {
+                    if (wasProfileCreated == true && isProfileCreated == false) {
+                        navController.navigate(WelcomeRoute) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    }
+                    wasProfileCreated = isProfileCreated
+                }
 
                 // Navigate to AddSnapshotRoute when the shortcut fires
                 val pendingShortcut by ShortcutEventBus.pendingEvent.collectAsStateWithLifecycle()

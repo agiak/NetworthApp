@@ -178,6 +178,29 @@ class SyncManager @Inject constructor(
         }
     }
 
+    /**
+     * After signing out: this phone's copy of the household's data goes (it's safe in the cloud),
+     * together with the sync links and anything still queued.
+     */
+    suspend fun clearLocalData() = withContext(ioDispatcher) {
+        mutex.withLock {
+            pending?.cancel()
+            db.withTransaction {
+                netWorthDao.deleteAllEntries()
+                fixedExpenseDao.deleteAll()
+                categoryFeedbackDao.deleteAll()
+                accountDao.deleteAll()
+                linkDao.clear()
+            }
+            store.saveLinksHouseholdId(null)
+            store.savePendingChanges(false)
+            _hasPendingChanges.value = false
+            _progress.value = null
+            _status.value = SyncStatus.Idle
+        }
+        refreshWidgets()
+    }
+
     /** Before syncing with [householdId]: links to another household's rows mean nothing there. */
     suspend fun prepareFor(householdId: String) {
         if (store.linksHouseholdId() != householdId) {

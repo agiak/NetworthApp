@@ -22,5 +22,6 @@ internal fun CloudError.messageRes(): Int = when (this) {
     CloudError.INVALID_INVITE      -> R.string.cloud_error_invalid_invite
     CloudError.SESSION_EXPIRED     -> R.string.cloud_error_session_expired
     CloudError.EMAIL_SEND_FAILED   -> R.string.cloud_error_email_send_failed
+    CloudError.UNSYNCED_CHANGES    -> R.string.cloud_error_unsynced_changes
     CloudError.UNKNOWN             -> R.string.cloud_error_unknown
 }

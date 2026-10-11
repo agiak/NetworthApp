@@ -17,6 +17,8 @@ data class AccountSecurityUiState(
     val forgotEmailInput: String = "",
     /** The temporary password email went out (or would have, for an unknown email). */
     val forgotSent: Boolean = false,
+    /** Signing out couldn't upload everything first; confirming again signs out anyway. */
+    val signOutNeedsForce: Boolean = false,
 
     val isBusy: Boolean = false,
     @StringRes val message: Int? = null,

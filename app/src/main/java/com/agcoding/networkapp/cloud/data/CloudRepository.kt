@@ -163,10 +163,19 @@ class CloudRepository @Inject constructor(
     /** The signed-in user's name from their cloud profile, or null. */
     suspend fun displayName(): String? = cloudCall { client.displayName(requireSession()) }.getOrNull()
 
-    /** Stops syncing; the data stays on this device. */
-    suspend fun signOut() = withContext(ioDispatcher) {
+    /**
+     * Signs out and removes this phone's copy of the household's data. Changes not uploaded yet
+     * go up first; if that fails it stops with [CloudError.UNSYNCED_CHANGES], unless [force].
+     */
+    suspend fun signOut(force: Boolean = false): Result<Unit> = withContext(ioDispatcher) {
+        if (store.current().isSyncing && syncManager.hasPendingChanges.value) {
+            val uploaded = syncManager.syncNow().isSuccess
+            if (!uploaded && !force) return@withContext Result.failure(CloudException(CloudError.UNSYNCED_CHANGES))
+        }
         store.current().session?.let { client.signOut(it.accessToken) }
         store.clearSession()
+        syncManager.clearLocalData()
+        Result.success(Unit)
     }
 
     /** Leaves the household; the data stays on this device. */
