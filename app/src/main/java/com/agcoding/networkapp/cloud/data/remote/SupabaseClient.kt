@@ -73,6 +73,39 @@ class SupabaseClient @Inject constructor() {
         return rows.getJSONObject(0).optString("display_name").takeIf { it.isNotBlank() && it != "null" }
     }
 
+    /** Emails a temporary password to [email] if it has an account (the answer doesn't say). */
+    fun requestTempPassword(email: String, language: String) {
+        val body = JSONObject().put("action", "request").put("email", email).put("lang", language)
+        call("POST", "/functions/v1/password-reset", body.toString())
+    }
+
+    /**
+     * Whether [password] is the temporary password emailed to [email]; if it is, it has just
+     * become the account's password (and the account is marked to choose a new one).
+     */
+    fun redeemTempPassword(email: String, password: String): Boolean {
+        val body = JSONObject().put("action", "redeem").put("email", email).put("password", password)
+        return try {
+            call("POST", "/functions/v1/password-reset", body.toString())
+            true
+        } catch (e: SupabaseException) {
+            if (e.status == 400) false else throw e
+        }
+    }
+
+    /** Sets a new password; it also clears the "choose a new password" mark. */
+    fun changePassword(session: CloudSession, newPassword: String) {
+        val body = JSONObject()
+            .put("password", newPassword)
+            .put("data", JSONObject().put("must_change_password", false))
+        call("PUT", "/auth/v1/user", body.toString(), session.accessToken)
+    }
+
+    /** Deletes the account; households only this user is in go with it. */
+    fun deleteAccount(session: CloudSession) {
+        call("POST", "/functions/v1/delete-account", "{}", session.accessToken)
+    }
+
     /** Best effort: the local session is dropped either way. */
     fun signOut(accessToken: String) {
         runCatching { call("POST", "/auth/v1/logout", "{}", accessToken) }
@@ -240,6 +273,7 @@ class SupabaseClient @Inject constructor() {
             expiresAt    = expiresAt,
             userId       = user.getString("id"),
             email        = user.optString("email"),
+            mustChangePassword = user.optJSONObject("user_metadata")?.optBoolean("must_change_password", false) ?: false,
         )
     }
 

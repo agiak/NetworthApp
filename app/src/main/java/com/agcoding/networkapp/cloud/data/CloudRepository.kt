@@ -3,6 +3,7 @@ package com.agcoding.networkapp.cloud.data
 import com.agcoding.networkapp.cloud.data.local.SyncLinkDao
 import com.agcoding.networkapp.cloud.data.network.NetworkMonitor
 import com.agcoding.networkapp.cloud.data.remote.SupabaseClient
+import com.agcoding.networkapp.cloud.data.remote.SupabaseException
 import com.agcoding.networkapp.cloud.data.session.CloudSessionStore
 import com.agcoding.networkapp.cloud.data.sync.SyncManager
 import com.agcoding.networkapp.cloud.domain.model.CloudConnectionStatus
@@ -20,6 +21,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,8 +68,57 @@ class CloudRepository @Inject constructor(
      * @return whether the user already belongs to a household
      */
     suspend fun signIn(email: String, password: String, syncAfter: Boolean = true): Result<Boolean> = cloudCall {
-        val session = client.signIn(email.trim(), password)
-        connect(session, syncAfter)
+        connect(signInOrRedeem(email.trim(), password), syncAfter)
+    }
+
+    /**
+     * Signs in; when the password is wrong it may be the temporary one from "forgot password",
+     * which then becomes the password (the session is marked to choose a new one).
+     */
+    private fun signInOrRedeem(email: String, password: String): CloudSession = try {
+        client.signIn(email, password)
+    } catch (e: SupabaseException) {
+        val redeemed = e.code == "invalid_credentials" &&
+            runCatching { client.redeemTempPassword(email, password) }.getOrDefault(false)
+        if (!redeemed) throw e
+        client.signIn(email, password)
+    }
+
+    /** "Forgot password": emails a temporary password to sign in with. */
+    suspend fun requestTempPassword(email: String, language: String): Result<Unit> = cloudCall {
+        client.requestTempPassword(email.trim(), language)
+    }
+
+    /** Whether the signed-in user has to choose a new password (signed in with a temporary one). */
+    val mustChangePassword: Flow<Boolean> = store.state.map { it.session?.mustChangePassword == true }
+
+    /**
+     * Sets a new password. [currentPassword] is checked first, unless the user just signed in
+     * with a temporary password.
+     */
+    suspend fun changePassword(currentPassword: String?, newPassword: String): Result<Unit> = cloudCall {
+        val session = if (currentPassword != null) {
+            val email = store.current().session?.email ?: throw CloudException(CloudError.SESSION_EXPIRED)
+            client.signIn(email, currentPassword).also { store.saveSession(it) }
+        } else {
+            requireSession()
+        }
+        client.changePassword(session, newPassword)
+        store.saveSession(session.copy(mustChangePassword = false))
+    }
+
+    /**
+     * Deletes the cloud account after checking [password]. Households only this user is in are
+     * deleted with their data; the data on this phone stays and it stops syncing.
+     */
+    suspend fun deleteAccount(password: String): Result<Unit> = cloudCall {
+        val email = store.current().session?.email ?: throw CloudException(CloudError.SESSION_EXPIRED)
+        val session = client.signIn(email, password)
+        client.deleteAccount(session)
+        store.clearSession()
+        store.saveLinksHouseholdId(null)
+        store.savePendingChanges(false)
+        linkDao.clear()
     }
 
     /** Creates the account (no email verification) and signs in; same result as [signIn]. */

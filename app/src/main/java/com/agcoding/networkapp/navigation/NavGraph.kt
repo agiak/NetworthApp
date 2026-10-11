@@ -254,6 +254,7 @@ fun NavGraph(
                 isSetup   = false,
                 onComplete = { navController.navigateUp() },
                 onBack    = { navController.navigateUp() },
+                onOpenCloud = { navController.navigate(CloudRoute) },
             )
         }
 

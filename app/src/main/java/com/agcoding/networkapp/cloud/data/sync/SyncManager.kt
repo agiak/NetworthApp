@@ -460,6 +460,8 @@ class SyncManager @Inject constructor(
                     error.code == "email_not_confirmed"                                 -> CloudError.EMAIL_NOT_CONFIRMED
                     error.code == "user_already_exists" || error.code == "email_exists" -> CloudError.USER_EXISTS
                     error.code == "weak_password"                                       -> CloudError.WEAK_PASSWORD
+                    error.code == "same_password"                                       -> CloudError.SAME_PASSWORD
+                    error.code == "email_send_failed"                                   -> CloudError.EMAIL_SEND_FAILED
                     error.code == "email_address_invalid" || error.code == "validation_failed" -> CloudError.INVALID_EMAIL
                     error.code?.startsWith("over_") == true || error.status == 429      -> CloudError.RATE_LIMITED
                     error.code == "P0002"                                               -> CloudError.INVALID_INVITE

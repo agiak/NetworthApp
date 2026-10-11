@@ -7,10 +7,14 @@ enum class CloudError {
     EMAIL_NOT_CONFIRMED,
     USER_EXISTS,
     WEAK_PASSWORD,
+    /** The new password is the same as the current one. */
+    SAME_PASSWORD,
     INVALID_EMAIL,
     RATE_LIMITED,
     INVALID_INVITE,
     SESSION_EXPIRED,
+    /** The temporary password email couldn't be sent. */
+    EMAIL_SEND_FAILED,
     UNKNOWN,
 }
 

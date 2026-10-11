@@ -1,6 +1,8 @@
 package com.agcoding.networkapp.settings.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
+import com.agcoding.networkapp.cloud.presentation.account.CloudAccountSection
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,6 +38,8 @@ fun ProfileScreen(
     isSetup: Boolean,
     onComplete: () -> Unit,
     onBack: (() -> Unit)? = null,
+    /** Opens the Cloud screen to sign in (edit mode only). */
+    onOpenCloud: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -65,6 +70,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .then(if (isSetup) Modifier else Modifier.verticalScroll(rememberScrollState()))
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -136,7 +142,11 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            if (isSetup) {
+                Spacer(modifier = Modifier.weight(1f))
+            } else {
+                Spacer(modifier = Modifier.height(32.dp))
+            }
 
             Button(
                 onClick = { viewModel.onSave(isSetup) },
@@ -159,6 +169,12 @@ fun ProfileScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
+            }
+
+            if (!isSetup) {
+                Spacer(modifier = Modifier.height(32.dp))
+                CloudAccountSection(onOpenCloud = onOpenCloud)
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

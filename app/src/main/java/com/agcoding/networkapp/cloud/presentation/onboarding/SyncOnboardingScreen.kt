@@ -63,6 +63,7 @@ import com.agcoding.networkapp.cloud.domain.model.SyncStage
 import com.agcoding.networkapp.cloud.domain.model.SyncSummary
 import com.agcoding.networkapp.cloud.presentation.CloudField
 import com.agcoding.networkapp.cloud.presentation.PrimaryButton
+import com.agcoding.networkapp.cloud.presentation.account.ForgotPasswordLink
 import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
@@ -258,6 +259,11 @@ private fun AccountPage(state: SyncOnboardingUiState, onIntent: (SyncOnboardingI
                 isPassword = true,
                 supportingText = if (state.isSignUp) stringResource(R.string.cloud_password_hint, SyncOnboardingUiState.MIN_PASSWORD) else null,
             )
+        }
+        if (!state.isSignUp) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                ForgotPasswordLink(email = state.emailInput)
+            }
         }
         Message(state)
     }

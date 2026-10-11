@@ -35,6 +35,7 @@ class CloudSessionStore @Inject constructor(
                 expiresAt    = prefs[EXPIRES_AT] ?: 0L,
                 userId       = prefs[USER_ID].orEmpty(),
                 email        = prefs[EMAIL].orEmpty(),
+                mustChangePassword = prefs[MUST_CHANGE_PASSWORD] ?: false,
             )
         }
         val household = prefs[HOUSEHOLD_ID]?.let { id ->
@@ -52,6 +53,7 @@ class CloudSessionStore @Inject constructor(
             it[EXPIRES_AT] = session.expiresAt
             it[USER_ID] = session.userId
             it[EMAIL] = session.email
+            it[MUST_CHANGE_PASSWORD] = session.mustChangePassword
         }
     }
 
@@ -114,6 +116,7 @@ class CloudSessionStore @Inject constructor(
         val EXPIRES_AT = longPreferencesKey("expires_at")
         val USER_ID = stringPreferencesKey("user_id")
         val EMAIL = stringPreferencesKey("email")
+        val MUST_CHANGE_PASSWORD = booleanPreferencesKey("must_change_password")
         val HOUSEHOLD_ID = stringPreferencesKey("household_id")
         val HOUSEHOLD_NAME = stringPreferencesKey("household_name")
         val HOUSEHOLD_ROLE = stringPreferencesKey("household_role")

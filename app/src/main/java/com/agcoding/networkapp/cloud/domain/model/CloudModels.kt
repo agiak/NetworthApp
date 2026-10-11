@@ -7,6 +7,8 @@ data class CloudSession(
     val expiresAt: Long,
     val userId: String,
     val email: String,
+    /** Signed in with a temporary password: a new one has to be chosen before going on. */
+    val mustChangePassword: Boolean = false,
 ) {
     fun expiresSoon(nowSeconds: Long): Boolean = expiresAt - nowSeconds < REFRESH_MARGIN_SECONDS
 

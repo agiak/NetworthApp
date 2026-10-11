@@ -20,6 +20,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.agcoding.networkapp.biometric.presentation.lock.LockScreen
 import com.agcoding.networkapp.biometric.presentation.lock.LockViewModel
+import com.agcoding.networkapp.cloud.presentation.account.AccountSecurityViewModel
+import com.agcoding.networkapp.cloud.presentation.account.ForcedPasswordChangeScreen
 import com.agcoding.networkapp.cloud.presentation.onboarding.SyncOnboardingScreen
 import com.agcoding.networkapp.cloud.presentation.onboarding.SyncOnboardingViewModel
 import com.agcoding.networkapp.navigation.NavGraph
@@ -93,66 +95,77 @@ fun NetWorthApp(appViewModel: AppViewModel = hiltViewModel()) {
         val syncOnboardingVm = if (!requireLock && setupFinished) hiltViewModel<SyncOnboardingViewModel>() else null
         val syncOnboarding = syncOnboardingVm?.uiState?.collectAsStateWithLifecycle()?.value
 
-        if (requireLock) {
-            val lockVm: LockViewModel = hiltViewModel()
-            val lockState by lockVm.uiState.collectAsStateWithLifecycle()
-            LockScreen(state = lockState, onIntent = lockVm::onIntent)
-        } else if (syncOnboardingVm != null && syncOnboarding?.visible == true) {
-            SyncOnboardingScreen(state = syncOnboarding, onIntent = syncOnboardingVm::onIntent)
-        } else if (syncOnboardingVm != null && syncOnboarding?.decided == false) {
-            // A moment while it checks whether the data is synced, so the app doesn't flash first
-            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
-        } else {
-            val navController = rememberNavController()
-            val currentDest = navController.currentBackStackEntryAsState().value?.destination
+        // Signed in with a temporary password: a new one before anything else (over the app,
+        // so whatever is underneath, e.g. the first-launch download, keeps going)
+        val accountVm: AccountSecurityViewModel = hiltViewModel()
+        val accountState by accountVm.uiState.collectAsStateWithLifecycle()
 
-            // Navigate to AddSnapshotRoute when the shortcut fires
-            val pendingShortcut by ShortcutEventBus.pendingEvent.collectAsStateWithLifecycle()
-            LaunchedEffect(pendingShortcut) {
-                if (pendingShortcut == ShortcutEvent.AddSnapshot && isProfileCreated == true && hasSeenSecuritySetup) {
-                    navController.navigate(AddSnapshotRoute)
-                    ShortcutEventBus.consume()
+        Box(Modifier.fillMaxSize()) {
+            if (requireLock) {
+                val lockVm: LockViewModel = hiltViewModel()
+                val lockState by lockVm.uiState.collectAsStateWithLifecycle()
+                LockScreen(state = lockState, onIntent = lockVm::onIntent)
+            } else if (syncOnboardingVm != null && syncOnboarding?.visible == true) {
+                SyncOnboardingScreen(state = syncOnboarding, onIntent = syncOnboardingVm::onIntent)
+            } else if (syncOnboardingVm != null && syncOnboarding?.decided == false) {
+                // A moment while it checks whether the data is synced, so the app doesn't flash first
+                Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+            } else {
+                val navController = rememberNavController()
+                val currentDest = navController.currentBackStackEntryAsState().value?.destination
+
+                // Navigate to AddSnapshotRoute when the shortcut fires
+                val pendingShortcut by ShortcutEventBus.pendingEvent.collectAsStateWithLifecycle()
+                LaunchedEffect(pendingShortcut) {
+                    if (pendingShortcut == ShortcutEvent.AddSnapshot && isProfileCreated == true && hasSeenSecuritySetup) {
+                        navController.navigate(AddSnapshotRoute)
+                        ShortcutEventBus.consume()
+                    }
+                }
+
+                val showBottomBar = currentDest?.let { d ->
+                    !d.hasRoute<AccountDetailRoute>() &&
+                    !d.hasRoute<AccountSetupRoute>() &&
+                    !d.hasRoute<AddSnapshotRoute>() &&
+                    !d.hasRoute<AllMonthsRoute>() &&
+                    !d.hasRoute<CreateAccountRoute>() &&
+                    !d.hasRoute<CompareRoute>() &&
+                    !d.hasRoute<EditEntryRoute>() &&
+                    !d.hasRoute<EntryDetailsRoute>() &&
+                    !d.hasRoute<FixedExpensesRoute>() &&
+                    !d.hasRoute<GoalRoute>() &&
+                    !d.hasRoute<HistoryRoute>() &&
+                    !d.hasRoute<OnboardingRoute>() &&
+                    !d.hasRoute<PredictionRoute>() &&
+                    !d.hasRoute<ProfileEditRoute>() &&
+                    !d.hasRoute<ProfileSetupRoute>() &&
+                    !d.hasRoute<ProfileTargetSetupRoute>() &&
+                    !d.hasRoute<RecapRoute>() &&
+                    !d.hasRoute<SavingsPlannerRoute>() &&
+                    !d.hasRoute<SavingsCalculatorRoute>() &&
+                    !d.hasRoute<ExpenseAnalysisRoute>() &&
+                    !d.hasRoute<ScenarioRoute>() &&
+                    !d.hasRoute<CloudRoute>() &&
+                    !d.hasRoute<SecuritySetupRoute>() &&
+                    !d.hasRoute<WelcomeRoute>()
+                } ?: true
+
+                Scaffold(
+                    bottomBar = { if (showBottomBar) BottomNavigationBar(navController) }
+                ) { padding ->
+                    Box(Modifier.padding(padding)) {
+                        NavGraph(
+                            navController        = navController,
+                            isProfileCreated     = isProfileCreated!!,
+                            hasSeenOnboarding    = hasSeenOnboarding,
+                            hasSeenSecuritySetup = hasSeenSecuritySetup,
+                        )
+                    }
                 }
             }
 
-            val showBottomBar = currentDest?.let { d ->
-                !d.hasRoute<AccountDetailRoute>() &&
-                !d.hasRoute<AccountSetupRoute>() &&
-                !d.hasRoute<AddSnapshotRoute>() &&
-                !d.hasRoute<AllMonthsRoute>() &&
-                !d.hasRoute<CreateAccountRoute>() &&
-                !d.hasRoute<CompareRoute>() &&
-                !d.hasRoute<EditEntryRoute>() &&
-                !d.hasRoute<EntryDetailsRoute>() &&
-                !d.hasRoute<FixedExpensesRoute>() &&
-                !d.hasRoute<GoalRoute>() &&
-                !d.hasRoute<HistoryRoute>() &&
-                !d.hasRoute<OnboardingRoute>() &&
-                !d.hasRoute<PredictionRoute>() &&
-                !d.hasRoute<ProfileEditRoute>() &&
-                !d.hasRoute<ProfileSetupRoute>() &&
-                !d.hasRoute<ProfileTargetSetupRoute>() &&
-                !d.hasRoute<RecapRoute>() &&
-                !d.hasRoute<SavingsPlannerRoute>() &&
-                !d.hasRoute<SavingsCalculatorRoute>() &&
-                !d.hasRoute<ExpenseAnalysisRoute>() &&
-                !d.hasRoute<ScenarioRoute>() &&
-                !d.hasRoute<CloudRoute>() &&
-                !d.hasRoute<SecuritySetupRoute>() &&
-                !d.hasRoute<WelcomeRoute>()
-            } ?: true
-
-            Scaffold(
-                bottomBar = { if (showBottomBar) BottomNavigationBar(navController) }
-            ) { padding ->
-                Box(Modifier.padding(padding)) {
-                    NavGraph(
-                        navController        = navController,
-                        isProfileCreated     = isProfileCreated!!,
-                        hasSeenOnboarding    = hasSeenOnboarding,
-                        hasSeenSecuritySetup = hasSeenSecuritySetup,
-                    )
-                }
+            if (!requireLock && accountState.mustChangePassword) {
+                ForcedPasswordChangeScreen(state = accountState, onIntent = accountVm::onIntent)
             }
         }
     }

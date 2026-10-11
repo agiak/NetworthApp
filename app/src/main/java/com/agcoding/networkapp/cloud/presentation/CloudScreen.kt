@@ -68,6 +68,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agcoding.networkapp.R
 import com.agcoding.networkapp.cloud.domain.model.HouseholdMember
+import com.agcoding.networkapp.cloud.presentation.account.ForgotPasswordLink
 import com.agcoding.networkapp.shared.ui.theme.LocalAppColorScheme
 import com.agcoding.networkapp.shared.ui.theme.NetWorthTheme
 import com.agcoding.networkapp.shared.ui.theme.PositiveGreen
@@ -234,6 +235,11 @@ private fun AuthCard(uiState: CloudUiState, onIntent: (CloudIntent) -> Unit) {
             isPassword = true,
             supportingText = if (uiState.isSignUp) stringResource(R.string.cloud_password_hint, CloudUiState.MIN_PASSWORD) else null,
         )
+        if (!uiState.isSignUp) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                ForgotPasswordLink(email = uiState.emailInput)
+            }
+        }
         PrimaryButton(
             text = stringResource(if (uiState.isSignUp) R.string.cloud_sign_up else R.string.cloud_sign_in),
             enabled = uiState.canSubmitAuth,
