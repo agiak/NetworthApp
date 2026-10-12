@@ -13,6 +13,13 @@ Project **NetworthApp** (`hjobtzpaqxehngjgfhfr`, eu-central-1). The app talks to
 4. `auto_confirm_email` — new users are marked confirmed as they are created
 5. `account_deletion_and_password_reset` — deleting a user deletes the households only they
    belong to (shared ones pass ownership on); temporary passwords for "forgot password"
+6. `keep_alive` — `public.keep_alive()` writes a heartbeat row in `private.keep_alive`
+
+Free projects are paused after a week without activity. The GitHub Action
+`.github/workflows/supabase-keep-alive.yml` calls `keep_alive()` every day at 06:17 UTC with the
+publishable key (it can only bump that one row), so the project never goes idle. The app doesn't
+take part. To check it: Actions tab → "Supabase keep-alive", or
+`select * from private.keep_alive`. A failed run gets an email from GitHub.
 
 Sign-up has no email verification: the app calls the `signup` edge function
 (`functions/signup`, deployed without JWT verification since it is the public sign-up), which
