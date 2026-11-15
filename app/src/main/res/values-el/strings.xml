@@ -765,4 +765,17 @@
     <string name="sync_stage_download_categories">Φέρνουμε όσα έμαθε η Ανάλυση Εξόδων…</string>
     <string name="sync_onboarding_retry">Δοκίμασε ξανά</string>
     <string name="sync_onboarding_skip_for_now">Skip για τώρα</string>
+    <!-- Υπολογιστής φόρου Ε.Ε. -->
+    <string name="tax_calc_title">Φόρος Ε.Ε.</string>
+    <string name="tax_calc_settings_subtitle">Τζίρος μείον έξοδα, φόρος 22% στα κέρδη</string>
+    <string name="tax_calc_turnover">Ετήσιος τζίρος</string>
+    <string name="tax_calc_expenses">Ετήσια έξοδα</string>
+    <string name="tax_calc_empty_hint">Βάλε τον ετήσιο τζίρο και τα έξοδα της εταιρείας για να δεις τον φόρο στα κέρδη.</string>
+    <string name="tax_calc_tax_due">Φόρος που θα πληρώσεις</string>
+    <string name="tax_calc_monthly_reserve">Για να τον καλύψεις, βάζε στην άκρη %1$s τον μήνα</string>
+    <string name="tax_calc_loss">Ζημία %1$s: δεν οφείλεται φόρος εισοδήματος</string>
+    <string name="tax_calc_profit">Κέρδη</string>
+    <string name="tax_calc_tax_line">Φόρος %1$d%%</string>
+    <string name="tax_calc_profit_after_tax">Κέρδη μετά τον φόρο</string>
+    <string name="tax_calc_note">Εκτίμηση του φόρου εισοδήματος %1$d%% στα κέρδη της εταιρείας. Δεν περιλαμβάνει την προκαταβολή φόρου, τον ΦΠΑ ή τις ασφαλιστικές εισφορές.</string>
 </resources>

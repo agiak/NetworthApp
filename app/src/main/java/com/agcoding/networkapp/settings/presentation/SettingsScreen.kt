@@ -83,6 +83,7 @@ fun SettingsScreen(
     onNavigateToSavingsCalculator: () -> Unit,
     onNavigateToExpenseAnalysis: () -> Unit,
     onNavigateToScenario: () -> Unit,
+    onNavigateToTaxCalculator: () -> Unit,
     onNavigateToCloud: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
     cloudStatusViewModel: CloudStatusViewModel = hiltViewModel(),
@@ -99,6 +100,7 @@ fun SettingsScreen(
                 SettingsIntent.NavigateToSavingsCalculator -> onNavigateToSavingsCalculator()
                 SettingsIntent.NavigateToExpenseAnalysis -> onNavigateToExpenseAnalysis()
                 SettingsIntent.NavigateToScenario -> onNavigateToScenario()
+                SettingsIntent.NavigateToTaxCalculator -> onNavigateToTaxCalculator()
                 SettingsIntent.NavigateToCloud -> onNavigateToCloud()
                 SettingsIntent.NavigateToOnboarding    -> onNavigateToOnboarding()
                 SettingsIntent.NavigateToProfileEdit   -> onNavigateToProfileEdit()
@@ -360,6 +362,13 @@ private fun SettingsContent(
                             title = stringResource(R.string.scenario_title),
                             description = stringResource(R.string.scenario_settings_subtitle),
                             onClick = { onIntent(SettingsIntent.NavigateToScenario) },
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                        NavigationRow(
+                            icon = "🧾",
+                            title = stringResource(R.string.tax_calc_title),
+                            description = stringResource(R.string.tax_calc_settings_subtitle),
+                            onClick = { onIntent(SettingsIntent.NavigateToTaxCalculator) },
                         )
                     }
                 }

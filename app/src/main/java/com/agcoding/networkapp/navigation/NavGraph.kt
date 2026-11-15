@@ -38,6 +38,7 @@ import com.agcoding.networkapp.cloud.presentation.onboarding.SyncOnboardingScree
 import com.agcoding.networkapp.cloud.presentation.onboarding.SyncOnboardingViewModel
 import com.agcoding.networkapp.cloud.presentation.onboarding.WelcomeResult
 import com.agcoding.networkapp.savings.presentation.calculator.SavingsCalculatorScreen
+import com.agcoding.networkapp.tax.presentation.TaxCalculatorScreen
 import com.agcoding.networkapp.settings.presentation.ProfileScreen
 import com.agcoding.networkapp.settings.presentation.ProfileTargetSetupScreen
 import com.agcoding.networkapp.settings.presentation.SettingsScreen
@@ -63,6 +64,7 @@ import com.agcoding.networkapp.shared.navigation.ProfileTargetSetupRoute
 import com.agcoding.networkapp.shared.navigation.RecapRoute
 import com.agcoding.networkapp.shared.navigation.ExpenseAnalysisRoute
 import com.agcoding.networkapp.shared.navigation.SavingsCalculatorRoute
+import com.agcoding.networkapp.shared.navigation.TaxCalculatorRoute
 import com.agcoding.networkapp.shared.navigation.ScenarioRoute
 import com.agcoding.networkapp.shared.navigation.CloudRoute
 import com.agcoding.networkapp.shared.navigation.SavingsPlannerRoute
@@ -269,7 +271,12 @@ fun NavGraph(
                 onNavigateToExpenseAnalysis = { navController.navigate(ExpenseAnalysisRoute) },
                 onNavigateToScenario = { navController.navigate(ScenarioRoute) },
                 onNavigateToCloud = { navController.navigate(CloudRoute) },
+                onNavigateToTaxCalculator = { navController.navigate(TaxCalculatorRoute) },
             )
+        }
+
+        composable<TaxCalculatorRoute> {
+            TaxCalculatorScreen(onNavigateBack = { navController.navigateUp() })
         }
 
         composable<FixedExpensesRoute> {

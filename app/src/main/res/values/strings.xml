@@ -765,4 +765,17 @@
     <string name="sync_stage_download_categories">Bringing what Expense Analysis has learned…</string>
     <string name="sync_onboarding_retry">Try again</string>
     <string name="sync_onboarding_skip_for_now">Skip for now</string>
+    <!-- Tax calculator (Greek partnership, Ε.Ε.) -->
+    <string name="tax_calc_title">Partnership Tax (EE)</string>
+    <string name="tax_calc_settings_subtitle">Turnover minus expenses, 22% tax on the profit</string>
+    <string name="tax_calc_turnover">Annual turnover</string>
+    <string name="tax_calc_expenses">Annual expenses</string>
+    <string name="tax_calc_empty_hint">Enter the company\'s annual turnover and expenses to see the tax on its profit.</string>
+    <string name="tax_calc_tax_due">Tax to pay</string>
+    <string name="tax_calc_monthly_reserve">To cover it, set aside %1$s a month</string>
+    <string name="tax_calc_loss">Loss of %1$s: no income tax is due</string>
+    <string name="tax_calc_profit">Profit</string>
+    <string name="tax_calc_tax_line">Tax %1$d%%</string>
+    <string name="tax_calc_profit_after_tax">Profit after tax</string>
+    <string name="tax_calc_note">An estimate of the %1$d%% income tax on the company\'s profit. It doesn\'t include the tax advance, VAT or social security contributions.</string>
 </resources>
